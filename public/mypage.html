@@ -83,6 +83,7 @@
   <div id="topbar-actions">
     <select id="lang-switcher" class="lang-switcher"></select>
     <a id="login-link" href="#" data-i18n="common.login">ログイン</a>
+    <a id="logout-link" href="#" data-i18n="common.logout" hidden>ログアウト</a>
   </div>
 </div>
 <h1 data-i18n="mypage.h1">マイページ</h1>
@@ -107,7 +108,7 @@
 </div>
 
 <script type="module">
-import { getUserId, bootstrapAuth, googleLoginUrl } from './auth.js';
+import { getUserId, bootstrapAuth, googleLoginUrl, logout } from './auth.js';
 import { t, applyI18n, initLangSwitcher } from './i18n.js';
 
 applyI18n();
@@ -143,8 +144,10 @@ async function load() {
   if (r.session) {
     $('login-link').textContent = r.session.display_name || t('common.login_active_fallback');
     $('login-link').removeAttribute('href');
+    $('logout-link').hidden = false;
   } else {
     $('login-link').href = googleLoginUrl(userId);
+    $('logout-link').hidden = true;
   }
 
   try {
@@ -343,6 +346,12 @@ function openCorrectionDetail(c) {
   `;
   $('detail-modal').hidden = false;
 }
+
+$('logout-link').addEventListener('click', async (e) => {
+  e.preventDefault();
+  await logout();
+  location.reload();
+});
 
 $('detail-close').addEventListener('click', () => { $('detail-modal').hidden = true; });
 $('detail-modal').addEventListener('click', (e) => { if (e.target === $('detail-modal')) $('detail-modal').hidden = true; });

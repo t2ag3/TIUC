@@ -2,6 +2,7 @@
 // public/i18n.js が読み込む言語別辞書。キーは "ページ名.項目名" の命名規則。
 export default {
   "common.login": "로그인",
+  "common.logout": "로그아웃",
   "common.login_active_fallback": "로그인됨",
   "common.close": "닫기",
   "common.back_top": "← 홈",
@@ -112,7 +113,7 @@ export default {
   "judge.lead": "번역문을 보고 자연스러운지 한 번의 탭으로 판정해 주세요. 원어민을 위한 기능입니다.",
   "judge.btn_unnatural": "😕 부자연스러움",
   "judge.btn_natural": "🙂 자연스러움",
-  "judge.skip_btn": "건너뛰고 다음으로",
+  "judge.skip_btn": "⏭ 건너뛰고 다음으로",
   "judge.empty_text": "지금 이 언어 쌍으로 판정할 수 있는 게시물이 없습니다.<br>다른 언어 쌍을 시도하거나 나중에 다시 와 주세요.",
   "judge.toast_dispatched": " ・배차되었습니다",
   "curate.title": "수정・투표 - TIUC",

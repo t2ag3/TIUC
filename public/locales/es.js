@@ -2,6 +2,7 @@
 // public/i18n.js が読み込む言語別辞書。キーは "ページ名.項目名" の命名規則。
 export default {
   "common.login": "Iniciar sesión",
+  "common.logout": "Cerrar sesión",
   "common.login_active_fallback": "Conectado",
   "common.close": "Cerrar",
   "common.back_top": "← Inicio",
@@ -112,7 +113,7 @@ export default {
   "judge.lead": "Mira la traducción y juzga si suena natural con un solo toque. Para hablantes nativos.",
   "judge.btn_unnatural": "😕 No natural",
   "judge.btn_natural": "🙂 Natural",
-  "judge.skip_btn": "Saltar al siguiente",
+  "judge.skip_btn": "⏭ Saltar al siguiente",
   "judge.empty_text": "Ahora mismo no hay publicaciones para evaluar en este par de idiomas.<br>Prueba con otro par de idiomas o vuelve más tarde.",
   "judge.toast_dispatched": " • Enviado para procesar",
   "curate.title": "Corrección y votación - TIUC",

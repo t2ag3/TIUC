@@ -2,6 +2,7 @@
 // public/i18n.js が読み込む言語別辞書。キーは "ページ名.項目名" の命名規則。
 export default {
   "common.login": "登录",
+  "common.logout": "退出登录",
   "common.login_active_fallback": "已登录",
   "common.close": "关闭",
   "common.back_top": "← 首页",
@@ -112,7 +113,7 @@ export default {
   "judge.lead": "看一下译文，一键判断是否自然。适合母语者参与。",
   "judge.btn_unnatural": "😕 不自然",
   "judge.btn_natural": "🙂 自然",
-  "judge.skip_btn": "跳过并进入下一个",
+  "judge.skip_btn": "⏭ 跳过并进入下一个",
   "judge.empty_text": "目前没有可供该语言对判定的投稿。<br>请尝试其他语言对，或稍后再来。",
   "judge.toast_dispatched": " ・已分派",
   "curate.title": "修正与投票 - TIUC",

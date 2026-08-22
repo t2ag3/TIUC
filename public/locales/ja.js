@@ -2,6 +2,7 @@
 // public/i18n.js が読み込む言語別辞書。キーは "ページ名.項目名" の命名規則。
 export default {
   "common.login": "ログイン",
+  "common.logout": "ログアウト",
   "common.login_active_fallback": "ログイン中",
   "common.close": "閉じる",
   "common.back_top": "← トップ",
@@ -112,7 +113,7 @@ export default {
   "judge.lead": "訳文を見て、自然かどうかを一タップで判定してください。母語話者向けです。",
   "judge.btn_unnatural": "😕 不自然",
   "judge.btn_natural": "🙂 自然",
-  "judge.skip_btn": "スキップして次へ",
+  "judge.skip_btn": "⏭ スキップして次へ",
   "judge.empty_text": "今この言語ペアで判定できる投稿はありません。<br>ほかの言語ペアを試すか、また後で来てください。",
   "judge.toast_dispatched": " ・配車しました",
   "curate.title": "修正・投票 - TIUC",
