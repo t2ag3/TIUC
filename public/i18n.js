@@ -117,7 +117,10 @@ const STRINGS = {
   'index.mode_map_title': { ja: '街を見る', en: 'View the city', zh: '查看街区', fr: 'Voir la ville', es: 'Ver la ciudad', ko: '거리 보기' },
   'index.mode_map_desc': { ja: '集まった投稿と改善状況を地図から確認します。', en: 'See submissions and progress on a map.', zh: '在地图上查看已收集的投稿与改善情况。', fr: 'Consultez les signalements et les progrès sur une carte.', es: 'Consulta las publicaciones y el progreso en un mapa.', ko: '지도를 통해 게시물과 개선 현황을 확인합니다.' },
   'index.mypage_label': { ja: 'あなたの貢献', en: 'Your contributions', zh: '你的贡献', fr: 'Vos contributions', es: 'Tus contribuciones', ko: '당신의 기여' },
-  'index.mypage_hint': { ja: '履歴・ポイント・レベルを見る', en: 'View history, points & level', zh: '查看历史记录、积分与等级', fr: 'Voir l’historique, les points et le niveau', es: 'Ver historial, puntos y nivel', ko: '이력·포인트·레벨 보기' },
+  'index.mypage_hint': { ja: '履歴・ポイント・能力レベルを見る', en: 'View history, points & skill level', zh: '查看历史记录、积分与能力等级', fr: 'Voir l’historique, les points et le niveau de compétence', es: 'Ver historial, puntos y nivel de habilidad', ko: '이력·포인트·능력 레벨 보기' },
+  'index.buddy_title': { ja: '街ことばの相棒', en: 'Your city-words buddy', zh: '街头语言伙伴', fr: 'Votre compagnon des mots de la ville', es: 'Tu compañero de palabras urbanas', ko: '거리 언어 파트너' },
+  'index.buddy_hint_default': { ja: '投稿や判定で育ちます。クエストと図鑑を見る', en: 'Grows as you submit and judge. See quests & encyclopedia', zh: '通过投稿与判定成长。查看任务与图鉴', fr: 'Grandit grâce à vos publications et jugements. Voir les quêtes et l’encyclopédie', es: 'Crece con tus publicaciones y evaluaciones. Ver misiones y enciclopedia', ko: '게시와 판정으로 성장합니다. 퀘스트와 도감 보기' },
+  'index.buddy_hint_with_xp': { ja: '{xp} XP・投稿や判定で育ちます。クエストと図鑑を見る', en: '{xp} XP • Grows as you submit and judge. See quests & encyclopedia', zh: '{xp} XP・通过投稿与判定成长。查看任务与图鉴', fr: '{xp} XP • Grandit grâce à vos publications et jugements. Voir les quêtes et l’encyclopédie', es: '{xp} XP • Crece con tus publicaciones y evaluaciones. Ver misiones y enciclopedia', ko: '{xp} XP・게시와 판정으로 성장합니다. 퀘스트와 도감 보기' },
   'index.footer_note': {
     ja: 'ログイン不要・匿名でも利用できます。投稿された写真は、判定・修正に必要な範囲で取り扱われます。',
     en: 'No login required — you can use it anonymously. Submitted photos are handled only to the extent necessary for judging and correcting.',
