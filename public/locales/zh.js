@@ -122,7 +122,7 @@ export default {
   "curate.tab_vote": "投票",
   "curate.verdict_fix": "需要修正",
   "curate.verdict_no_issue": "其实没问题",
-  "curate.label_original": "原文（读取到的日语）",
+  "curate.label_original": "想用日语表达的内容",
   "curate.label_translated": "当前译文",
   "curate.label_fixed": "修正后的译文",
   "curate.label_explanation": "为什么奇怪（可选）",

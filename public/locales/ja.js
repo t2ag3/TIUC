@@ -122,7 +122,7 @@ export default {
   "curate.tab_vote": "投票する",
   "curate.verdict_fix": "修正が必要",
   "curate.verdict_no_issue": "実は問題なし",
-  "curate.label_original": "原文(読み取れた日本語)",
+  "curate.label_original": "日本語で表現したいこと",
   "curate.label_translated": "現在の訳文",
   "curate.label_fixed": "修正後の訳文",
   "curate.label_explanation": "なぜ変か(任意)",

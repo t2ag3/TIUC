@@ -122,7 +122,7 @@ export default {
   "curate.tab_vote": "투표하기",
   "curate.verdict_fix": "수정 필요",
   "curate.verdict_no_issue": "사실 문제없음",
-  "curate.label_original": "원문 (읽어낸 일본어)",
+  "curate.label_original": "일본어로 표현하고 싶은 내용",
   "curate.label_translated": "현재 번역문",
   "curate.label_fixed": "수정된 번역문",
   "curate.label_explanation": "왜 이상한지 (선택)",

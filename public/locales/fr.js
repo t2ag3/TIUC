@@ -122,7 +122,7 @@ export default {
   "curate.tab_vote": "Voter",
   "curate.verdict_fix": "Correction nécessaire",
   "curate.verdict_no_issue": "En fait, c’est correct",
-  "curate.label_original": "Texte original (japonais tel que lu)",
+  "curate.label_original": "Ce que vous voulez exprimer, en japonais",
   "curate.label_translated": "Traduction actuelle",
   "curate.label_fixed": "Traduction corrigée",
   "curate.label_explanation": "Pourquoi est-ce bizarre (facultatif)",

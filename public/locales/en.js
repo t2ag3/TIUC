@@ -122,7 +122,7 @@ export default {
   "curate.tab_vote": "Vote",
   "curate.verdict_fix": "Needs correction",
   "curate.verdict_no_issue": "Actually fine",
-  "curate.label_original": "Original text (Japanese, as read)",
+  "curate.label_original": "What you want to say, in Japanese",
   "curate.label_translated": "Current translation",
   "curate.label_fixed": "Corrected translation",
   "curate.label_explanation": "Why it’s off (optional)",
