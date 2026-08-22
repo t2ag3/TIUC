@@ -101,7 +101,10 @@ initLangSwitcher();
 
 const $ = (id) => document.getElementById(id);
 
-const LANG_LABEL = { 'ja-en': t('common.pair_label_en'), 'ja-zh': t('common.pair_label_zh'), 'ja-ko': t('common.pair_label_ko') };
+const LANG_LABEL = {
+  'ja-en': t('common.pair_label_en'), 'ja-zh': t('common.pair_label_zh'), 'ja-ko': t('common.pair_label_ko'),
+  'ja-fr': t('common.pair_label_fr'), 'ja-es': t('common.pair_label_es'), 'ja-hi': t('common.pair_label_hi'),
+};
 
 const jstLocale = { ja: 'ja-JP', en: 'en-US', zh: 'zh-CN', fr: 'fr-FR', es: 'es-ES', ko: 'ko-KR' };
 const jst = (ts) => ts ? new Date(ts * 1000).toLocaleDateString(jstLocale[document.documentElement.lang] || 'ja-JP',

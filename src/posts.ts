@@ -1,7 +1,7 @@
 import { meshCodes } from "../public/mesh.js";
 
 import {
-	LANG_PAIRS,
+	REVIEWABLE_LANG_PAIRS,
 	LOC_SOURCES,
 	MAX_IMAGE_BYTES,
 	POINTS_POST_SUBMIT,
@@ -29,7 +29,7 @@ export async function createPost(request: Request, env: AppEnv): Promise<Respons
   if (lat < 20 || lat > 46 || lng < 122 || lng > 154) return bad("日本国内の座標ではありません");
 
   const langPair = String(form.get("lang_pair") || "");
-  if (!LANG_PAIRS.has(langPair)) return bad("言語ペアの指定が不正です");
+  if (!REVIEWABLE_LANG_PAIRS.has(langPair)) return bad("言語ペアの指定が不正です");
 
   const placeKind = String(form.get("place_kind") || "unknown");
   if (!POST_PLACE_KINDS.has(placeKind)) return bad("表記種別の指定が不正です");
@@ -154,7 +154,7 @@ export async function nearbyCheck(request: Request, env: AppEnv): Promise<Respon
   if (lat < 20 || lat > 46 || lng < 122 || lng > 154) return bad("日本国内の座標ではありません");
 
   const langPair = String(sp.get("lang_pair") || "");
-  if (!LANG_PAIRS.has(langPair)) return bad("言語ペアの指定が不正です");
+  if (!REVIEWABLE_LANG_PAIRS.has(langPair)) return bad("言語ペアの指定が不正です");
 
   const mesh = meshCodes(lat, lng);
   const row = await env.DB.prepare(

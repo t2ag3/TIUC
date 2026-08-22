@@ -1,4 +1,8 @@
-export const LANG_PAIRS = new Set(["ja-en", "ja-zh", "ja-ko"]);
+// レビューUI(judge.html/curate.html)は英中韓の3言語のみ対応。
+// ja-fr/ja-es/ja-hi はダミーデータ・地図の言語フィルタ表示専用の追加で、
+// ②③のレビューボタンには出さない(CLAUDE.mdのMVPスコープはそのまま)。
+export const LANG_PAIRS = new Set(["ja-en", "ja-zh", "ja-ko", "ja-fr", "ja-es", "ja-hi"]);
+export const REVIEWABLE_LANG_PAIRS = new Set(["ja-en", "ja-zh", "ja-ko"]);
 export const PLACE_KINDS = new Set(["menu", "sign", "notice", "other"]);
 export const POST_PLACE_KINDS = new Set([...PLACE_KINDS, "unknown"]);
 export const LOC_SOURCES = new Set(["exif", "geolocation", "manual"]);
