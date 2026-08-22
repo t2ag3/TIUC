@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>投稿する - TIUC</title>
-<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="tokens.css">
 <style>
   :root { --line:#ddd; --muted:#666; --warn:#a33; --ok:#161; }
@@ -383,48 +383,40 @@ async function locate() {
   setPoint(pt.lat, pt.lng, src, state.geo?.acc ?? null, conflict);
 }
 
-let mapLibrePromise = null;
-function loadMapLibre() {
-  if (mapLibrePromise) return mapLibrePromise;
-  mapLibrePromise = new Promise((resolve, reject) => {
+let leafletPromise = null;
+function loadLeaflet() {
+  if (leafletPromise) return leafletPromise;
+  leafletPromise = new Promise((resolve, reject) => {
     const s = document.createElement('script');
-    s.src = 'https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js';
+    s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
     s.onload = resolve;
     s.onerror = () => reject(new Error('地図を読み込めませんでした'));
     document.head.appendChild(s);
   });
-  return mapLibrePromise;
+  return leafletPromise;
 }
 
 let map = null, marker = null, manualLatLng = null;
 
 async function openMapFallback() {
   $('map-fallback').hidden = false;
-  try { await loadMapLibre(); }
+  try { await loadLeaflet(); }
   catch (e) { $('map').innerHTML = `<p class="status warn">${e.message}</p>`; return; }
-  if (map) { map.resize(); return; }
+  if (map) { map.invalidateSize(); return; }
 
-  map = new maplibregl.Map({
-    container: 'map',
-    style: {
-      version: 8,
-      sources: { gsi: {
-        type: 'raster', tiles: ['https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png'],
-        tileSize: 256, maxzoom: 18,
-        attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a>',
-      } },
-      layers: [{ id: 'gsi', type: 'raster', source: 'gsi' }],
-    },
-    center: [139.767, 35.681], zoom: 5,
-  });
-  map.addControl(new maplibregl.NavigationControl(), 'top-right');
+  map = L.map('map', { zoomControl: false }).setView([35.681, 139.767], 5);
+  L.control.zoom({ position: 'topright' }).addTo(map);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
+  }).addTo(map);
   map.on('click', (ev) => {
-    manualLatLng = { lat: ev.lngLat.lat, lng: ev.lngLat.lng };
-    if (marker) marker.setLngLat(ev.lngLat);
-    else marker = new maplibregl.Marker().setLngLat(ev.lngLat).addTo(map);
+    manualLatLng = { lat: ev.latlng.lat, lng: ev.latlng.lng };
+    if (marker) marker.setLatLng(ev.latlng);
+    else marker = L.marker(ev.latlng).addTo(map);
     $('map-confirm').disabled = false;
   });
-  setTimeout(() => map.resize(), 0);
+  setTimeout(() => map.invalidateSize(), 0);
 }
 
 $('map-toggle').addEventListener('click', (ev) => { ev.preventDefault(); openMapFallback(); });
