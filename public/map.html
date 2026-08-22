@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title data-i18n="map.title">マップ - TIUC</title>
-<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="tokens.css">
 <style>
   * { box-sizing: border-box; }
@@ -50,10 +50,10 @@
   #legend .sw i.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block;
                        border: 1.5px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.15); }
 
-  .maplibregl-popup-content { font-size: 13px; padding: 10px 12px; }
-  .maplibregl-popup-content table { border-collapse: collapse; }
-  .maplibregl-popup-content td { padding: 2px 6px 2px 0; vertical-align: top; }
-  .maplibregl-popup-content td:first-child { color: #666; white-space: nowrap; }
+  .leaflet-popup-content { font-size: 13px; margin: 10px 12px; }
+  .leaflet-popup-content table { border-collapse: collapse; }
+  .leaflet-popup-content td { padding: 2px 6px 2px 0; vertical-align: top; }
+  .leaflet-popup-content td:first-child { color: #666; white-space: nowrap; }
 </style>
 <body>
 
@@ -149,17 +149,23 @@ const UNSURVEYED_COLOR = '#ded9cd';
 $('unsurveyed-legend').insertAdjacentHTML('beforeend',
   `<div class="sw"><i class="box" style="background:${UNSURVEYED_COLOR}"></i>${t('map.unsurveyed_legend_item')}</div>`);
 
-let mapLibrePromise = null;
-function loadMapLibre() {
-  if (mapLibrePromise) return mapLibrePromise;
-  mapLibrePromise = new Promise((resolve, reject) => {
+let leafletPromise = null;
+function loadLeaflet() {
+  if (leafletPromise) return leafletPromise;
+  leafletPromise = new Promise((resolve, reject) => {
     const s = document.createElement('script');
-    s.src = 'https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js';
+    s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
     s.onload = resolve;
     s.onerror = () => reject(new Error(t('common.map_load_error')));
     document.head.appendChild(s);
   });
-  return mapLibrePromise;
+  return leafletPromise;
+}
+
+// MESH_STEPS のしきい値(0/2/5/11件)から塗り分け色を引く。凡例と地図で単一の情報源にする。
+function meshColor(count) {
+  for (const s of MESH_STEPS) if (count <= s.max) return s.color;
+  return MESH_STEPS[MESH_STEPS.length - 1].color;
 }
 
 const MESH4_MIN_ZOOM = 11;
@@ -184,102 +190,75 @@ document.querySelectorAll('.dropdown').forEach((el) => el.addEventListener('clic
 document.addEventListener('click', closeDropdowns);
 
 async function main() {
-  await loadMapLibre();
+  await loadLeaflet();
 
-  const map = new maplibregl.Map({
-    container: 'map',
-    style: {
-      version: 8,
-      sources: { gsi: {
-        type: 'raster', tiles: ['https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png'],
-        tileSize: 256, maxzoom: 18,
-        attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a>',
-      } },
-      layers: [{ id: 'gsi', type: 'raster', source: 'gsi' }],
-    },
-    center: [139.767, 35.681], zoom: 10,
-  });
-  map.addControl(new maplibregl.NavigationControl(), 'top-right');
+  const map = L.map('map', { zoomControl: false }).setView([35.681, 139.767], 10);
+  L.control.zoom({ position: 'topright' }).addTo(map);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
+  }).addTo(map);
 
-  map.on('load', () => {
-    map.addSource('tiuc', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  const dataLayer = L.layerGroup().addTo(map);
 
-    map.addLayer({
-      id: 'unsurveyed-fill', type: 'fill', source: 'tiuc',
-      filter: ['==', ['get', 'kind'], 'unsurveyed'],
-      paint: { 'fill-color': UNSURVEYED_COLOR, 'fill-opacity': 0.45 },
-    });
-    map.addLayer({
-      id: 'unsurveyed-outline', type: 'line', source: 'tiuc',
-      filter: ['==', ['get', 'kind'], 'unsurveyed'],
-      paint: { 'line-color': '#8a8478', 'line-opacity': 0.5, 'line-width': 1, 'line-dasharray': [2, 2] },
-    });
-    map.addLayer({
-      id: 'mesh-fill', type: 'fill', source: 'tiuc',
-      filter: ['==', ['get', 'kind'], 'mesh'],
-      paint: {
-        'fill-color': [
-          'step', ['get', 'post_count'],
-          '#e3eee6', 1, '#a9d3b4', 3, '#6ab27e', 6, '#2e8b52', 12, '#155c30',
-        ],
-        'fill-opacity': 0.6,
+  function renderGeojson(geojson) {
+    dataLayer.clearLayers();
+
+    const unsurveyed = geojson.features.filter((f) => f.properties.kind === 'unsurveyed');
+    const mesh = geojson.features.filter((f) => f.properties.kind === 'mesh');
+    const pins = geojson.features.filter((f) => f.properties.kind === 'pin');
+
+    L.geoJSON({ type: 'FeatureCollection', features: unsurveyed }, {
+      style: { fillColor: UNSURVEYED_COLOR, fillOpacity: 0.45, color: '#8a8478', opacity: 0.5, weight: 1, dashArray: '2,2' },
+      onEachFeature: (feature, layer) => {
+        layer.on('click', (e) => {
+          const code = feature.properties.mesh;
+          const b = meshBounds(code);
+          const centerLat = (b.latMin + b.latMax) / 2, centerLng = (b.lngMin + b.lngMax) / 2;
+          L.popup({ maxWidth: 240 })
+            .setLatLng(e.latlng)
+            .setContent(`<p style="margin:0">${t('map.unsurveyed_popup_text')}</p>
+              <p style="margin:8px 0 0"><a href="${googleMapsUrl(centerLat, centerLng)}"
+                target="_blank" rel="noopener">${t('map.goto_link')}</a></p>`)
+            .openOn(map);
+        });
       },
-    });
-    map.addLayer({
-      id: 'mesh-outline', type: 'line', source: 'tiuc',
-      filter: ['==', ['get', 'kind'], 'mesh'],
-      paint: { 'line-color': '#155c30', 'line-opacity': 0.5, 'line-width': 1 },
-    });
-    map.addLayer({
-      id: 'pins', type: 'circle', source: 'tiuc',
-      filter: ['==', ['get', 'kind'], 'pin'],
-      paint: {
-        'circle-radius': 7,
-        'circle-color': [
-          'match', ['get', 'status'],
-          ...Object.entries(STATUS_STYLE).flatMap(([status, s]) => [status, s.color]),
-          PIN_DEFAULT_COLOR,
-        ],
-        'circle-stroke-color': '#fff', 'circle-stroke-width': 1.5,
+    }).addTo(dataLayer);
+
+    L.geoJSON({ type: 'FeatureCollection', features: mesh }, {
+      style: (feature) => ({
+        fillColor: meshColor(feature.properties.post_count),
+        fillOpacity: 0.6, color: '#155c30', opacity: 0.5, weight: 1,
+      }),
+    }).addTo(dataLayer);
+
+    L.geoJSON({ type: 'FeatureCollection', features: pins }, {
+      pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
+        radius: 7,
+        fillColor: (STATUS_STYLE[feature.properties.status] || {}).color || PIN_DEFAULT_COLOR,
+        fillOpacity: 1, color: '#fff', weight: 1.5,
+      }),
+      onEachFeature: (feature, layer) => {
+        layer.on('click', (e) => {
+          const p = feature.properties;
+          const st = STATUS_STYLE[p.status];
+          const translatedLabel = (p.status === 'confirmed' || p.status === 'adopted') ? t('map.label_confirmed_translation') : t('map.label_unconfirmed_translation');
+          L.popup({ maxWidth: 260 })
+            .setLatLng(e.latlng)
+            .setContent(`<table>
+              <tr><td>${t('map.row_status')}</td><td>${escapeHtml(st ? st.label : p.status)}</td></tr>
+              <tr><td>${t('map.row_lang')}</td><td>${LANG_LABEL[p.lang_pair] || p.lang_pair}</td></tr>
+              <tr><td>${t('map.row_original')}</td><td>${escapeHtml(p.original_text || t('map.not_entered'))}</td></tr>
+              <tr><td>${translatedLabel}</td><td>${escapeHtml(p.translated_text || t('map.not_entered'))}</td></tr>
+              <tr><td>${t('map.row_date')}</td><td>${jst(p.event_at)}</td></tr>
+            </table>
+            <p style="margin:8px 0 0"><a href="${googleMapsUrl(e.latlng.lat, e.latlng.lng)}"
+              target="_blank" rel="noopener">${t('map.goto_link')}</a></p>`)
+            .openOn(map);
+        });
       },
-    });
-
-    map.on('click', 'pins', (e) => {
-      const p = e.features[0].properties;
-      const st = STATUS_STYLE[p.status];
-      const translatedLabel = (p.status === 'confirmed' || p.status === 'adopted') ? t('map.label_confirmed_translation') : t('map.label_unconfirmed_translation');
-      new maplibregl.Popup({ closeButton: true, maxWidth: '260px' })
-        .setLngLat(e.lngLat)
-        .setHTML(`<table>
-          <tr><td>${t('map.row_status')}</td><td>${escapeHtml(st ? st.label : p.status)}</td></tr>
-          <tr><td>${t('map.row_lang')}</td><td>${LANG_LABEL[p.lang_pair] || p.lang_pair}</td></tr>
-          <tr><td>${t('map.row_original')}</td><td>${escapeHtml(p.original_text || t('map.not_entered'))}</td></tr>
-          <tr><td>${translatedLabel}</td><td>${escapeHtml(p.translated_text || t('map.not_entered'))}</td></tr>
-          <tr><td>${t('map.row_date')}</td><td>${jst(p.event_at)}</td></tr>
-        </table>
-        <p style="margin:8px 0 0"><a href="${googleMapsUrl(e.lngLat.lat, e.lngLat.lng)}"
-          target="_blank" rel="noopener">${t('map.goto_link')}</a></p>`)
-        .addTo(map);
-    });
-    map.on('mouseenter', 'pins', () => { map.getCanvas().style.cursor = 'pointer'; });
-    map.on('mouseleave', 'pins', () => { map.getCanvas().style.cursor = ''; });
-
-    map.on('click', 'unsurveyed-fill', (e) => {
-      const code = e.features[0].properties.mesh;
-      const b = meshBounds(code);
-      const centerLat = (b.latMin + b.latMax) / 2, centerLng = (b.lngMin + b.lngMax) / 2;
-      new maplibregl.Popup({ closeButton: true, maxWidth: '240px' })
-        .setLngLat(e.lngLat)
-        .setHTML(`<p style="margin:0">${t('map.unsurveyed_popup_text')}</p>
-          <p style="margin:8px 0 0"><a href="${googleMapsUrl(centerLat, centerLng)}"
-            target="_blank" rel="noopener">${t('map.goto_link')}</a></p>`)
-        .addTo(map);
-    });
-    map.on('mouseenter', 'unsurveyed-fill', () => { map.getCanvas().style.cursor = 'pointer'; });
-    map.on('mouseleave', 'unsurveyed-fill', () => { map.getCanvas().style.cursor = ''; });
-
-    refresh();
-  });
+    }).addTo(dataLayer);
+  }
 
   function checkedLangs() {
     return [...document.querySelectorAll('#search .lang input:checked')].map((el) => el.value);
@@ -331,7 +310,7 @@ async function main() {
       const geojson = await res.json();
       if (!res.ok) throw new Error(geojson.error || t('common.fetch_error'));
       addUnsurveyedFeatures(geojson, b, level);
-      map.getSource('tiuc').setData(geojson);
+      renderGeojson(geojson);
       setStatus('');
     } catch (e) {
       if (e.name === 'AbortError') return;
@@ -356,12 +335,14 @@ async function main() {
       const results = await res.json();
       if (!results.length) { msg.textContent = t('map.not_found'); return; }
       const [lng, lat] = results[0].geometry.coordinates;
-      map.flyTo({ center: [lng, lat], zoom: Math.max(map.getZoom(), 14) });
+      map.flyTo([lat, lng], Math.max(map.getZoom(), 14));
       msg.textContent = '';
     } catch (e) { msg.textContent = e.message; }
   }
   $('place-go').addEventListener('click', searchPlace);
   $('place-q').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); searchPlace(); } });
+
+  refresh();
 }
 
 function escapeHtml(s) {
