@@ -19,6 +19,7 @@
   .brand-copy strong { font-size:15px; letter-spacing:.03em; }
   .brand-copy span { margin-top:4px; color:var(--muted); font-size:10px; }
   #login-link { min-height:38px; display:inline-flex; align-items:center; justify-content:center; padding:0 14px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.78); color:#3d5145; text-decoration:none; font-size:12px; font-weight:700; }
+  #topbar-actions { display:flex; align-items:center; gap:8px; }
   main { padding:30px 0 56px; }
   #hero { position:relative; overflow:hidden; border:1px solid rgba(32,93,58,.10); border-radius:30px; padding:clamp(34px,6vw,72px) clamp(22px,7vw,76px); background:radial-gradient(circle at 88% 16%,rgba(255,255,255,.72),transparent 20rem),linear-gradient(135deg,#eef6ef 0%,#f8faf5 58%,#eef4f7 100%); box-shadow:var(--shadow-lg); }
   #hero::after { content:""; position:absolute; right:-90px; bottom:-130px; width:320px; height:320px; border-radius:50%; border:46px solid rgba(26,92,58,.055); pointer-events:none; }
@@ -59,30 +60,36 @@
 <body>
 <div class="shell">
 <header id="topbar">
-  <a href="/" class="brand" aria-label="TIUC トップ"><span class="brand-mark">T</span><span class="brand-copy"><strong>TIUC</strong><span>Today is under construction.</span></span></a>
-  <a id="login-link" href="#">ログイン</a>
+  <a href="/" class="brand" data-i18n-aria-label="index.brand_aria"><span class="brand-mark">T</span><span class="brand-copy"><strong>TIUC</strong><span>Today is under construction.</span></span></a>
+  <div id="topbar-actions">
+    <select id="lang-switcher" class="lang-switcher"></select>
+    <a id="login-link" href="#" data-i18n="common.login">ログイン</a>
+  </div>
 </header>
 <main>
   <section id="hero">
     <p class="eyebrow">CIVIC TRANSLATION PROJECT</p>
-    <h1>街の外国語を、<br><span class="accent">みんなで少しずつ良くする。</span></h1>
-    <p class="hero-lead">気になった外国語表記を撮る。自然かどうかを確かめる。より良い表現を提案する。小さな参加を積み重ねて、街のことばをアップデートします。</p>
-    <div id="stats-row"><div class="stat"><div class="n" id="stat-posts">—</div><div class="label">集まった投稿</div></div><div class="stat"><div class="n" id="stat-fixed">—</div><div class="label">確定した修正</div></div></div>
+    <h1 data-i18n-html="index.hero_title">街の外国語を、<br><span class="accent">みんなで少しずつ良くする。</span></h1>
+    <p class="hero-lead" data-i18n="index.hero_lead">気になった外国語表記を撮る。自然かどうかを確かめる。より良い表現を提案する。小さな参加を積み重ねて、街のことばをアップデートします。</p>
+    <div id="stats-row"><div class="stat"><div class="n" id="stat-posts">—</div><div class="label" data-i18n="index.stat_posts_label">集まった投稿</div></div><div class="stat"><div class="n" id="stat-fixed">—</div><div class="label" data-i18n="index.stat_fixed_label">確定した修正</div></div></div>
   </section>
-  <div class="section-head"><h2>参加する</h2><p>できることから、1つだけでも。</p></div>
+  <div class="section-head"><h2 data-i18n="index.section_participate_title">参加する</h2><p data-i18n="index.section_participate_sub">できることから、1つだけでも。</p></div>
   <div id="modes">
-    <a href="report.html" class="mode-card primary"><div class="mode-top"><span class="icon">📷</span><span class="mode-arrow">↗</span></div><div><span class="title">見つける</span><span class="desc">街で見つけた外国語表記を撮影して投稿します。</span></div></a>
-    <a href="menu.html" class="mode-card secondary"><div class="mode-top"><span class="icon">🔍</span><span class="mode-arrow">↗</span></div><div><span class="title">確かめる・なおす</span><span class="desc">自然さを判定したり、より良い表現を提案します。</span></div></a>
-    <a href="map.html" class="mode-card tertiary"><div class="mode-top"><span class="icon">🗺️</span><span class="mode-arrow">↗</span></div><div><span class="title">街を見る</span><span class="desc">集まった投稿と改善状況を地図から確認します。</span></div></a>
+    <a href="report.html" class="mode-card primary"><div class="mode-top"><span class="icon">📷</span><span class="mode-arrow">↗</span></div><div><span class="title" data-i18n="index.mode_report_title">見つける</span><span class="desc" data-i18n="index.mode_report_desc">街で見つけた外国語表記を撮影して投稿します。</span></div></a>
+    <a href="menu.html" class="mode-card secondary"><div class="mode-top"><span class="icon">🔍</span><span class="mode-arrow">↗</span></div><div><span class="title" data-i18n="index.mode_curate_title">確かめる・なおす</span><span class="desc" data-i18n="index.mode_curate_desc">自然さを判定したり、より良い表現を提案します。</span></div></a>
+    <a href="map.html" class="mode-card tertiary"><div class="mode-top"><span class="icon">🗺️</span><span class="mode-arrow">↗</span></div><div><span class="title" data-i18n="index.mode_map_title">街を見る</span><span class="desc" data-i18n="index.mode_map_desc">集まった投稿と改善状況を地図から確認します。</span></div></a>
   </div>
-  <a href="mypage.html" id="my-points"><span class="my-copy"><span class="my-icon">◎</span><span><span class="label">あなたの貢献</span><span class="hint">履歴・ポイント・レベルを見る</span></span></span><span class="value" id="my-points-value">— pt</span></a>
+  <a href="mypage.html" id="my-points"><span class="my-copy"><span class="my-icon">◎</span><span><span class="label" data-i18n="index.mypage_label">あなたの貢献</span><span class="hint" data-i18n="index.mypage_hint">履歴・ポイント・レベルを見る</span></span></span><span class="value" id="my-points-value">— pt</span></a>
 </main>
-<footer><p class="note">ログイン不要・匿名でも利用できます。投稿された写真は、判定・修正に必要な範囲で取り扱われます。</p></footer>
+<footer><p class="note" data-i18n="index.footer_note">ログイン不要・匿名でも利用できます。投稿された写真は、判定・修正に必要な範囲で取り扱われます。</p></footer>
 </div>
 <script type="module">
 import { getUserId, bootstrapAuth, googleLoginUrl } from './auth.js';
+import { t, applyI18n, initLangSwitcher } from './i18n.js';
+applyI18n();
+initLangSwitcher();
 const $=(id)=>document.getElementById(id); let userId=getUserId();
-const authReady=bootstrapAuth().then((r)=>{userId=r.userId;if(r.session){$('login-link').textContent=r.session.display_name||'ログイン中';$('login-link').href='mypage.html';}else{$('login-link').href=googleLoginUrl(userId);}});
+const authReady=bootstrapAuth().then((r)=>{userId=r.userId;if(r.session){$('login-link').textContent=r.session.display_name||t('common.login_active_fallback');$('login-link').href='mypage.html';}else{$('login-link').href=googleLoginUrl(userId);}});
 fetch('/api/health').then((r)=>r.json()).then((j)=>{if(!j.ok)return;$('stat-posts').textContent=j.total;$('stat-fixed').textContent=j.confirmed??0;}).catch(()=>{});
 authReady.then(()=>{fetch(`/api/mypage?user_id=${userId}`).then((r)=>r.json()).then((j)=>{if(j.ok)$('my-points-value').textContent=`${j.summary.points_total} pt / Lv.${j.summary.level}`;}).catch(()=>{});});
 </script>

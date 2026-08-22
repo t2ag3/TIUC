@@ -2,8 +2,9 @@
 <html lang="ja">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>マップ - TIUC</title>
+<title data-i18n="map.title">マップ - TIUC</title>
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+<link rel="stylesheet" href="tokens.css">
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; font-family: system-ui, -apple-system, sans-serif; color: #222; }
@@ -60,44 +61,50 @@
 
 <div id="topbar">
   <div id="topbar-row1">
-    <a class="back" href="/">← トップ</a>
-    <h1>TIUC マップ</h1>
+    <a class="back" href="/" data-i18n="common.back_top">← トップ</a>
+    <h1 data-i18n="map.h1">TIUC マップ</h1>
     <span id="status-msg"></span>
+    <select id="lang-switcher" class="lang-switcher" style="height:28px"></select>
   </div>
   <div id="topbar-row2">
     <div id="place-row">
-      <input type="text" id="place-q" placeholder="地名・住所で検索(例: 新宿区)">
-      <button type="button" id="place-go">検索</button>
+      <input type="text" id="place-q" data-i18n-placeholder="map.place_placeholder" placeholder="地名・住所で検索(例: 新宿区)">
+      <button type="button" id="place-go" data-i18n="map.search_btn">検索</button>
     </div>
-    <button type="button" id="search-toggle" class="icon-btn"><span class="glyph">⚙️</span>言語</button>
-    <button type="button" id="legend-toggle" class="icon-btn"><span class="glyph">🗂</span>凡例</button>
+    <button type="button" id="search-toggle" class="icon-btn"><span class="glyph">⚙️</span><span data-i18n="map.lang_filter_btn">言語</span></button>
+    <button type="button" id="legend-toggle" class="icon-btn"><span class="glyph">🗂</span><span data-i18n="map.legend_btn">凡例</span></button>
   </div>
 </div>
 <p id="place-msg"></p>
 
 <div id="search" class="dropdown">
-  <h2>言語ペア</h2>
+  <h2 data-i18n="map.lang_pair_header">言語ペア</h2>
   <div class="lang" id="lang-filters"></div>
 </div>
 
 <div id="legend" class="dropdown">
-  <h2>投稿件数(メッシュ集計)</h2>
+  <h2 data-i18n="map.legend_mesh_header">投稿件数(メッシュ集計)</h2>
   <div class="swatches" id="mesh-legend"></div>
-  <h2>採用済み(店がコミュニティ検証を認めた投稿のみピン表示)</h2>
+  <h2 data-i18n="map.legend_pin_header">採用済み(店がコミュニティ検証を認めた投稿のみピン表示)</h2>
   <div class="swatches" id="pin-legend"></div>
-  <h2>未投稿エリアの目安</h2>
+  <h2 data-i18n="map.legend_unsurveyed_header">未投稿エリアの目安</h2>
   <div class="swatches" id="unsurveyed-legend"></div>
   <p id="unsurveyed-hint" style="margin:4px 0 0;font-size:11px;color:#666" hidden></p>
 </div>
 
 <script type="module">
 import { meshGrid, meshGridCount, meshBounds } from './mesh.js';
+import { t, applyI18n, initLangSwitcher } from './i18n.js';
+
+applyI18n();
+initLangSwitcher();
 
 const $ = (id) => document.getElementById(id);
 
-const LANG_LABEL = { 'ja-en': '日→英', 'ja-zh': '日→中', 'ja-ko': '日→韓' };
+const LANG_LABEL = { 'ja-en': t('common.pair_label_en'), 'ja-zh': t('common.pair_label_zh'), 'ja-ko': t('common.pair_label_ko') };
 
-const jst = (t) => t ? new Date(t * 1000).toLocaleDateString('ja-JP',
+const jstLocale = { ja: 'ja-JP', en: 'en-US', zh: 'zh-CN', fr: 'fr-FR', es: 'es-ES', ko: 'ko-KR' };
+const jst = (ts) => ts ? new Date(ts * 1000).toLocaleDateString(jstLocale[document.documentElement.lang] || 'ja-JP',
   { timeZone: 'Asia/Tokyo', year: 'numeric', month: 'numeric', day: 'numeric' }) : '—';
 
 const googleMapsUrl = (lat, lng) =>
@@ -105,19 +112,19 @@ const googleMapsUrl = (lat, lng) =>
 
 // 配色(dataviz スキルで検証した sequential 緑ランプ)。件数のしきい値は仮置き。
 const MESH_STEPS = [
-  { max: 0,  color: '#e3eee6', label: '0件' },
-  { max: 2,  color: '#a9d3b4', label: '1〜2件' },
-  { max: 5,  color: '#6ab27e', label: '3〜5件' },
-  { max: 11, color: '#2e8b52', label: '6〜11件' },
-  { max: Infinity, color: '#155c30', label: '12件以上' },
+  { max: 0,  color: '#e3eee6', label: t('map.mesh_0') },
+  { max: 2,  color: '#a9d3b4', label: t('map.mesh_1_2') },
+  { max: 5,  color: '#6ab27e', label: t('map.mesh_3_5') },
+  { max: 11, color: '#2e8b52', label: t('map.mesh_6_11') },
+  { max: Infinity, color: '#155c30', label: t('map.mesh_12plus') },
 ];
 const STATUS_STYLE = {
-  pending_judgment: { color: '#c9a227', label: '審査中' },
-  needs_fix:        { color: '#c9a227', label: '審査中' },
-  fix_proposed:     { color: '#c9a227', label: '修正案あり' },
-  looks_ok:         { color: '#8a8478', label: '違和感なし' },
-  confirmed:        { color: '#2e6da4', label: '修正確定(採用待ち)' },
-  adopted:          { color: '#1a4d73', label: '採用済み' },
+  pending_judgment: { color: '#c9a227', label: t('map.status_reviewing') },
+  needs_fix:        { color: '#c9a227', label: t('map.status_reviewing') },
+  fix_proposed:     { color: '#c9a227', label: t('map.status_fix_proposed') },
+  looks_ok:         { color: '#8a8478', label: t('map.status_looks_ok') },
+  confirmed:        { color: '#2e6da4', label: t('map.status_confirmed') },
+  adopted:          { color: '#1a4d73', label: t('map.status_adopted') },
 };
 const PIN_DEFAULT_COLOR = '#8a8478';
 
@@ -140,7 +147,7 @@ for (const [k, label] of Object.entries(LANG_LABEL)) {
 
 const UNSURVEYED_COLOR = '#ded9cd';
 $('unsurveyed-legend').insertAdjacentHTML('beforeend',
-  `<div class="sw"><i class="box" style="background:${UNSURVEYED_COLOR}"></i>投稿0件(未投稿の目安)</div>`);
+  `<div class="sw"><i class="box" style="background:${UNSURVEYED_COLOR}"></i>${t('map.unsurveyed_legend_item')}</div>`);
 
 let mapLibrePromise = null;
 function loadMapLibre() {
@@ -149,7 +156,7 @@ function loadMapLibre() {
     const s = document.createElement('script');
     s.src = 'https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js';
     s.onload = resolve;
-    s.onerror = () => reject(new Error('地図を読み込めませんでした'));
+    s.onerror = () => reject(new Error(t('common.map_load_error')));
     document.head.appendChild(s);
   });
   return mapLibrePromise;
@@ -240,18 +247,18 @@ async function main() {
     map.on('click', 'pins', (e) => {
       const p = e.features[0].properties;
       const st = STATUS_STYLE[p.status];
-      const translatedLabel = (p.status === 'confirmed' || p.status === 'adopted') ? '確定訳' : '訳文(未確定)';
+      const translatedLabel = (p.status === 'confirmed' || p.status === 'adopted') ? t('map.label_confirmed_translation') : t('map.label_unconfirmed_translation');
       new maplibregl.Popup({ closeButton: true, maxWidth: '260px' })
         .setLngLat(e.lngLat)
         .setHTML(`<table>
-          <tr><td>状態</td><td>${escapeHtml(st ? st.label : p.status)}</td></tr>
-          <tr><td>言語</td><td>${LANG_LABEL[p.lang_pair] || p.lang_pair}</td></tr>
-          <tr><td>原文</td><td>${escapeHtml(p.original_text || '(未記入)')}</td></tr>
-          <tr><td>${translatedLabel}</td><td>${escapeHtml(p.translated_text || '(未記入)')}</td></tr>
-          <tr><td>日付</td><td>${jst(p.event_at)}</td></tr>
+          <tr><td>${t('map.row_status')}</td><td>${escapeHtml(st ? st.label : p.status)}</td></tr>
+          <tr><td>${t('map.row_lang')}</td><td>${LANG_LABEL[p.lang_pair] || p.lang_pair}</td></tr>
+          <tr><td>${t('map.row_original')}</td><td>${escapeHtml(p.original_text || t('map.not_entered'))}</td></tr>
+          <tr><td>${translatedLabel}</td><td>${escapeHtml(p.translated_text || t('map.not_entered'))}</td></tr>
+          <tr><td>${t('map.row_date')}</td><td>${jst(p.event_at)}</td></tr>
         </table>
         <p style="margin:8px 0 0"><a href="${googleMapsUrl(e.lngLat.lat, e.lngLat.lng)}"
-          target="_blank" rel="noopener">ここへ行く(Googleマップ)</a></p>`)
+          target="_blank" rel="noopener">${t('map.goto_link')}</a></p>`)
         .addTo(map);
     });
     map.on('mouseenter', 'pins', () => { map.getCanvas().style.cursor = 'pointer'; });
@@ -263,9 +270,9 @@ async function main() {
       const centerLat = (b.latMin + b.latMax) / 2, centerLng = (b.lngMin + b.lngMax) / 2;
       new maplibregl.Popup({ closeButton: true, maxWidth: '240px' })
         .setLngLat(e.lngLat)
-        .setHTML(`<p style="margin:0">このエリアはまだ投稿がありません。</p>
+        .setHTML(`<p style="margin:0">${t('map.unsurveyed_popup_text')}</p>
           <p style="margin:8px 0 0"><a href="${googleMapsUrl(centerLat, centerLng)}"
-            target="_blank" rel="noopener">ここへ行く(Googleマップ)</a></p>`)
+            target="_blank" rel="noopener">${t('map.goto_link')}</a></p>`)
         .addTo(map);
     });
     map.on('mouseenter', 'unsurveyed-fill', () => { map.getCanvas().style.cursor = 'pointer'; });
@@ -284,7 +291,7 @@ async function main() {
     const minLng = bounds.getWest(), maxLng = bounds.getEast();
     if (meshGridCount(minLat, minLng, maxLat, maxLng, level) > MESH_GRID_CAP) {
       $('unsurveyed-hint').hidden = false;
-      $('unsurveyed-hint').textContent = 'エリアが広すぎるため未投稿表示は省略しています。ズームインしてください。';
+      $('unsurveyed-hint').textContent = t('map.area_too_large_hint');
       return;
     }
     $('unsurveyed-hint').hidden = true;
@@ -318,11 +325,11 @@ async function main() {
       level, lang_pair: langs.join(','),
     });
 
-    setStatus('読み込み中…');
+    setStatus(t('common.loading'));
     try {
       const res = await fetch(`/api/map?${params}`, { signal: controller.signal });
       const geojson = await res.json();
-      if (!res.ok) throw new Error(geojson.error || '取得に失敗しました');
+      if (!res.ok) throw new Error(geojson.error || t('common.fetch_error'));
       addUnsurveyedFeatures(geojson, b, level);
       map.getSource('tiuc').setData(geojson);
       setStatus('');
@@ -342,12 +349,12 @@ async function main() {
     const msg = $('place-msg');
     msg.textContent = '';
     if (!q) return;
-    msg.textContent = '検索中...';
+    msg.textContent = t('map.searching');
     try {
       const res = await fetch(`https://msearch.gsi.go.jp/address-search/AddressSearch?q=${encodeURIComponent(q)}`);
-      if (!res.ok) throw new Error('検索に失敗しました');
+      if (!res.ok) throw new Error(t('map.search_failed'));
       const results = await res.json();
-      if (!results.length) { msg.textContent = '見つかりませんでした'; return; }
+      if (!results.length) { msg.textContent = t('map.not_found'); return; }
       const [lng, lat] = results[0].geometry.coordinates;
       map.flyTo({ center: [lng, lat], zoom: Math.max(map.getZoom(), 14) });
       msg.textContent = '';

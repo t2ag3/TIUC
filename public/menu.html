@@ -2,13 +2,15 @@
 <html lang="ja">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>メニュー - TIUC</title>
+<title data-i18n="menu.title">メニュー - TIUC</title>
+<link rel="stylesheet" href="tokens.css">
 <style>
   :root { --line:#ddd; --muted:#666; --warn:#a33; --ok:#161; }
   * { box-sizing: border-box; }
   body { font-family: system-ui, -apple-system, sans-serif; margin: 0 auto; padding: 16px;
          max-width: 520px; line-height: 1.6; color: #222; }
-  .back { display: block; font-size: 12px; color: var(--muted); text-decoration: none; margin: 0 0 12px; }
+  #topbar { display: flex; align-items: center; justify-content: space-between; margin: 0 0 12px; }
+  .back { font-size: 12px; color: var(--muted); text-decoration: none; }
   h1 { font-size: 20px; margin: 0 0 8px; }
   .lead { color: var(--muted); font-size: 14px; margin: 0 0 24px; }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -37,9 +39,12 @@
 </style>
 <body>
 
-<a class="back" href="/">← トップに戻る</a>
-<h1>キュレーションモード</h1>
-<p class="lead">
+<div id="topbar">
+  <a class="back" href="/" data-i18n="menu.back_top_full">← トップに戻る</a>
+  <select id="lang-switcher" class="lang-switcher"></select>
+</div>
+<h1 data-i18n="menu.h1">キュレーションモード</h1>
+<p class="lead" data-i18n="menu.lead">
   投稿された外国語表記を評価・修正します。ここだけが「属性(能力)」で中身が変わりますが、
   素養がなくても練習として参加できます。まずは違和感チェックからどうぞ。
 </p>
@@ -49,32 +54,36 @@
 <div class="grid">
   <a class="tile primary" href="judge.html">
     <span class="tile-icon">🔍</span>
-    <span class="tile-title">違和感チェック</span>
-    <span class="tile-desc">訳文言語のネイティブ向け・一タップ</span>
+    <span class="tile-title" data-i18n="common.label_judgment_check">違和感チェック</span>
+    <span class="tile-desc" data-i18n="menu.tile_judge_desc">訳文言語のネイティブ向け・一タップ</span>
   </a>
   <a class="tile map-accent" href="curate.html">
     <span class="tile-icon">✏️</span>
-    <span class="tile-title">修正・投票</span>
-    <span class="tile-desc">バイリンガル向け・正誤判定</span>
+    <span class="tile-title" data-i18n="menu.tile_curate_title">修正・投票</span>
+    <span class="tile-desc" data-i18n="menu.tile_curate_desc">バイリンガル向け・正誤判定</span>
   </a>
   <a class="tile-bar" href="report.html">
     <span class="tile-bar-icon">📷</span>
-    <span>撮影投稿モードへ(新しい表記を投稿する)</span>
+    <span data-i18n="menu.tile_report">撮影投稿モードへ(新しい表記を投稿する)</span>
   </a>
   <a class="tile-bar" href="mypage.html">
     <span class="tile-bar-icon">👤</span>
-    <span>マイページ(貢献履歴・ポイント)</span>
+    <span data-i18n="menu.tile_mypage">マイページ(貢献履歴・ポイント)</span>
   </a>
 </div>
 
-<footer>ログイン不要・匿名で利用できます。</footer>
+<footer data-i18n="menu.footer">ログイン不要・匿名で利用できます。</footer>
 
 <script type="module">
+import { t, applyI18n, initLangSwitcher } from './i18n.js';
+applyI18n();
+initLangSwitcher();
 fetch('/api/health').then((r) => r.json()).then((j) => {
   if (!j.ok) return;
   const el = document.getElementById('stats');
-  el.innerHTML = `これまでに <strong>${j.total}</strong> 件の投稿が届いています` +
-    (j.needs_fix ? `(うち修正待ち <strong>${j.needs_fix}</strong> 件)` : '') + '。';
+  el.innerHTML = j.needs_fix
+    ? t('menu.stats_line_with_fix', { total: j.total, needs_fix: j.needs_fix })
+    : t('menu.stats_line_plain', { total: j.total });
   el.hidden = false;
 }).catch(() => {}); // 取得に失敗してもページ自体は問題なく表示する
 </script>

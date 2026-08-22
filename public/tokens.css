@@ -26,3 +26,14 @@
   --space-5: 24px;
   --space-6: 32px;
 }
+
+.lang-switcher {
+  flex: none;
+  font-size: 12px;
+  padding: 3px 6px;
+  border: 1px solid var(--color-line, #ddd);
+  border-radius: var(--radius-sm, 8px);
+  background: #fff;
+  color: var(--color-text, #222);
+  cursor: pointer;
+}

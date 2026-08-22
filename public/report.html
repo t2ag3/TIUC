@@ -2,7 +2,7 @@
 <html lang="ja">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>投稿する - TIUC</title>
+<title data-i18n="report.title">投稿する - TIUC</title>
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="tokens.css">
 <style>
@@ -11,8 +11,9 @@
   body { font-family: system-ui, -apple-system, sans-serif; margin: 0 auto; padding: 16px;
          max-width: 520px; line-height: 1.6; color: #222; }
 
-  #topbar { display: flex; align-items: center; justify-content: space-between; margin: 0 0 8px; }
+  #topbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 8px; }
   #topbar a { font-size: 12px; color: var(--muted); text-decoration: none; }
+  #topbar-actions { display: flex; align-items: center; gap: 8px; }
   #points-badge { font-size: 12px; border: 1px solid var(--line); border-radius: var(--radius-pill);
                   padding: 3px 10px; }
 
@@ -84,117 +85,119 @@
 <body>
 
 <div id="topbar">
-  <a href="/">← トップ</a>
-  <div id="points-badge">0 pt</div>
+  <a href="/" data-i18n="common.back_top">← トップ</a>
+  <div id="topbar-actions">
+    <select id="lang-switcher" class="lang-switcher"></select>
+    <div id="points-badge">0 pt</div>
+  </div>
 </div>
-<h1>📷 外国語表記を投稿する</h1>
-<p class="lead">街で見かけた外国語のメニュー・看板・注意書きを撮って投稿してください。
-  語学力は不要です。<a href="mypage.html">マイページ</a></p>
+<h1 data-i18n="report.h1">📷 外国語表記を投稿する</h1>
+<p class="lead"><span data-i18n="report.lead_text">街で見かけた外国語のメニュー・看板・注意書きを撮って投稿してください。語学力は不要です。</span> <a href="mypage.html" data-i18n="common.mypage_link">マイページ</a></p>
 
 <div id="progress-bar"><div id="progress-fill" style="width:25%"></div></div>
 <p id="step-label">Step 1 / 4</p>
 
 <div class="step" data-step="1">
   <fieldset>
-    <legend>1. 見つけた外国語の表記を撮影</legend>
-    <p class="lead" style="margin:0 0 8px">メニュー・看板・注意書きなど、気になった外国語の表記を撮ってください。</p>
+    <legend data-i18n="report.step1_legend">1. 見つけた外国語の表記を撮影</legend>
+    <p class="lead" style="margin:0 0 8px" data-i18n="report.step1_lead">メニュー・看板・注意書きなど、気になった外国語の表記を撮ってください。</p>
     <div class="file-input-group">
-      <button id="camera-btn-src" class="camera-btn">カメラを開始</button>
-      <button id="file-btn-src" class="file-btn">ファイルを選択</button>
+      <button id="camera-btn-src" class="camera-btn" data-i18n="common.camera_btn">カメラを開始</button>
+      <button id="file-btn-src" class="file-btn" data-i18n="common.file_btn">ファイルを選択</button>
       <input id="file-src" type="file" accept="image/*" style="display:none;">
-      <p class="status" id="src-status">未選択</p>
+      <p class="status" id="src-status" data-i18n="common.unselected">未選択</p>
       <div id="preview-src"></div>
     </div>
     <div id="tgt-question" class="toggle-row" hidden>
       <input type="checkbox" id="has-tgt">
-      <label for="has-tgt">この表記の日本語版の写真もありますか？(任意)</label>
+      <label for="has-tgt" data-i18n="report.tgt_question">この表記の日本語版の写真もありますか？(任意)</label>
     </div>
     <div id="tgt-wrap" hidden>
       <div class="file-input-group">
-        <p class="status" style="margin:0 0 4px">2. 日本語表記の写真</p>
-        <button id="camera-btn-tgt" class="camera-btn">カメラを開始</button>
-        <button id="file-btn-tgt" class="file-btn">ファイルを選択</button>
+        <p class="status" style="margin:0 0 4px" data-i18n="report.tgt_wrap_label">2. 日本語表記の写真</p>
+        <button id="camera-btn-tgt" class="camera-btn" data-i18n="common.camera_btn">カメラを開始</button>
+        <button id="file-btn-tgt" class="file-btn" data-i18n="common.file_btn">ファイルを選択</button>
         <input id="file-tgt" type="file" accept="image/*" style="display:none;">
-        <p class="status" id="tgt-status">未選択</p>
+        <p class="status" id="tgt-status" data-i18n="common.unselected">未選択</p>
         <div id="preview-tgt"></div>
       </div>
     </div>
   </fieldset>
   <div class="step-nav">
-    <button type="button" class="next-btn" data-next="2" disabled>つぎへ</button>
+    <button type="button" class="next-btn" data-next="2" disabled data-i18n="common.next_btn">つぎへ</button>
   </div>
 </div>
 
 <div class="step" data-step="2" hidden>
   <fieldset>
-    <legend>2. 言語(訳文は何語?)</legend>
+    <legend data-i18n="report.step2_legend">2. 言語(訳文は何語?)</legend>
     <div class="choices" id="lang-pair">
-      <label><input type="radio" name="lang_pair" value="ja-en">英語</label>
-      <label><input type="radio" name="lang_pair" value="ja-zh">中国語</label>
-      <label><input type="radio" name="lang_pair" value="ja-ko">韓国語</label>
+      <label><input type="radio" name="lang_pair" value="ja-en"><span data-i18n="report.place_en_lang">英語</span></label>
+      <label><input type="radio" name="lang_pair" value="ja-zh"><span data-i18n="report.place_zh_lang">中国語</span></label>
+      <label><input type="radio" name="lang_pair" value="ja-ko"><span data-i18n="report.place_ko_lang">韓国語</span></label>
     </div>
   </fieldset>
   <fieldset>
-    <legend>3. 何の表記? (わかれば)</legend>
+    <legend data-i18n="report.step3b_legend">3. 何の表記? (わかれば)</legend>
     <select id="place-kind">
-      <option value="unknown">わからない</option>
-      <option value="menu">メニュー</option>
-      <option value="sign">看板</option>
-      <option value="notice">注意書き</option>
-      <option value="other">その他</option>
+      <option value="unknown" data-i18n="report.place_unknown">わからない</option>
+      <option value="menu" data-i18n="report.place_menu">メニュー</option>
+      <option value="sign" data-i18n="report.place_sign">看板</option>
+      <option value="notice" data-i18n="report.place_notice">注意書き</option>
+      <option value="other" data-i18n="report.place_other">その他</option>
     </select>
     <div class="flag-row">
       <input type="checkbox" id="flagged">
-      <label for="flagged">これ、訳が変かも?と思った(任意)</label>
+      <label for="flagged" data-i18n="report.flag_label">これ、訳が変かも?と思った(任意)</label>
     </div>
   </fieldset>
   <div class="step-nav">
-    <button type="button" class="back-btn" data-back="1">もどる</button>
-    <button type="button" class="next-btn" data-next="3" disabled>つぎへ</button>
+    <button type="button" class="back-btn" data-back="1" data-i18n="common.back_btn">もどる</button>
+    <button type="button" class="next-btn" data-next="3" disabled data-i18n="common.next_btn">つぎへ</button>
   </div>
 </div>
 
 <div class="step" data-step="3" hidden>
   <fieldset>
-    <legend>4. 位置情報</legend>
-    <p class="status" id="loc-status">写真を選ぶと自動で取得します。</p>
+    <legend data-i18n="report.step4_legend">4. 位置情報</legend>
+    <p class="status" id="loc-status" data-i18n="report.loc_status_default">写真を選ぶと自動で取得します。</p>
     <table id="loc-detail"></table>
-    <p class="status" id="map-toggle-p"><a href="#" id="map-toggle">地図で場所を指定する</a></p>
+    <p class="status" id="map-toggle-p"><a href="#" id="map-toggle" data-i18n="report.map_toggle_link">地図で場所を指定する</a></p>
     <div id="map-fallback" hidden>
       <div id="map"></div>
-      <button id="map-confirm" type="button" disabled>この位置に決定</button>
+      <button id="map-confirm" type="button" disabled data-i18n="report.map_confirm_btn">この位置に決定</button>
     </div>
     <div id="nearby-notice" class="info-notice" hidden>
-      <p style="margin:0">近くで最近、別の方が同じ言語ペアで投稿しています。重複の可能性があります。</p>
+      <p style="margin:0" data-i18n="report.nearby_notice">近くで最近、別の方が同じ言語ペアで投稿しています。重複の可能性があります。</p>
     </div>
   </fieldset>
   <div class="step-nav">
-    <button type="button" class="back-btn" data-back="2">もどる</button>
-    <button type="button" class="next-btn" data-next="4" disabled>つぎへ</button>
+    <button type="button" class="back-btn" data-back="2" data-i18n="common.back_btn">もどる</button>
+    <button type="button" class="next-btn" data-next="4" disabled data-i18n="common.next_btn">つぎへ</button>
   </div>
 </div>
 
 <div class="step" data-step="4" hidden>
   <fieldset>
-    <legend>5. メモ(任意)</legend>
-    <textarea id="situation" rows="2" maxlength="500" placeholder="お店の名前や状況など"></textarea>
+    <legend data-i18n="report.step5_legend">5. メモ(任意)</legend>
+    <textarea id="situation" rows="2" maxlength="500" data-i18n-placeholder="report.situation_placeholder" placeholder="お店の名前や状況など"></textarea>
   </fieldset>
-  <button id="submit" disabled>送信する</button>
+  <button id="submit" disabled data-i18n="report.submit_btn">送信する</button>
   <p class="status" id="submit-status"></p>
   <div class="step-nav">
-    <button type="button" class="back-btn" data-back="3">もどる</button>
+    <button type="button" class="back-btn" data-back="3" data-i18n="common.back_btn">もどる</button>
   </div>
 </div>
 
 <div id="done-modal" class="modal-backdrop" hidden>
   <div class="modal-card">
-    <button type="button" id="done-close" class="modal-close" aria-label="閉じる">×</button>
-    <p class="done-title">投稿しました!</p>
-    <p class="done-desc" id="done-desc">ご協力ありがとうございます!</p>
+    <button type="button" id="done-close" class="modal-close" data-i18n-aria-label="common.close" aria-label="閉じる">×</button>
+    <p class="done-title" data-i18n="report.done_title">投稿しました!</p>
+    <p class="done-desc" id="done-desc" data-i18n="report.done_desc">ご協力ありがとうございます!</p>
     <div class="done-links">
-      <a href="/">トップに戻る</a>
-      <a href="menu.html">キュレーションに参加する</a>
-      <a href="mypage.html">マイページを見る</a>
+      <a href="/" data-i18n="report.done_link_top">トップに戻る</a>
+      <a href="menu.html" data-i18n="report.done_link_curate">キュレーションに参加する</a>
+      <a href="mypage.html" data-i18n="report.done_link_mypage">マイページを見る</a>
     </div>
   </div>
 </div>
@@ -203,6 +206,10 @@
 import { meshCodes } from './mesh.js';
 import { parseExif } from './exif.js';
 import { getUserId, bootstrapAuth } from './auth.js';
+import { t, applyI18n, initLangSwitcher } from './i18n.js';
+
+applyI18n();
+initLangSwitcher();
 
 let userId = getUserId();
 const authReady = bootstrapAuth().then((r) => { userId = r.userId; });
@@ -223,7 +230,7 @@ function showStep(n) {
   document.querySelectorAll('.step').forEach((el) => {
     el.hidden = Number(el.dataset.step) !== n;
   });
-  $('step-label').textContent = `Step ${n} / ${TOTAL_STEPS}`;
+  $('step-label').textContent = t('report.step_label', { n, total: TOTAL_STEPS });
   $('progress-fill').style.width = `${(n / TOTAL_STEPS) * 100}%`;
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -283,7 +290,7 @@ $('has-tgt').addEventListener('change', (e) => {
   if (!e.target.checked) {
     state.tgtFull = null; state.tgtThumb = null;
     $('file-tgt').value = '';
-    $('tgt-status').textContent = '未選択';
+    $('tgt-status').textContent = t('common.unselected');
     $('preview-tgt').innerHTML = '';
   }
   refresh();
@@ -292,7 +299,7 @@ $('has-tgt').addEventListener('change', (e) => {
 $('file-src').addEventListener('change', async (ev) => {
   const file = ev.target.files[0];
   if (!file) return;
-  $('src-status').textContent = '処理中...';
+  $('src-status').textContent = t('common.processing');
   try {
     state.exif = parseExif(await file.slice(0, 131072).arrayBuffer());
     const full = await resize(file, 1600, 0.82);
@@ -304,7 +311,7 @@ $('file-src').addEventListener('change', async (ev) => {
     $('tgt-question').hidden = false;
     refresh();
   } catch (e) {
-    $('src-status').innerHTML = `<span class="warn">画像を処理できません: ${e.message}</span>`;
+    $('src-status').innerHTML = `<span class="warn">${t('report.image_process_error', { msg: e.message })}</span>`;
     return;
   }
   await locate();
@@ -314,7 +321,7 @@ $('file-src').addEventListener('change', async (ev) => {
 $('file-tgt').addEventListener('change', async (ev) => {
   const file = ev.target.files[0];
   if (!file) return;
-  $('tgt-status').textContent = '処理中...';
+  $('tgt-status').textContent = t('common.processing');
   try {
     const full = await resize(file, 1600, 0.82);
     const thumb = await resize(file, 512, 0.75);
@@ -323,24 +330,24 @@ $('file-tgt').addEventListener('change', async (ev) => {
     $('tgt-status').innerHTML = `<span class="ok">${full.w}×${full.h} / ${(full.blob.size / 1024).toFixed(0)} KB</span>`;
     $('preview-tgt').innerHTML = `<img class="preview" src="${URL.createObjectURL(full.blob)}" alt="">`;
   } catch (e) {
-    $('tgt-status').innerHTML = `<span class="warn">画像を処理できません: ${e.message}</span>`;
+    $('tgt-status').innerHTML = `<span class="warn">${t('report.image_process_error', { msg: e.message })}</span>`;
   }
   refresh();
 });
 
 document.getElementById('lang-pair').addEventListener('change', refresh);
 
-const SRC_LABEL = { exif: '写真の記録', geolocation: '端末の現在地', manual: '地図で指定' };
+const SRC_LABEL = { exif: t('report.loc_src_exif'), geolocation: t('report.loc_src_geolocation'), manual: t('report.loc_src_manual') };
 
 function setPoint(lat, lng, src, acc = null, conflict = 0) {
   state.point = { lat, lng, src, conflict, acc };
   $('map-fallback').hidden = true;
   const m = meshCodes(lat, lng);
-  $('loc-status').innerHTML = `<span class="ok">取得しました</span>`;
+  $('loc-status').innerHTML = `<span class="ok">${t('report.loc_acquired')}</span>`;
   $('loc-detail').innerHTML =
-    `<tr><td>座標</td><td class="mono">${lat.toFixed(5)}, ${lng.toFixed(5)}</td></tr>` +
-    `<tr><td>取得元</td><td>${SRC_LABEL[src]}${acc != null ? ` / 誤差 約${Math.round(acc)}m` : ''}</td></tr>` +
-    `<tr><td>メッシュ</td><td class="mono">${m.mesh4}</td></tr>`;
+    `<tr><td>${t('report.loc_row_coord')}</td><td class="mono">${lat.toFixed(5)}, ${lng.toFixed(5)}</td></tr>` +
+    `<tr><td>${t('report.loc_row_source')}</td><td>${SRC_LABEL[src]}${acc != null ? t('report.loc_accuracy_suffix', { m: Math.round(acc) }) : ''}</td></tr>` +
+    `<tr><td>${t('report.loc_row_mesh')}</td><td class="mono">${m.mesh4}</td></tr>`;
   checkNearby(lat, lng);
   refresh();
 }
@@ -360,7 +367,7 @@ async function checkNearby(lat, lng) {
 }
 
 async function locate() {
-  $('loc-status').textContent = '位置情報を取得中...';
+  $('loc-status').textContent = t('report.loc_fetching');
   try {
     const p = await getPosition();
     state.geo = { lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy };
@@ -373,8 +380,7 @@ async function locate() {
   if (!pt) {
     state.point = null;
     $('loc-detail').innerHTML = '';
-    $('loc-status').innerHTML =
-      `<span class="warn">位置情報を取得できません。ブラウザの位置情報を許可するか、下の地図で場所を指定してください。</span>`;
+    $('loc-status').innerHTML = `<span class="warn">${t('report.loc_error')}</span>`;
     openMapFallback();
     return;
   }
@@ -390,7 +396,7 @@ function loadMapLibre() {
     const s = document.createElement('script');
     s.src = 'https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js';
     s.onload = resolve;
-    s.onerror = () => reject(new Error('地図を読み込めませんでした'));
+    s.onerror = () => reject(new Error(t('common.map_load_error')));
     document.head.appendChild(s);
   });
   return mapLibrePromise;
@@ -445,7 +451,7 @@ function refresh() {
 $('submit').addEventListener('click', async () => {
   const langPair = document.querySelector('input[name=lang_pair]:checked').value;
   $('submit').disabled = true;
-  $('submit-status').textContent = '送信中...';
+  $('submit-status').textContent = t('report.sending');
   await authReady;
 
   const fd = new FormData();
@@ -472,11 +478,11 @@ $('submit').addEventListener('click', async () => {
   try {
     const res = await fetch('/api/posts', { method: 'POST', body: fd });
     const j = await res.json();
-    if (!j.ok) throw new Error(j.error || '送信に失敗しました');
+    if (!j.ok) throw new Error(j.error || t('report.submit_error_default'));
     $('submit-status').innerHTML =
-      `<span class="ok">送信しました。ありがとうございます。</span><br>` +
-      `受付番号 <span class="mono">${j.id.slice(0, 8)}</span> / ${j.points} ポイント獲得`;
-    $('submit').innerHTML = '✅ 送信済み';
+      `<span class="ok">${t('report.submit_success')}</span><br>` +
+      `${t('report.receipt_id_label')} <span class="mono">${j.id.slice(0, 8)}</span>${t('report.receipt_points', { points: j.points })}`;
+    $('submit').innerHTML = t('report.submit_done_btn');
     $('submit').classList.add('sent');
     $('done-modal').hidden = false;
     loadPointsBadge();

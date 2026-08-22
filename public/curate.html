@@ -2,15 +2,16 @@
 <html lang="ja">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>修正・投票 - TIUC</title>
+<title data-i18n="curate.title">修正・投票 - TIUC</title>
 <link rel="stylesheet" href="tokens.css">
 <style>
   :root { --line:#ddd; --muted:#666; --warn:#a33; --ok:#161; }
   * { box-sizing: border-box; }
   body { font-family: system-ui, -apple-system, sans-serif; margin: 0 auto; padding: 16px;
          max-width: 480px; line-height: 1.6; color: #222; }
-  #topbar { display: flex; align-items: center; justify-content: space-between; margin: 0 0 8px; }
+  #topbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 8px; }
   #topbar a { font-size: 12px; color: var(--muted); text-decoration: none; }
+  #topbar-actions { display: flex; align-items: center; gap: 8px; }
   #points-badge { font-size: 12px; border: 1px solid var(--line); border-radius: var(--radius-pill); padding: 3px 10px; }
   h1 { font-size: 19px; margin: 0 0 4px; }
   .lead { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
@@ -63,21 +64,24 @@
 <body>
 
 <div id="topbar">
-  <a href="menu.html">← キュレーション</a>
-  <div id="points-badge">0 pt</div>
+  <a href="menu.html" data-i18n="common.back_curation">← キュレーション</a>
+  <div id="topbar-actions">
+    <select id="lang-switcher" class="lang-switcher"></select>
+    <div id="points-badge">0 pt</div>
+  </div>
 </div>
-<h1>✏️ 修正・投票</h1>
-<p class="lead">バイリンガル向けサブモード。正しい訳を提案するか、他の人の提案に投票してください。</p>
+<h1 data-i18n="curate.h1">✏️ 修正・投票</h1>
+<p class="lead" data-i18n="curate.lead">バイリンガル向けサブモード。正しい訳を提案するか、他の人の提案に投票してください。</p>
 
 <div class="row-select" id="lang-select">
-  <button type="button" data-lang="ja-en" class="active">→英語</button>
-  <button type="button" data-lang="ja-zh">→中国語</button>
-  <button type="button" data-lang="ja-ko">→韓国語</button>
+  <button type="button" data-lang="ja-en" class="active" data-i18n="common.arrow_lang_en">→英語</button>
+  <button type="button" data-lang="ja-zh" data-i18n="common.arrow_lang_zh">→中国語</button>
+  <button type="button" data-lang="ja-ko" data-i18n="common.arrow_lang_ko">→韓国語</button>
 </div>
 
 <div id="tabs">
-  <button type="button" id="tab-fix" class="active">修正する</button>
-  <button type="button" id="tab-vote">投票する</button>
+  <button type="button" id="tab-fix" class="active" data-i18n="curate.tab_fix">修正する</button>
+  <button type="button" id="tab-vote" data-i18n="curate.tab_vote">投票する</button>
 </div>
 
 <div class="panel" id="panel-fix">
@@ -85,23 +89,23 @@
     <div class="imgs" id="fix-imgs"></div>
     <p class="meta" id="fix-meta"></p>
     <div class="verdict-row">
-      <label><input type="radio" name="verdict" value="fix" checked>修正が必要</label>
-      <label><input type="radio" name="verdict" value="no_issue">実は問題なし</label>
+      <label><input type="radio" name="verdict" value="fix" checked><span data-i18n="curate.verdict_fix">修正が必要</span></label>
+      <label><input type="radio" name="verdict" value="no_issue"><span data-i18n="curate.verdict_no_issue">実は問題なし</span></label>
     </div>
     <div id="fix-fields">
-      <label class="field" for="original-text">原文(読み取れた日本語)</label>
+      <label class="field" for="original-text" data-i18n="curate.label_original">原文(読み取れた日本語)</label>
       <input type="text" id="original-text" maxlength="500">
-      <label class="field" for="translated-text">現在の訳文</label>
+      <label class="field" for="translated-text" data-i18n="curate.label_translated">現在の訳文</label>
       <input type="text" id="translated-text" maxlength="500">
-      <label class="field" for="fixed-text">修正後の訳文</label>
+      <label class="field" for="fixed-text" data-i18n="curate.label_fixed">修正後の訳文</label>
       <input type="text" id="fixed-text" maxlength="500">
-      <label class="field" for="explanation">なぜ変か(任意)</label>
+      <label class="field" for="explanation" data-i18n="curate.label_explanation">なぜ変か(任意)</label>
       <textarea id="explanation" rows="2" maxlength="500"></textarea>
     </div>
-    <button type="button" id="submit-fix">この内容で提案する</button>
+    <button type="button" id="submit-fix" data-i18n="curate.submit_fix_btn">この内容で提案する</button>
   </div>
   <div id="empty-fix" class="panel" hidden>
-    <div id="empty"><p class="icon">🎉</p><p>今この言語ペアで修正待ちの投稿はありません。</p></div>
+    <div id="empty"><p class="icon">🎉</p><p data-i18n="curate.empty_fix">今この言語ペアで修正待ちの投稿はありません。</p></div>
   </div>
 </div>
 
@@ -111,11 +115,11 @@
     <p class="meta" id="vote-meta"></p>
     <p class="fixed-box" id="vote-fixed"></p>
     <div class="btns">
-      <button type="button" class="disagree" id="btn-disagree">👎 賛成しない</button>
-      <button type="button" class="agree" id="btn-agree">👍 賛成</button>
+      <button type="button" class="disagree" id="btn-disagree" data-i18n="curate.btn_disagree">👎 賛成しない</button>
+      <button type="button" class="agree" id="btn-agree" data-i18n="curate.btn_agree">👍 賛成</button>
     </div>
   </div>
-  <div id="empty-vote" hidden><div id="empty"><p class="icon">🎉</p><p>今この言語ペアで投票できる提案はありません。</p></div></div>
+  <div id="empty-vote" hidden><div id="empty"><p class="icon">🎉</p><p data-i18n="curate.empty_vote">今この言語ペアで投票できる提案はありません。</p></div></div>
 </div>
 
 <p class="status" id="status"></p>
@@ -123,6 +127,10 @@
 
 <script type="module">
 import { getUserId, bootstrapAuth } from './auth.js';
+import { t, applyI18n, initLangSwitcher } from './i18n.js';
+
+applyI18n();
+initLangSwitcher();
 
 let userId = getUserId();
 const authReady = bootstrapAuth().then((r) => { userId = r.userId; });
@@ -180,7 +188,7 @@ async function refreshCurrent() {
 
 async function loadFixNext() {
   $('card').hidden = true; $('empty-fix').hidden = true;
-  $('status').textContent = '読み込み中...';
+  $('status').textContent = t('common.loading');
   await authReady;
   try {
     const res = await fetch(`/api/correct/next?${new URLSearchParams({ user_id: userId, lang_pair: langPair })}`);
@@ -190,9 +198,9 @@ async function loadFixNext() {
     if (!j.post) { $('empty-fix').hidden = false; currentPost = null; return; }
     currentPost = j.post;
     $('fix-imgs').innerHTML =
-      `<div><img src="${currentPost.src_image_url}" alt="訳文"><p class="cap">訳文</p></div>` +
-      (currentPost.tgt_image_url ? `<div><img src="${currentPost.tgt_image_url}" alt="原文"><p class="cap">原文</p></div>` : '');
-    $('fix-meta').textContent = currentPost.situation ? `メモ: ${currentPost.situation}` : '';
+      `<div><img src="${currentPost.src_image_url}" alt="${t('common.alt_translated')}"><p class="cap">${t('common.alt_translated')}</p></div>` +
+      (currentPost.tgt_image_url ? `<div><img src="${currentPost.tgt_image_url}" alt="${t('common.alt_original')}"><p class="cap">${t('common.alt_original')}</p></div>` : '');
+    $('fix-meta').textContent = currentPost.situation ? t('common.memo_prefix', { text: currentPost.situation }) : '';
     $('original-text').value = currentPost.original_text || '';
     $('translated-text').value = currentPost.translated_text || '';
     $('fixed-text').value = '';
@@ -207,7 +215,7 @@ $('submit-fix').addEventListener('click', async () => {
   if (!currentPost) return;
   const verdict = document.querySelector('input[name=verdict]:checked').value;
   if (verdict === 'fix' && !$('fixed-text').value.trim()) {
-    $('status').textContent = '修正後の訳文を入力してください';
+    $('status').textContent = t('curate.fixed_text_required');
     return;
   }
   $('submit-fix').disabled = true;
@@ -224,7 +232,7 @@ $('submit-fix').addEventListener('click', async () => {
     });
     const j = await res.json();
     if (!j.ok) throw new Error(j.error);
-    showToast(`+${j.points}pt 提案しました`);
+    showToast(t('curate.toast_proposed', { points: j.points }));
     loadPointsBadge();
     loadFixNext();
   } catch (e) { $('status').textContent = e.message; }
@@ -233,7 +241,7 @@ $('submit-fix').addEventListener('click', async () => {
 
 async function loadVoteNext() {
   $('vote-card').hidden = true; $('empty-vote').hidden = true;
-  $('status').textContent = '読み込み中...';
+  $('status').textContent = t('common.loading');
   await authReady;
   try {
     const res = await fetch(`/api/correct/vote/next?${new URLSearchParams({ user_id: userId, lang_pair: langPair })}`);
@@ -243,13 +251,15 @@ async function loadVoteNext() {
     if (!j.correction) { $('empty-vote').hidden = false; currentCorrection = null; return; }
     currentCorrection = j.correction;
     $('vote-imgs').innerHTML =
-      `<div><img src="${currentCorrection.src_image_url}" alt="訳文"><p class="cap">訳文</p></div>` +
-      (currentCorrection.tgt_image_url ? `<div><img src="${currentCorrection.tgt_image_url}" alt="原文"><p class="cap">原文</p></div>` : '');
-    $('vote-meta').textContent =
-      `原文: ${currentCorrection.original_text || '—'} / 現在の訳: ${currentCorrection.translated_text || '—'}`;
+      `<div><img src="${currentCorrection.src_image_url}" alt="${t('common.alt_translated')}"><p class="cap">${t('common.alt_translated')}</p></div>` +
+      (currentCorrection.tgt_image_url ? `<div><img src="${currentCorrection.tgt_image_url}" alt="${t('common.alt_original')}"><p class="cap">${t('common.alt_original')}</p></div>` : '');
+    $('vote-meta').textContent = t('curate.vote_meta', {
+      original: currentCorrection.original_text || '—',
+      translated: currentCorrection.translated_text || '—',
+    });
     $('vote-fixed').textContent = currentCorrection.verdict === 'no_issue'
-      ? '裁定: このままで問題なし'
-      : `提案訳: ${currentCorrection.fixed_text}` + (currentCorrection.explanation ? ` (${currentCorrection.explanation})` : '');
+      ? t('curate.verdict_no_issue_result')
+      : t('curate.proposed_translation', { fixed: currentCorrection.fixed_text }) + (currentCorrection.explanation ? ` (${currentCorrection.explanation})` : '');
     $('vote-card').hidden = false;
   } catch (e) { $('status').textContent = e.message; }
 }
@@ -264,7 +274,7 @@ async function vote(agree) {
     });
     const j = await res.json();
     if (!j.ok) throw new Error(j.error);
-    showToast(`+${j.points}pt` + (j.confirmed ? ' ・確定しました!' : ''));
+    showToast(`+${j.points}pt` + (j.confirmed ? t('curate.toast_confirmed_suffix') : ''));
     loadPointsBadge();
     loadVoteNext();
   } catch (e) { $('status').textContent = e.message; }
