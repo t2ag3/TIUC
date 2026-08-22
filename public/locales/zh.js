@@ -5,7 +5,7 @@ export default {
   "common.login_active_fallback": "已登录",
   "common.close": "关闭",
   "common.back_top": "← 首页",
-  "common.back_curation": "← 校对",
+  "common.back_curation": "← 返回上一页",
   "common.camera_btn": "打开相机",
   "common.file_btn": "选择文件",
   "common.unselected": "未选择",
