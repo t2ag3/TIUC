@@ -47,6 +47,17 @@ export async function serveImage(request: Request, env: AppEnv): Promise<Respons
 		authorized = !!row;
 	}
 
+	// 確定・採用済みの投稿はコミュニティ検証済みの情報として地図から誰でも閲覧できる
+	// (2026-08-23改定。未確定の投稿は従来通りレビュアー認証必須のまま)
+	if (!authorized) {
+		const row = await env.DB.prepare(
+			`SELECT 1 FROM posts
+			  WHERE (src_image_key = ?1 OR src_thumb_key = ?1)
+			    AND status IN ('confirmed', 'adopted')`
+		).bind(key).first();
+		authorized = !!row;
+	}
+
 	if (!authorized) return bad("アクセスできません", 401);
 
 	const obj = await env.PHOTOS.get(key);

@@ -16,6 +16,7 @@ export const POST_HOURLY_LIMIT = 30;
 export const JUDGE_HOURLY_LIMIT = 60;
 export const CORRECT_HOURLY_LIMIT = 30;
 export const VOTE_HOURLY_LIMIT = 60;
+export const LIKE_HOURLY_LIMIT = 120;
 
 export const AUTH_SESSION_HOURS = 24 * 30;
 export const OAUTH_STATE_TTL_SEC = 300;

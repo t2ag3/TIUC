@@ -141,6 +141,15 @@ let mode = 'fix';
 let currentPost = null;
 let currentCorrection = null;
 
+// 地図のピンから「修正・投票へ」で来た場合、指定の言語ペアを最初から選ぶ
+const urlLangPair = new URLSearchParams(location.search).get('lang_pair');
+const urlLangBtn = urlLangPair && document.querySelector(`#lang-select button[data-lang="${urlLangPair}"]`);
+if (urlLangBtn) {
+  document.querySelectorAll('#lang-select button').forEach((b) => b.classList.remove('active'));
+  urlLangBtn.classList.add('active');
+  langPair = urlLangPair;
+}
+
 async function loadPointsBadge() {
   try {
     const res = await fetch(`/api/mypage?user_id=${userId}`);

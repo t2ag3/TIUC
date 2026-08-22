@@ -43,6 +43,16 @@
   .dropdown h2 { font-size: 12px; color: #666; margin: 14px 0 6px; font-weight: 500; }
   .dropdown h2:first-child { margin-top: 0; }
   #search .lang label { display: flex; align-items: center; gap: 6px; padding: 2px 0; cursor: pointer; }
+  .num-filter { width: 100%; font-size: 13px; padding: 6px 8px; border: 1px solid #ddd; border-radius: 8px; }
+
+  .popup-photo { width: 100%; max-height: 160px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; display: block; }
+  .popup-explanation { margin: 8px 0 0; color: #555; }
+  .popup-like-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .popup-like-btn { border: 1px solid #ddd; background: #f5f5f4; border-radius: 999px; padding: 5px 12px;
+                     font-size: 13px; cursor: pointer; }
+  .popup-like-btn.liked { background: #fde8e8; border-color: #e2a3a3; }
+  .popup-cta { display: block; margin-top: 8px; padding: 8px 10px; text-align: center; border-radius: 8px;
+               background: var(--color-accent, #1a5c3a); color: #fff; text-decoration: none; font-size: 13px; }
 
   #legend .swatches { display: flex; flex-direction: column; gap: 3px; margin-bottom: 4px; }
   #legend .sw { display: flex; align-items: center; gap: 6px; font-size: 12px; }
@@ -80,6 +90,10 @@
 <div id="search" class="dropdown">
   <h2 data-i18n="map.lang_pair_header">言語ペア</h2>
   <div class="lang" id="lang-filters"></div>
+  <h2 data-i18n="map.min_likes_header">最低いいね数</h2>
+  <input type="number" id="min-likes" class="num-filter" min="0" step="1" value="0">
+  <h2 data-i18n="map.min_agree_header">最低賛成数(修正案)</h2>
+  <input type="number" id="min-agree" class="num-filter" min="0" step="1" value="0">
 </div>
 
 <div id="legend" class="dropdown">
@@ -95,11 +109,13 @@
 <script type="module">
 import { meshGrid, meshGridCount, meshBounds } from './mesh.js';
 import { t, applyI18n, initLangSwitcher } from './i18n.js';
+import { getUserId } from './auth.js';
 
 applyI18n();
 initLangSwitcher();
 
 const $ = (id) => document.getElementById(id);
+const userId = getUserId();
 
 const LANG_LABEL = {
   'ja-en': t('common.pair_label_en'), 'ja-zh': t('common.pair_label_zh'), 'ja-ko': t('common.pair_label_ko'),
@@ -244,23 +260,77 @@ async function main() {
       onEachFeature: (feature, layer) => {
         layer.on('click', (e) => {
           const p = feature.properties;
-          const st = STATUS_STYLE[p.status];
-          const translatedLabel = (p.status === 'confirmed' || p.status === 'adopted') ? t('map.label_confirmed_translation') : t('map.label_unconfirmed_translation');
-          L.popup({ maxWidth: 260 })
+          const isConfirmed = p.status === 'confirmed' || p.status === 'adopted';
+          const popup = L.popup({ maxWidth: 280 })
             .setLatLng(e.latlng)
-            .setContent(`<table>
-              <tr><td>${t('map.row_status')}</td><td>${escapeHtml(st ? st.label : p.status)}</td></tr>
-              <tr><td>${t('map.row_lang')}</td><td>${LANG_LABEL[p.lang_pair] || p.lang_pair}</td></tr>
-              <tr><td>${t('map.row_original')}</td><td>${escapeHtml(p.original_text || t('map.not_entered'))}</td></tr>
-              <tr><td>${translatedLabel}</td><td>${escapeHtml(p.translated_text || t('map.not_entered'))}</td></tr>
-              <tr><td>${t('map.row_date')}</td><td>${jst(p.event_at)}</td></tr>
-            </table>
-            <p style="margin:8px 0 0"><a href="${googleMapsUrl(e.latlng.lat, e.latlng.lng)}"
-              target="_blank" rel="noopener">${t('map.goto_link')}</a></p>`)
+            .setContent(isConfirmed ? confirmedPinHtml(p, e.latlng) : pendingPinHtml(p, e.latlng))
             .openOn(map);
+          if (isConfirmed) wireLikeButton(popup, p);
         });
       },
     }).addTo(dataLayer);
+  }
+
+  function confirmedPinHtml(p, latlng) {
+    const photo = p.src_thumb_key
+      ? `<img class="popup-photo" src="/img/${p.src_thumb_key}" alt="${escapeHtml(t('common.alt_translated'))}">` : '';
+    return `${photo}<table>
+        <tr><td>${t('map.row_status')}</td><td>${escapeHtml((STATUS_STYLE[p.status] || {}).label || p.status)}</td></tr>
+        <tr><td>${t('map.row_lang')}</td><td>${LANG_LABEL[p.lang_pair] || p.lang_pair}</td></tr>
+        <tr><td>${t('map.row_original')}</td><td>${escapeHtml(p.original_text || t('map.not_entered'))}</td></tr>
+        <tr><td>${t('map.label_confirmed_translation')}</td><td>${escapeHtml(p.translated_text || t('map.not_entered'))}</td></tr>
+        <tr><td>${t('map.row_date')}</td><td>${jst(p.event_at)}</td></tr>
+      </table>
+      ${p.explanation ? `<p class="popup-explanation">${escapeHtml(p.explanation)}</p>` : ''}
+      <div class="popup-like-row">
+        <button type="button" class="popup-like-btn" id="like-btn-${p.id}">👍 ${t('map.like_btn')}</button>
+        <span id="like-count-${p.id}">${p.like_count}</span>
+      </div>
+      <p style="margin:8px 0 0"><a href="${googleMapsUrl(latlng.lat, latlng.lng)}"
+        target="_blank" rel="noopener">${t('map.goto_link')}</a></p>`;
+  }
+
+  const REVIEWABLE = new Set(['ja-en', 'ja-zh', 'ja-ko']);
+  function pendingPinHtml(p, latlng) {
+    let cta = '';
+    if (REVIEWABLE.has(p.lang_pair)) {
+      if (p.status === 'pending_judgment') {
+        cta = `<a class="popup-cta" href="judge.html?lang_pair=${encodeURIComponent(p.lang_pair)}">${t('map.goto_judge_cta')}</a>`;
+      } else if (p.status === 'needs_fix') {
+        cta = `<a class="popup-cta" href="curate.html?lang_pair=${encodeURIComponent(p.lang_pair)}">${t('map.goto_curate_cta')}</a>`;
+      }
+    }
+    return `<table>
+        <tr><td>${t('map.row_status')}</td><td>${escapeHtml((STATUS_STYLE[p.status] || {}).label || p.status)}</td></tr>
+        <tr><td>${t('map.row_lang')}</td><td>${LANG_LABEL[p.lang_pair] || p.lang_pair}</td></tr>
+        <tr><td>${t('map.row_original')}</td><td>${escapeHtml(p.original_text || t('map.not_entered'))}</td></tr>
+        <tr><td>${t('map.label_unconfirmed_translation')}</td><td>${escapeHtml(p.translated_text || t('map.not_entered'))}</td></tr>
+        <tr><td>${t('map.row_date')}</td><td>${jst(p.event_at)}</td></tr>
+      </table>
+      ${cta}
+      <p style="margin:8px 0 0"><a href="${googleMapsUrl(latlng.lat, latlng.lng)}"
+        target="_blank" rel="noopener">${t('map.goto_link')}</a></p>`;
+  }
+
+  function wireLikeButton(popup, p) {
+    const btn = document.getElementById(`like-btn-${p.id}`);
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/posts/like', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ user_id: userId, post_id: p.id }),
+        });
+        const j = await res.json();
+        if (!j.ok) throw new Error(j.error);
+        p.like_count = j.count;
+        btn.classList.toggle('liked', j.liked);
+        const countEl = document.getElementById(`like-count-${p.id}`);
+        if (countEl) countEl.textContent = j.count;
+      } catch { /* 失敗しても地図の閲覧自体は継続できる */ }
+      finally { btn.disabled = false; }
+    });
   }
 
   function checkedLangs() {
@@ -302,9 +372,12 @@ async function main() {
     const zoom = map.getZoom();
     const level = zoom >= MESH5_MIN_ZOOM ? 'mesh5' : (zoom >= MESH4_MIN_ZOOM ? 'mesh4' : 'mesh3');
     const langs = checkedLangs();
+    const minLikes = Math.max(0, Number($('min-likes').value) || 0);
+    const minAgree = Math.max(0, Number($('min-agree').value) || 0);
     const params = new URLSearchParams({
       bbox: [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()].join(','),
       level, lang_pair: langs.join(','),
+      min_likes: String(minLikes), min_agree: String(minAgree),
     });
 
     setStatus(t('common.loading'));
@@ -325,6 +398,8 @@ async function main() {
   function scheduleRefresh() { clearTimeout(debounceTimer); debounceTimer = setTimeout(refresh, 300); }
   map.on('moveend', scheduleRefresh);
   document.querySelectorAll('#search .lang input').forEach((el) => el.addEventListener('change', scheduleRefresh));
+  $('min-likes').addEventListener('input', scheduleRefresh);
+  $('min-agree').addEventListener('input', scheduleRefresh);
 
   async function searchPlace() {
     const q = $('place-q').value.trim();

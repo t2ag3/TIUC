@@ -2,6 +2,7 @@ import { meshCodes } from "../public/mesh.js";
 
 import {
 	REVIEWABLE_LANG_PAIRS,
+	LIKE_HOURLY_LIMIT,
 	LOC_SOURCES,
 	MAX_IMAGE_BYTES,
 	POINTS_POST_SUBMIT,
@@ -207,5 +208,54 @@ export async function deletePost(request: Request, env: AppEnv): Promise<Respons
   ].filter(Boolean));
 
   return Response.json({ ok: true });
+}
+
+// =====================================================================
+// 投稿への「いいね」(新規)。judgments/corrections/votes とは別の軽い好意
+// シグナル。ポイントは付与しない(rule10: ゲーミフィケーションの水増し防止)。
+// 押すたびにON/OFFをトグルする。
+// =====================================================================
+export async function togglePostLike(request: Request, env: AppEnv): Promise<Response> {
+  const body = await request.json<Record<string, unknown>>();
+  const userId = String(body.user_id || "");
+  const postId = String(body.post_id || "");
+  if (!UUID_RE.test(userId)) return bad("ユーザーIDが不正です");
+  if (!postId) return bad("post_id が必要です");
+
+  const now = Math.floor(Date.now() / 1000);
+  const rate = await env.DB.prepare(
+    "SELECT COUNT(*) AS n FROM post_likes WHERE user_id = ?1 AND created_at > ?2 - 3600"
+  ).bind(userId, now).first<{ n: number }>();
+  if ((rate?.n ?? 0) >= LIKE_HOURLY_LIMIT) {
+    return bad("短時間の操作が多すぎます。しばらく待ってから再度お試しください", 429);
+  }
+
+  const post = await env.DB.prepare(
+    "SELECT submitter_id FROM posts WHERE id = ?1"
+  ).bind(postId).first<{ submitter_id: string }>();
+  if (!post) return bad("該当する投稿がありません", 404);
+  if (post.submitter_id === userId) return bad("自分の投稿にはいいねできません");
+
+  await env.DB.prepare(
+    "INSERT INTO users (id, created_at) VALUES (?1, ?2) ON CONFLICT(id) DO NOTHING"
+  ).bind(userId, now).run();
+
+  const existing = await env.DB.prepare(
+    "SELECT id FROM post_likes WHERE post_id = ?1 AND user_id = ?2"
+  ).bind(postId, userId).first<{ id: string }>();
+
+  if (existing) {
+    await env.DB.prepare("DELETE FROM post_likes WHERE id = ?1").bind(existing.id).run();
+  } else {
+    await env.DB.prepare(
+      "INSERT INTO post_likes (id, post_id, user_id, created_at) VALUES (?1,?2,?3,?4)"
+    ).bind(crypto.randomUUID(), postId, userId, now).run();
+  }
+
+  const count = await env.DB.prepare(
+    "SELECT COUNT(*) AS n FROM post_likes WHERE post_id = ?1"
+  ).bind(postId).first<{ n: number }>();
+
+  return Response.json({ ok: true, liked: !existing, count: count?.n ?? 0 });
 }
 
