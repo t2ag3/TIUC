@@ -29,7 +29,7 @@ export default {
   "common.alt_original": "原文",
   "index.brand_aria": "TIUC 首页",
   "index.hero_title": "让街头的外语标识，<br><span class=\"accent\">大家一起一点点变好。</span>",
-  "index.hero_lead": "拍下让你在意的外语标识。确认它是否自然。提出更好的表达方式。一点一滴的参与，逐步更新这座城市的语言。",
+  "index.hero_lead": "拍下在意的标识、说出更好的说法，你的每一次在意，都在修订这座城市的语言。",
   "index.stat_posts_label": "收到的投稿",
   "index.stat_fixed_label": "已确认的修改",
   "index.section_participate_title": "参与",
