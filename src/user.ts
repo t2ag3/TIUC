@@ -25,7 +25,7 @@ export async function mypage(request: Request, env: AppEnv): Promise<Response> {
   const userId = String(sp.get("user_id") || "");
   if (!UUID_RE.test(userId)) return bad("ユーザーIDが不正です");
 
-  const [summary, postsRes, eventsRes, levelsRes] = await Promise.all([
+  const [summary, postsRes, eventsRes, levelsRes, judgmentsRes, correctionsRes] = await Promise.all([
     env.DB.prepare(
       `SELECT points_total, post_count, judged_count, corrected_count, adopted_count, streak_count
          FROM users WHERE id = ?1`
@@ -56,6 +56,27 @@ export async function mypage(request: Request, env: AppEnv): Promise<Response> {
       `SELECT lang_pair, submode, display_rank, declared_level
          FROM levels WHERE user_id = ?1`
     ).bind(userId).all(),
+    // 過去に自分が判定した投稿(振り返り用。マイページの「違和感チェック」履歴)
+    env.DB.prepare(
+      `SELECT j.post_id, j.verdict, j.category, j.created_at,
+              p.lang_pair, p.situation, p.status AS post_status,
+              p.src_thumb_key, p.tgt_thumb_key
+         FROM judgments j JOIN posts p ON p.id = j.post_id
+        WHERE j.judge_id = ?1
+        ORDER BY j.created_at DESC
+        LIMIT 100`
+    ).bind(userId).all(),
+    // 過去に自分が提案した修正(振り返り用。マイページの「修正提案」履歴)
+    env.DB.prepare(
+      `SELECT c.id AS correction_id, c.post_id, c.verdict, c.fixed_text, c.explanation,
+              c.status AS correction_status, c.created_at,
+              p.lang_pair, p.situation, p.original_text, p.translated_text, p.status AS post_status,
+              p.src_image_key, p.tgt_image_key
+         FROM corrections c JOIN posts p ON p.id = c.post_id
+        WHERE c.curator_id = ?1
+        ORDER BY c.created_at DESC
+        LIMIT 100`
+    ).bind(userId).all(),
   ]);
 
   const pointsTotal = summary?.points_total ?? 0;
@@ -73,6 +94,8 @@ export async function mypage(request: Request, env: AppEnv): Promise<Response> {
     posts: postsRes.results,
     point_events: eventsRes.results,
     levels: levelsRes.results,
+    judgments: judgmentsRes.results,
+    corrections: correctionsRes.results,
   });
 }
 

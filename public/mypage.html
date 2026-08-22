@@ -18,9 +18,15 @@
   h2 { font-size: 15px; margin: 24px 0 8px; }
   .lead { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
   .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .stat { border: 1px solid var(--line); border-radius: var(--radius-card, 10px); padding: 12px; text-align: center; }
+  .stat { appearance: none; -webkit-appearance: none; border: 1px solid var(--line); border-radius: var(--radius-card, 10px);
+          padding: 12px; text-align: center; font: inherit; color: inherit; background: #fff;
+          -webkit-tap-highlight-color: transparent; }
   .stat .n { font-size: 22px; font-weight: 600; }
   .stat .label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  button.stat { cursor: pointer; }
+  button.stat:hover { border-color: #999; background: #f7f7f5; }
+  button.stat.active { border-color: var(--color-accent, #1a5c3a); border-width: 2px; }
+  button.stat.active .label { color: var(--color-accent, #1a5c3a); font-weight: 600; }
   .card { border: 1px solid var(--line); border-radius: var(--radius-card, 10px); padding: 10px 12px; margin-bottom: 8px; }
   .card .row1 { display: flex; justify-content: space-between; align-items: center; font-size: 13px; gap: 8px; }
   .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px;
@@ -30,6 +36,10 @@
   .badge.looks_ok         { border-color: var(--muted); color: var(--muted); }
   .badge.confirmed        { border-color: var(--ok); color: var(--ok); }
   .badge.adopted          { border-color: var(--ok); color: #fff; background: var(--ok); }
+  .badge.natural          { border-color: var(--ok); color: var(--ok); }
+  .badge.unnatural        { border-color: var(--warn); color: var(--warn); }
+  .badge.proposed         { border-color: var(--color-secondary, #1a4d73); color: var(--color-secondary, #1a4d73); }
+  .badge.rejected         { border-color: var(--muted); color: var(--muted); }
   .memo { font-size: 12px; margin-top: 6px; color: var(--muted); }
   .ledger-row { display: flex; justify-content: space-between; align-items: baseline;
                 font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--line); gap: 8px; }
@@ -46,7 +56,7 @@
   .warn { color: var(--warn); }
   .mono { font-family: ui-monospace, monospace; }
 
-  #posts .card { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  #history-list .card { cursor: pointer; -webkit-tap-highlight-color: transparent; }
   .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex;
                      align-items: center; justify-content: center; padding: 16px; z-index: 10; }
   .modal-backdrop[hidden] { display: none; }
@@ -80,8 +90,8 @@
 
 <div class="stats" id="stats"></div>
 
-<h2 data-i18n="mypage.h2_posts">投稿履歴</h2>
-<div id="posts"></div>
+<h2 id="history-title" data-i18n="mypage.h2_posts">投稿履歴</h2>
+<div id="history-list"></div>
 
 <h2 data-i18n="mypage.h2_ledger">ポイント履歴</h2>
 <div id="ledger"></div>
@@ -106,10 +116,17 @@ initLangSwitcher();
 const $ = (id) => document.getElementById(id);
 let userId = getUserId();
 let posts = [];
+let judgments = [];
+let corrections = [];
+let activeTab = 'posts';
 
 const STATUS_LABEL = {
   pending_judgment: t('mypage.status_pending_judgment'), needs_fix: t('mypage.status_needs_fix'), looks_ok: t('mypage.status_looks_ok'),
   confirmed: t('mypage.status_confirmed'), adopted: t('mypage.status_adopted'),
+};
+const CORRECTION_STATUS_LABEL = {
+  proposed: t('mypage.correction_status_proposed'), confirmed: t('mypage.correction_status_confirmed'),
+  rejected: t('mypage.correction_status_rejected'),
 };
 const LANG_LABEL = { 'ja-en': t('common.pair_label_en'), 'ja-zh': t('common.pair_label_zh'), 'ja-ko': t('common.pair_label_ko') };
 const jst = (ts) => ts ? new Date(ts * 1000).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }) : '—';
@@ -135,8 +152,11 @@ async function load() {
     const j = await res.json();
     if (!j.ok) throw new Error(j.error || t('common.fetch_error'));
     $('page-status').textContent = '';
+    posts = j.posts;
+    judgments = j.judgments;
+    corrections = j.corrections;
     renderStats(j.summary);
-    renderPosts(j.posts);
+    renderHistory();
     renderLedger(j.point_events);
   } catch (e) {
     $('page-status').innerHTML = `<span class="warn">${e.message}</span>`;
@@ -146,15 +166,28 @@ async function load() {
 function renderStats(s) {
   $('stats').innerHTML = `
     <div class="stat"><div class="n">${s.points_total}</div><div class="label">${t('mypage.stat_points', { level: s.level })}</div></div>
-    <div class="stat"><div class="n">${s.post_count}</div><div class="label">${t('mypage.stat_posts')}</div></div>
-    <div class="stat"><div class="n">${s.judged_count}</div><div class="label">${t('common.label_judgment_check')}</div></div>
-    <div class="stat"><div class="n">${s.corrected_count}</div><div class="label">${t('common.label_correction_proposal')}</div></div>`;
+    <button type="button" class="stat" data-tab="posts"><div class="n">${s.post_count}</div><div class="label">${t('mypage.stat_posts')}</div></button>
+    <button type="button" class="stat" data-tab="judgments"><div class="n">${s.judged_count}</div><div class="label">${t('common.label_judgment_check')}</div></button>
+    <button type="button" class="stat" data-tab="corrections"><div class="n">${s.corrected_count}</div><div class="label">${t('common.label_correction_proposal')}</div></button>`;
+  $('stats').querySelectorAll('.stat[data-tab]').forEach((btn) => {
+    btn.addEventListener('click', () => { activeTab = btn.dataset.tab; renderHistory(); });
+  });
 }
 
-function renderPosts(list) {
-  posts = list;
-  const el = $('posts');
-  if (!list.length) {
+const HISTORY_TITLE_KEY = { posts: 'mypage.h2_posts', judgments: 'mypage.h2_judgments', corrections: 'mypage.h2_corrections' };
+function renderHistory() {
+  $('history-title').textContent = t(HISTORY_TITLE_KEY[activeTab]);
+  $('stats').querySelectorAll('.stat[data-tab]').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.tab === activeTab);
+  });
+  if (activeTab === 'posts') renderPosts();
+  else if (activeTab === 'judgments') renderJudgments();
+  else renderCorrections();
+}
+
+function renderPosts() {
+  const el = $('history-list');
+  if (!posts.length) {
     el.innerHTML = `<div class="empty-cta">
       <p class="icon">📷</p>
       <p>${t('mypage.posts_empty_text')}</p>
@@ -162,7 +195,7 @@ function renderPosts(list) {
     </div>`;
     return;
   }
-  el.innerHTML = list.map((p) => `
+  el.innerHTML = posts.map((p) => `
     <div class="card" data-id="${p.id}">
       <div class="row1">
         <span>${LANG_LABEL[p.lang_pair] || p.lang_pair} ・ ${jst(p.created_at)}</span>
@@ -172,7 +205,55 @@ function renderPosts(list) {
     </div>
   `).join('');
   el.querySelectorAll('.card').forEach((card) => {
-    card.addEventListener('click', () => openDetail(card.dataset.id));
+    card.addEventListener('click', () => openDetail('post', card.dataset.id));
+  });
+}
+
+function renderJudgments() {
+  const el = $('history-list');
+  if (!judgments.length) {
+    el.innerHTML = `<div class="empty-cta">
+      <p class="icon">🔍</p>
+      <p>${t('mypage.judgments_empty_text')}</p>
+      <a href="judge.html">${t('mypage.judgments_empty_cta')}</a>
+    </div>`;
+    return;
+  }
+  el.innerHTML = judgments.map((j, i) => `
+    <div class="card" data-idx="${i}">
+      <div class="row1">
+        <span>${LANG_LABEL[j.lang_pair] || j.lang_pair} ・ ${jst(j.created_at)}</span>
+        <span class="badge ${j.verdict}">${j.verdict === 'natural' ? t('mypage.verdict_natural') : t('mypage.verdict_unnatural')}</span>
+      </div>
+      ${j.situation ? `<p class="memo">${escapeHtml(j.situation)}</p>` : ''}
+    </div>
+  `).join('');
+  el.querySelectorAll('.card').forEach((card) => {
+    card.addEventListener('click', () => openDetail('judgment', judgments[Number(card.dataset.idx)]));
+  });
+}
+
+function renderCorrections() {
+  const el = $('history-list');
+  if (!corrections.length) {
+    el.innerHTML = `<div class="empty-cta">
+      <p class="icon">✏️</p>
+      <p>${t('mypage.corrections_empty_text')}</p>
+      <a href="curate.html">${t('mypage.corrections_empty_cta')}</a>
+    </div>`;
+    return;
+  }
+  el.innerHTML = corrections.map((c, i) => `
+    <div class="card" data-idx="${i}">
+      <div class="row1">
+        <span>${LANG_LABEL[c.lang_pair] || c.lang_pair} ・ ${jst(c.created_at)}</span>
+        <span class="badge ${c.correction_status}">${CORRECTION_STATUS_LABEL[c.correction_status] || c.correction_status}</span>
+      </div>
+      <p class="memo">${c.verdict === 'no_issue' ? t('mypage.no_issue_ruling') : escapeHtml(c.fixed_text || '')}</p>
+    </div>
+  `).join('');
+  el.querySelectorAll('.card').forEach((card) => {
+    card.addEventListener('click', () => openDetail('correction', corrections[Number(card.dataset.idx)]));
   });
 }
 
@@ -187,7 +268,13 @@ function renderLedger(events) {
   `).join('');
 }
 
-function openDetail(id) {
+function openDetail(kind, data) {
+  if (kind === 'post') return openPostDetail(data);
+  if (kind === 'judgment') return openJudgmentDetail(data);
+  return openCorrectionDetail(data);
+}
+
+function openPostDetail(id) {
   const p = posts.find((x) => x.id === id);
   if (!p) return;
   $('detail-img').src = `/img/${p.src_thumb_key}?user_id=${encodeURIComponent(userId)}`;
@@ -228,6 +315,33 @@ function openDetail(id) {
       }
     });
   }
+}
+
+function openJudgmentDetail(j) {
+  $('detail-img').src = `/img/${j.src_thumb_key}?judge_id=${encodeURIComponent(userId)}`;
+  $('detail-body').innerHTML = `
+    <div class="detail-row"><span>${t('mypage.row_lang')}</span><span>${LANG_LABEL[j.lang_pair] || j.lang_pair}</span></div>
+    <div class="detail-row"><span>${t('mypage.row_verdict')}</span><span>${j.verdict === 'natural' ? t('mypage.verdict_natural') : t('mypage.verdict_unnatural')}</span></div>
+    <div class="detail-row"><span>${t('mypage.row_status')}</span><span>${STATUS_LABEL[j.post_status] || j.post_status}</span></div>
+    <div class="detail-row"><span>${t('mypage.row_created_at')}</span><span>${jst(j.created_at)}</span></div>
+    ${j.situation ? `<div class="detail-row"><span>${t('mypage.row_memo')}</span><span>${escapeHtml(j.situation)}</span></div>` : ''}
+  `;
+  $('detail-modal').hidden = false;
+}
+
+function openCorrectionDetail(c) {
+  $('detail-img').src = `/img/${c.src_image_key}?curator_id=${encodeURIComponent(userId)}`;
+  $('detail-body').innerHTML = `
+    <div class="detail-row"><span>${t('mypage.row_lang')}</span><span>${LANG_LABEL[c.lang_pair] || c.lang_pair}</span></div>
+    <div class="detail-row"><span>${t('mypage.row_correction_status')}</span><span>${CORRECTION_STATUS_LABEL[c.correction_status] || c.correction_status}</span></div>
+    <div class="detail-row"><span>${t('mypage.row_original')}</span><span>${escapeHtml(c.original_text || '—')}</span></div>
+    ${c.verdict === 'no_issue'
+      ? `<div class="detail-row"><span>${t('mypage.row_verdict')}</span><span>${t('mypage.no_issue_ruling')}</span></div>`
+      : `<div class="detail-row"><span>${t('mypage.row_fixed_text')}</span><span>${escapeHtml(c.fixed_text || '—')}</span></div>`}
+    ${c.explanation ? `<div class="detail-row"><span>${t('mypage.row_explanation')}</span><span>${escapeHtml(c.explanation)}</span></div>` : ''}
+    <div class="detail-row"><span>${t('mypage.row_created_at')}</span><span>${jst(c.created_at)}</span></div>
+  `;
+  $('detail-modal').hidden = false;
 }
 
 $('detail-close').addEventListener('click', () => { $('detail-modal').hidden = true; });
