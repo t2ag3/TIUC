@@ -28,7 +28,7 @@ export default {
   "common.alt_translated": "译文",
   "common.alt_original": "原文",
   "index.brand_aria": "TIUC 首页",
-  "index.hero_title": "让街头的外语标识，<br><span class=\"accent\">大家一起一点点变好。</span>",
+  "index.hero_title": "街头的外语标识，<br><span class=\"accent\">大家一起把它一点点改好。</span>",
   "index.hero_lead": "拍下在意的标识、说出更好的说法，你的每一次在意，都在修订这座城市的语言。",
   "index.stat_posts_label": "收到的投稿",
   "index.stat_fixed_label": "已确认的修改",
