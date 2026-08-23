@@ -27,6 +27,12 @@
       color: var(--app-text);
     }
     #points-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      min-width: max-content;
+      white-space: nowrap;
       font-size: 12px;
       border: 1px solid var(--app-line);
       border-radius: var(--radius-pill);
@@ -48,10 +54,27 @@
     }
 
     .row-select {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 8px;
       margin-bottom: 10px;
-      flex-wrap: wrap;
+    }
+
+    #other-lang-wrap {
+      margin-bottom: 16px;
+    }
+
+    #other-lang-wrap[hidden] {
+      display: none;
+    }
+
+    #other-lang {
+      width: 100%;
+      padding: 10px;
+      font: inherit;
+      border: 1px solid var(--app-line);
+      border-radius: var(--radius-sm);
+      background: #fff;
     }
     .row-select button {
       flex: 1;
@@ -320,6 +343,33 @@
         >
           →韓国語
         </button>
+        <button type="button" data-lang="other" data-i18n="report.place_other">
+          その他
+        </button>
+      </div>
+
+      <div id="other-lang-wrap" hidden>
+        <select id="other-lang">
+          <option value="" data-i18n="common.unselected">未選択</option>
+          <option value="ja-fr">Français</option>
+          <option value="ja-es">Español</option>
+          <option value="ja-hi">हिन्दी</option>
+          <option value="ja-de">Deutsch</option>
+          <option value="ja-it">Italiano</option>
+          <option value="ja-pt">Português</option>
+          <option value="ja-ru">Русский</option>
+          <option value="ja-ar">العربية</option>
+          <option value="ja-th">ไทย</option>
+          <option value="ja-vi">Tiếng Việt</option>
+          <option value="ja-id">Bahasa Indonesia</option>
+          <option value="ja-tl">Filipino / Tagalog</option>
+          <option value="ja-ne">नेपाली</option>
+          <option value="ja-bn">বাংলা</option>
+          <option value="ja-tr">Türkçe</option>
+          <option value="ja-nl">Nederlands</option>
+          <option value="ja-pl">Polski</option>
+          <option value="ja-uk">Українська</option>
+        </select>
       </div>
 
       <div id="tabs">
@@ -454,21 +504,37 @@
         let currentPost = null;
         let currentCorrection = null;
 
-        // 地図のピンから「修正・投票へ」で来た場合、指定の言語ペアを最初から選ぶ
-        const urlLangPair = new URLSearchParams(location.search).get(
-          "lang_pair",
-        );
-        const urlLangBtn =
-          urlLangPair &&
-          document.querySelector(
+        // 地図などから lang_pair 指定で来た場合は、主要3言語か「その他」を自動選択する
+        const urlLangPair = new URLSearchParams(location.search).get("lang_pair");
+        if (urlLangPair) {
+          const directBtn = document.querySelector(
             `#lang-select button[data-lang="${urlLangPair}"]`,
           );
-        if (urlLangBtn) {
-          document
-            .querySelectorAll("#lang-select button")
-            .forEach((b) => b.classList.remove("active"));
-          urlLangBtn.classList.add("active");
-          langPair = urlLangPair;
+
+          if (directBtn) {
+            document
+              .querySelectorAll("#lang-select button")
+              .forEach((b) => b.classList.remove("active"));
+            directBtn.classList.add("active");
+            langPair = urlLangPair;
+          } else {
+            const otherBtn = document.querySelector(
+              '#lang-select button[data-lang="other"]',
+            );
+            const otherOption = document.querySelector(
+              `#other-lang option[value="${urlLangPair}"]`,
+            );
+
+            if (otherBtn && otherOption) {
+              document
+                .querySelectorAll("#lang-select button")
+                .forEach((b) => b.classList.remove("active"));
+              otherBtn.classList.add("active");
+              $("other-lang-wrap").hidden = false;
+              $("other-lang").value = urlLangPair;
+              langPair = urlLangPair;
+            }
+          }
         }
 
         async function loadPointsBadge() {
@@ -495,9 +561,45 @@
               .querySelectorAll("#lang-select button")
               .forEach((b) => b.classList.remove("active"));
             btn.classList.add("active");
-            langPair = btn.dataset.lang;
+
+            if (btn.dataset.lang === "other") {
+              $("other-lang-wrap").hidden = false;
+
+              if (!$("other-lang").value) {
+                currentPost = null;
+                currentCorrection = null;
+                $("card").hidden = true;
+                $("vote-card").hidden = true;
+                $("empty-fix").hidden = true;
+                $("empty-vote").hidden = true;
+                $("status").textContent = "";
+                return;
+              }
+
+              langPair = $("other-lang").value;
+            } else {
+              $("other-lang-wrap").hidden = true;
+              langPair = btn.dataset.lang;
+            }
+
             refreshCurrent();
           });
+        });
+
+        $("other-lang").addEventListener("change", () => {
+          if (!$("other-lang").value) {
+            currentPost = null;
+            currentCorrection = null;
+            $("card").hidden = true;
+            $("vote-card").hidden = true;
+            $("empty-fix").hidden = true;
+            $("empty-vote").hidden = true;
+            $("status").textContent = "";
+            return;
+          }
+
+          langPair = $("other-lang").value;
+          refreshCurrent();
         });
 
         $("tab-fix").addEventListener("click", () => setMode("fix"));
@@ -523,8 +625,8 @@
 
         async function refreshCurrent() {
           $("status").textContent = "";
-          if (mode === "fix") loadFixNext();
-          else loadVoteNext();
+          if (mode === "fix") await loadFixNext();
+          else await loadVoteNext();
         }
 
         async function loadFixNext() {

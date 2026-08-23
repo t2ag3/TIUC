@@ -2,7 +2,7 @@ import {
   CORRECT_HOURLY_LIMIT,
   JUDGE_HOURLY_LIMIT,
   JUDGMENT_THRESHOLD,
-  REVIEWABLE_LANG_PAIRS,
+  isValidLangPair,
   POINTS_CORRECTION_CONFIRM_BONUS,
   POINTS_CORRECTION_PROPOSE,
   POINTS_JUDGMENT,
@@ -28,7 +28,7 @@ export async function judgeNext(
   const userId = String(sp.get("user_id") || "");
   if (!UUID_RE.test(userId)) return bad("ユーザーIDが不正です");
   const langPair = String(sp.get("lang_pair") || "");
-  if (!REVIEWABLE_LANG_PAIRS.has(langPair))
+  if (!isValidLangPair(langPair))
     return bad("言語ペアの指定が不正です");
 
   const exclude = String(sp.get("exclude") || "")
@@ -171,7 +171,7 @@ export async function correctNext(
   const userId = String(sp.get("user_id") || "");
   if (!UUID_RE.test(userId)) return bad("ユーザーIDが不正です");
   const langPair = String(sp.get("lang_pair") || "");
-  if (!REVIEWABLE_LANG_PAIRS.has(langPair))
+  if (!isValidLangPair(langPair))
     return bad("言語ペアの指定が不正です");
 
   const row = await env.DB.prepare(
@@ -305,7 +305,7 @@ export async function correctVoteNext(
   const userId = String(sp.get("user_id") || "");
   if (!UUID_RE.test(userId)) return bad("ユーザーIDが不正です");
   const langPair = String(sp.get("lang_pair") || "");
-  if (!REVIEWABLE_LANG_PAIRS.has(langPair))
+  if (!isValidLangPair(langPair))
     return bad("言語ペアの指定が不正です");
 
   const row = await env.DB.prepare(

@@ -32,6 +32,12 @@
     }
 
     #points-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      min-width: max-content;
+      white-space: nowrap;
       font-size: 12px;
       border: 1px solid var(--app-line);
       border-radius: var(--radius-pill);
@@ -129,8 +135,16 @@
     }
     .choices {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: 8px;
+    }
+
+    .other-lang-wrap {
+      margin-top: 10px;
+    }
+
+    .other-lang-wrap[hidden] {
+      display: none;
     }
     .choices label {
       border: 1px solid var(--app-line);
@@ -382,7 +396,7 @@
   <body class="app-body">
     <div class="app-shell">
       <header class="app-topbar">
-        <a href="/?home=1" class="brand" data-i18n-aria-label="index.brand_aria"
+        <a href="/" class="brand" data-i18n-aria-label="index.brand_aria"
           ><span class="brand-mark">T</span
           ><span class="brand-copy"
             ><strong>TIUC</strong
@@ -500,24 +514,45 @@
         <fieldset>
           <legend data-i18n="report.step2_legend">2. 言語(訳文は何語?)</legend>
           <div class="choices" id="lang-pair">
-            <label
-              ><input type="radio" name="lang_pair" value="ja-en" /><span
-                data-i18n="report.place_en_lang"
-                >英語</span
-              ></label
-            >
-            <label
-              ><input type="radio" name="lang_pair" value="ja-zh" /><span
-                data-i18n="report.place_zh_lang"
-                >中国語</span
-              ></label
-            >
-            <label
-              ><input type="radio" name="lang_pair" value="ja-ko" /><span
-                data-i18n="report.place_ko_lang"
-                >韓国語</span
-              ></label
-            >
+            <label>
+              <input type="radio" name="lang_choice" value="ja-en" />
+              <span data-i18n="report.place_en_lang">英語</span>
+            </label>
+            <label>
+              <input type="radio" name="lang_choice" value="ja-zh" />
+              <span data-i18n="report.place_zh_lang">中国語</span>
+            </label>
+            <label>
+              <input type="radio" name="lang_choice" value="ja-ko" />
+              <span data-i18n="report.place_ko_lang">韓国語</span>
+            </label>
+            <label>
+              <input type="radio" name="lang_choice" value="other" />
+              <span data-i18n="report.place_other">その他</span>
+            </label>
+          </div>
+          <div id="other-lang-wrap" class="other-lang-wrap" hidden>
+            <select id="other-lang">
+            <option value="" data-i18n="common.unselected">未選択</option>
+            <option value="ja-fr">Français</option>
+            <option value="ja-es">Español</option>
+            <option value="ja-hi">हिन्दी</option>
+            <option value="ja-de">Deutsch</option>
+            <option value="ja-it">Italiano</option>
+            <option value="ja-pt">Português</option>
+            <option value="ja-ru">Русский</option>
+            <option value="ja-ar">العربية</option>
+            <option value="ja-th">ไทย</option>
+            <option value="ja-vi">Tiếng Việt</option>
+            <option value="ja-id">Bahasa Indonesia</option>
+            <option value="ja-tl">Filipino / Tagalog</option>
+            <option value="ja-ne">नेपाली</option>
+            <option value="ja-bn">বাংলা</option>
+            <option value="ja-tr">Türkçe</option>
+            <option value="ja-nl">Nederlands</option>
+            <option value="ja-pl">Polski</option>
+            <option value="ja-uk">Українська</option>
+            </select>
           </div>
         </fieldset>
         <fieldset>
@@ -660,7 +695,7 @@
             ご協力ありがとうございます!
           </p>
           <div class="done-links">
-            <a href="/?home=1" data-i18n="report.done_link_top">トップに戻る</a>
+            <a href="/" data-i18n="report.done_link_top">トップに戻る</a>
             <a href="menu.html" data-i18n="report.done_link_curate"
               >キュレーションに参加する</a
             >
@@ -734,7 +769,7 @@
         function getPosition() {
           return new Promise((res, rej) => {
             if (!navigator.geolocation)
-              return rej(new Error("位置情報を利用できません"));
+              return rej(new Error(t("report.geolocation_unavailable")));
             navigator.geolocation.getCurrentPosition(res, rej, {
               enableHighAccuracy: true,
               timeout: 15000,
@@ -850,9 +885,28 @@
           refresh();
         });
 
-        document
-          .getElementById("lang-pair")
-          .addEventListener("change", refresh);
+        function getSelectedLangPair() {
+          const choice = document.querySelector(
+            'input[name="lang_choice"]:checked',
+          );
+          if (!choice) return null;
+          if (choice.value === "other") return $("other-lang").value || null;
+          return choice.value;
+        }
+
+        $("lang-pair").addEventListener("change", () => {
+          const choice = document.querySelector(
+            'input[name="lang_choice"]:checked',
+          );
+          $("other-lang-wrap").hidden = choice?.value !== "other";
+          refresh();
+          if (state.point) checkNearby(state.point.lat, state.point.lng);
+        });
+
+        $("other-lang").addEventListener("change", () => {
+          refresh();
+          if (state.point) checkNearby(state.point.lat, state.point.lng);
+        });
 
         const SRC_LABEL = {
           exif: t("report.loc_src_exif"),
@@ -876,16 +930,14 @@
 
         async function checkNearby(lat, lng) {
           $("nearby-notice").hidden = true;
-          const langEl = document.querySelector(
-            "input[name=lang_pair]:checked",
-          );
-          if (!langEl) return;
+          const langPair = getSelectedLangPair();
+          if (!langPair) return;
           try {
             const params = new URLSearchParams({
               lat: String(lat),
               lng: String(lng),
               user_id: userId,
-              lang_pair: langEl.value,
+              lang_pair: langPair,
             });
             const res = await fetch(`/api/nearby?${params}`);
             const j = await res.json();
@@ -985,7 +1037,7 @@
         });
 
         function refresh() {
-          const lang = document.querySelector("input[name=lang_pair]:checked");
+          const lang = getSelectedLangPair();
           const tgtOk =
             !$("has-tgt").checked || (state.tgtFull && state.tgtThumb);
           $("submit").disabled = !(
@@ -1003,9 +1055,11 @@
         }
 
         $("submit").addEventListener("click", async () => {
-          const langPair = document.querySelector(
-            "input[name=lang_pair]:checked",
-          ).value;
+          const langPair = getSelectedLangPair();
+          if (!langPair) {
+            $("submit-status").textContent = t("common.unselected");
+            return;
+          }
           $("submit").disabled = true;
           $("submit-status").textContent = t("report.sending");
           await authReady;

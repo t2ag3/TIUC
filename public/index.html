@@ -224,162 +224,70 @@
       font-size: 11px;
     }
     #buddy {
+      position: relative;
+      overflow: visible;
       margin-top: 14px;
       display: flex;
       align-items: center;
-      gap: 16px;
-      padding: 16px 18px;
-      border: 1px solid #dbe4dc;
-      border-radius: 20px;
-      background: linear-gradient(110deg, #fff, #f0f6ef);
-      text-decoration: none;
-      box-shadow: var(--shadow-sm);
-    }
-    #buddy-sprite {
-      width: 58px;
-      height: 58px;
-      display: grid;
-      place-items: center;
-      flex: none;
-      border-radius: 18px;
-      background: #edf5ef;
-      font-size: 36px;
-    }
-    .buddy-main {
-      flex: 1;
-      min-width: 0;
-    }
-    .buddy-row {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 10px;
-    }
-    .buddy-title {
-      font-size: 14px;
-      font-weight: 800;
-    }
-    .buddy-level {
-      font-size: 13px;
-      font-weight: 800;
-      color: #356145;
-    }
-    .buddy-hint {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-    .xpbar {
-      height: 7px;
-      background: #e2e7e1;
-      border-radius: 999px;
-      margin-top: 9px;
-      overflow: hidden;
-    }
-    .xpfill {
-      height: 100%;
-      width: 0;
-      background: var(--color-accent, #1a5c3a);
-      border-radius: inherit;
-    }
-    .buddy-arrow {
-      font-size: 18px;
-      color: #809086;
-    }
-    .section-head {
-      margin: 34px 2px 14px;
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 16px;
-    }
-    .section-head h2 {
-      margin: 0;
-      font-size: 18px;
-    }
-    .section-head p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 12px;
-    }
-    #modes {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      justify-content: center;
       gap: 14px;
-    }
-    .mode-card {
-      min-height: 190px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 18px;
-      padding: 22px;
-      border: 1px solid var(--line);
+      min-height: 88px;
+      padding: 18px 22px;
+      border: 1px solid #dbe4dc;
       border-radius: 22px;
-      background: rgba(255, 255, 255, 0.86);
+      background: linear-gradient(110deg, #fff, #f0f6ef);
       text-decoration: none;
       box-shadow: var(--shadow-sm);
       transition:
         transform 0.18s ease,
         box-shadow 0.18s ease;
     }
-    .mode-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 16px 34px rgba(18, 28, 20, 0.09);
+
+    #buddy:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 34px rgba(18, 28, 20, 0.09);
     }
-    .mode-card.primary {
-      background: #1d603e;
-      color: #fff;
-      border-color: #1d603e;
+
+    .buddy-game {
+      font-size: clamp(20px, 4vw, 28px);
+      font-weight: 850;
+      letter-spacing: -0.02em;
+      color: var(--color-accent, #1a5c3a);
     }
-    .mode-card.secondary {
-      background: #214f69;
-      color: #fff;
-      border-color: #214f69;
+
+    .buddy-game span {
+      margin-left: 6px;
     }
-    .mode-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 12px;
+
+    .firework {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 8px;
+      height: 8px;
+      pointer-events: none;
+      border-radius: 50%;
+      background: currentColor;
+      transform: translate(-50%, -50%);
+      animation: firework-burst 520ms ease-out forwards;
+      z-index: 5;
     }
-    .mode-card .icon {
-      width: 48px;
-      height: 48px;
-      display: grid;
-      place-items: center;
-      border-radius: 15px;
-      background: rgba(255, 255, 255, 0.14);
-      font-size: 24px;
+
+    @keyframes firework-burst {
+      0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0)
+          scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) rotate(var(--angle))
+          translateX(var(--distance)) scale(0.35);
+      }
     }
-    .mode-card.tertiary .icon {
-      background: var(--surface-accent);
-    }
-    .mode-arrow {
+    .buddy-arrow {
       font-size: 18px;
-      opacity: 0.68;
-    }
-    .mode-card .title {
-      display: block;
-      font-size: 18px;
-      font-weight: 800;
-    }
-    .mode-card .desc {
-      display: block;
-      margin-top: 6px;
-      font-size: 12px;
-      line-height: 1.65;
-      opacity: 0.78;
-    }
-    footer {
-      padding: 0 0 28px;
-    }
-    footer .note {
-      margin: 0;
-      color: #858a84;
-      font-size: 11px;
-      line-height: 1.7;
-      text-align: center;
+      color: #809086;
     }
     @media (max-width: 720px) {
       .shell {
@@ -403,27 +311,8 @@
         min-width: 0;
         padding: 12px;
       }
-      .section-head {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 4px;
-        margin-top: 26px;
-      }
-      #modes {
-        grid-template-columns: 1fr;
-        gap: 10px;
-      }
-      .mode-card {
-        min-height: 132px;
-        padding: 18px;
-      }
       #buddy {
         padding: 13px 14px;
-      }
-      #buddy-sprite {
-        width: 52px;
-        height: 52px;
-        font-size: 32px;
       }
     }
   </style>
@@ -468,73 +357,11 @@
             </div>
           </div>
         </section>
-        <a id="buddy" href="game.html"
-          ><div id="buddy-sprite">🥚</div>
-          <div class="buddy-main">
-            <div class="buddy-row">
-              <span class="buddy-title" data-i18n="index.buddy_title"
-                >街ことばの相棒</span
-              ><span class="buddy-level" id="buddy-level">Lv.1</span>
-            </div>
-            <div
-              class="buddy-hint"
-              id="buddy-hint"
-              data-i18n="index.buddy_hint_default"
-            >
-              投稿や判定で育ちます。クエストと図鑑を見る
-            </div>
-            <div class="xpbar"><div class="xpfill" id="buddy-xp"></div></div>
-          </div>
-          <span class="buddy-arrow">›</span></a
-        >
-        <div class="section-head">
-          <h2 data-i18n="index.section_participate_title">参加する</h2>
-          <p data-i18n="index.section_participate_sub">
-            できることから、1つだけでも。
-          </p>
-        </div>
-        <div id="modes">
-          <a href="report.html" class="mode-card primary"
-            ><div class="mode-top">
-              <span class="icon">📷</span><span class="mode-arrow">↗</span>
-            </div>
-            <div>
-              <span class="title" data-i18n="index.mode_report_title"
-                >見つける</span
-              ><span class="desc" data-i18n="index.mode_report_desc"
-                >街で見つけた外国語表記を撮影して投稿します。</span
-              >
-            </div></a
-          ><a href="menu.html" class="mode-card secondary"
-            ><div class="mode-top">
-              <span class="icon">🔍</span><span class="mode-arrow">↗</span>
-            </div>
-            <div>
-              <span class="title" data-i18n="index.mode_curate_title"
-                >確かめる・なおす</span
-              ><span class="desc" data-i18n="index.mode_curate_desc"
-                >自然さを判定したり、より良い表現を提案します。</span
-              >
-            </div></a
-          ><a href="map.html" class="mode-card tertiary"
-            ><div class="mode-top">
-              <span class="icon">🗺️</span><span class="mode-arrow">↗</span>
-            </div>
-            <div>
-              <span class="title" data-i18n="index.mode_map_title"
-                >街を見る</span
-              ><span class="desc" data-i18n="index.mode_map_desc"
-                >集まった投稿と改善状況を地図から確認します。</span
-              >
-            </div></a
-          >
-        </div>
+        <a id="buddy" href="game.html">
+          <div class="buddy-game">🎮 <span>Game on</span></div>
+          <span class="buddy-arrow">›</span>
+        </a>
       </main>
-      <footer>
-        <p class="note" data-i18n="index.footer_note">
-          ログイン不要・匿名でも利用できます。投稿された写真は、判定・修正に必要な範囲で取り扱われます。
-        </p>
-      </footer>
     </div>
     <script type="module">
       import { getUserId, bootstrapAuth, googleLoginUrl } from "./auth.js";
@@ -543,15 +370,18 @@
       initLangSwitcher();
       const $ = (id) => document.getElementById(id);
       let userId = getUserId();
-      const sprites = { egg: "🥚", chick: "🐣", bird: "🐦", guide: "🦉" };
-      const authReady = bootstrapAuth().then((r) => {
+
+      bootstrapAuth().then((r) => {
         userId = r.userId;
         if (r.session) {
           $("login-link").textContent =
             r.session.display_name || t("common.login_active_fallback");
           $("login-link").href = "mypage.html";
-        } else $("login-link").href = googleLoginUrl(userId);
+        } else {
+          $("login-link").href = googleLoginUrl(userId);
+        }
       });
+
       fetch("/api/health")
         .then((r) => r.json())
         .then((j) => {
@@ -561,30 +391,41 @@
           }
         })
         .catch(() => {});
-      authReady
-        .then(() =>
-          fetch(`/api/game/character?user_id=${userId}`)
-            .then((r) => r.json())
-            .then((j) => {
-              if (!j.ok) return;
 
-              $("buddy-sprite").textContent = sprites[j.stage] || "🥚";
-              $("buddy-level").textContent = `Lv.${j.level}`;
+      const buddy = $("buddy");
+      buddy.addEventListener("click", (event) => {
+        if (
+          event.defaultPrevented ||
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey
+        ) {
+          return;
+        }
 
-              const p = j.xp_for_next_level
-                ? Math.min(
-                    100,
-                    Math.round((j.xp_into_level / j.xp_for_next_level) * 100),
-                  )
-                : 0;
+        event.preventDefault();
 
-              $("buddy-xp").style.width = `${p}%`;
-              $("buddy-hint").textContent = t("index.buddy_hint_with_xp", {
-                xp: j.xp_total,
-              });
-            }),
-        )
-        .catch(() => {});
+        const colors = ["#1a5c3a", "#214f69", "#d39426", "#a23a57", "#6d4aa8"];
+
+        for (let i = 0; i < 18; i++) {
+          const particle = document.createElement("span");
+          particle.className = "firework";
+          particle.style.setProperty("--angle", `${i * 20}deg`);
+          particle.style.setProperty(
+            "--distance",
+            `${54 + Math.random() * 44}px`,
+          );
+          particle.style.color = colors[i % colors.length];
+          buddy.appendChild(particle);
+          particle.addEventListener("animationend", () => particle.remove());
+        }
+
+        setTimeout(() => {
+          location.href = buddy.href;
+        }, 430);
+      });
     </script>
   </body>
 </html>

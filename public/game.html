@@ -101,14 +101,16 @@
     }
 
     .action {
-      padding: 14px 8px;
+      padding: 14px 6px;
       border-radius: 16px;
       text-decoration: none;
       text-align: center;
       border: 1px solid var(--line);
       background: #fff;
-      font-size: 12px;
+      font-size: clamp(9px, 2.5vw, 12px);
       font-weight: 700;
+      white-space: nowrap;
+      min-width: 0;
     }
 
     .action span {
@@ -146,6 +148,17 @@
       display: flex;
       align-items: center;
       gap: 12px;
+    }
+
+    .quest.claimed {
+      background: #e1e5e0;
+      border-color: #c6ccc5;
+    }
+
+    .quest.claimed .qt,
+    .quest.claimed .qd,
+    .quest.claimed .qr {
+      opacity: 0.72;
     }
 
     .quest-body {
@@ -275,7 +288,7 @@
   <body>
     <div class="wrap">
       <div class="top">
-        <a href="/?home=1" data-i18n="game.back_top">← TIUCに戻る</a>
+        <a href="/?home=1" data-i18n="game.back_top">← TIUCについて</a>
         <div style="display: flex; align-items: center; gap: 10px">
           <select id="lang-switcher" class="lang-switcher"></select>
           <a href="mypage.html" data-i18n="common.mypage_link">マイページ</a>
@@ -296,13 +309,18 @@
 
       <div class="actions">
         <a class="action primary" href="report.html">
-          <span>📷</span><span data-i18n="game.action_find">見つける</span>
+          <span>📷</span>
+          <span data-i18n="game.action_find">画像を投稿</span>
         </a>
-        <a class="action secondary" href="judge.html">
-          <span>🔍</span><span data-i18n="game.action_judge">判定する</span>
+
+        <a class="action secondary" href="menu.html">
+          <span>🔍</span>
+          <span data-i18n="game.action_review">確認・修正</span>
         </a>
+
         <a class="action" href="map.html">
-          <span>🗺️</span><span data-i18n="game.action_map">街を見る</span>
+          <span>🗺️</span>
+          <span data-i18n="game.action_map">街を見る</span>
         </a>
       </div>
 
@@ -391,19 +409,19 @@
                 : t("game.quest_incomplete");
 
             return `
-      <div class="card quest">
-        <div class="quest-body">
-          <div class="qt">${q.claimed ? "🏆 " : ""}${title}</div>
-          <div class="qd">${desc}</div>
-          <div class="qr">+${q.reward} XP</div>
-        </div>
-        <button
-          class="claim ${q.done && !q.claimed ? "ready" : ""}"
-          data-id="${q.id}"
-          ${!q.done || q.claimed ? "disabled" : ""}
-        >${buttonText}</button>
-      </div>
-    `;
+              <div class="card quest ${q.claimed ? "claimed" : ""}">
+                <div class="quest-body">
+                  <div class="qt">${q.claimed ? "🏆 " : ""}${title}</div>
+                  <div class="qd">${desc}</div>
+                  <div class="qr">+${q.reward} XP</div>
+                </div>
+                <button
+                  class="claim ${q.done && !q.claimed ? "ready" : ""}"
+                  data-id="${q.id}"
+                  ${!q.done || q.claimed ? "disabled" : ""}
+                >${buttonText}</button>
+              </div>
+            `;
           })
           .join("");
 

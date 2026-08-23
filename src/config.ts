@@ -1,6 +1,5 @@
-// レビューUI(judge.html/curate.html)は英中韓の3言語のみ対応。
-// ja-fr/ja-es/ja-hi はダミーデータ・地図の言語フィルタ表示専用の追加で、
-// ②③のレビューボタンには出さない(CLAUDE.mdのMVPスコープはそのまま)。
+// 投稿で現在明示的に扱っている言語ペア。
+// 英・中・韓以外はUI上では「その他」としてまとめて表示する。
 export const LANG_PAIRS = new Set([
   "ja-en",
   "ja-zh",
@@ -9,7 +8,22 @@ export const LANG_PAIRS = new Set([
   "ja-es",
   "ja-hi",
 ]);
-export const REVIEWABLE_LANG_PAIRS = new Set(["ja-en", "ja-zh", "ja-ko"]);
+
+// 言語ペアとして許可する形式。
+// 「その他」の言語を追加してもconfigへの追記を必須にしない。
+export const LANG_PAIR_RE = /^ja-[a-z]{2,3}$/;
+
+export function isValidLangPair(value: string): boolean {
+  return LANG_PAIR_RE.test(value) && value !== "ja-ja";
+}
+
+// 現時点では既存レビューUIが直接対応している3言語。
+// 「その他」をレビュー可能にする変更はreview.ts確認後に行う。
+export const REVIEWABLE_LANG_PAIRS = new Set([
+  "ja-en",
+  "ja-zh",
+  "ja-ko",
+]);
 export const PLACE_KINDS = new Set(["menu", "sign", "notice", "other"]);
 export const POST_PLACE_KINDS = new Set([...PLACE_KINDS, "unknown"]);
 export const LOC_SOURCES = new Set(["exif", "geolocation", "manual"]);

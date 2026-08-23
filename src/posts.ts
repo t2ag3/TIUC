@@ -1,7 +1,7 @@
 import { meshCodes } from "../public/mesh.js";
 
 import {
-  REVIEWABLE_LANG_PAIRS,
+  isValidLangPair,
   LIKE_HOURLY_LIMIT,
   LOC_SOURCES,
   MAX_IMAGE_BYTES,
@@ -35,7 +35,7 @@ export async function createPost(
     return bad("日本国内の座標ではありません");
 
   const langPair = String(form.get("lang_pair") || "");
-  if (!REVIEWABLE_LANG_PAIRS.has(langPair))
+  if (!isValidLangPair(langPair))
     return bad("言語ペアの指定が不正です");
 
   const placeKind = String(form.get("place_kind") || "unknown");
@@ -210,7 +210,7 @@ export async function nearbyCheck(
     return bad("日本国内の座標ではありません");
 
   const langPair = String(sp.get("lang_pair") || "");
-  if (!REVIEWABLE_LANG_PAIRS.has(langPair))
+  if (!isValidLangPair(langPair))
     return bad("言語ペアの指定が不正です");
 
   const mesh = meshCodes(lat, lng);
