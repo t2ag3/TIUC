@@ -148,7 +148,7 @@ export async function gameClaimQuest(request: Request, env: AppEnv): Promise<Res
   const now = Math.floor(Date.now()/1000);
   await env.DB.batch([
     env.DB.prepare("INSERT INTO quest_claims (user_id,quest_id,claimed_at) VALUES (?1,?2,?3)").bind(userId,questId,now),
-    env.DB.prepare("INSERT INTO xp_events (user_id,kind,xp,source_key,created_at,note) VALUES (?1,'quest',?2,?3,?4,?5)").bind(userId,q.reward,`quest:${questId}`,now,q.title),
+    env.DB.prepare("INSERT INTO xp_events (user_id,kind,xp,source_key,created_at,note) VALUES (?1,'quest',?2,?3,?4,?5)").bind(userId,q.reward,`quest:${userId}:${questId}`,now,q.title),
     env.DB.prepare("UPDATE characters SET xp_total=xp_total+?2,updated_at=?3 WHERE user_id=?1").bind(userId,q.reward,now),
   ]);
   return Response.json({ ok:true, reward:q.reward });
