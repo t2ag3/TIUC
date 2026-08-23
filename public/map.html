@@ -1,69 +1,76 @@
 <!doctype html>
-<html lang="ja">
+<html lang="ja" class="app-html">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f7f8f5">
 <title data-i18n="map.title">マップ - TIUC</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="tokens.css">
 <style>
+  :root { --app-line:#e3e6df; --app-muted:#6b7068; --app-text:#1d211d; }
   * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; font-family: system-ui, -apple-system, sans-serif; color: #222; }
-  #map { position: absolute; left: 0; right: 0; bottom: 0; top: 88px; }
+  html, body { margin: 0; height: 100%; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--app-text); }
+  #map { position: absolute; left: 0; right: 0; bottom: 0; top: 112px; }
 
-  #topbar { position: absolute; z-index: 2; top: 0; left: 0; right: 0;
-            background: #fff; border-bottom: 1px solid #ddd; box-shadow: 0 1px 4px rgba(0,0,0,.08);
-            display: flex; flex-direction: column; gap: 8px; padding: 8px 10px; }
-  #topbar-row1 { display: flex; align-items: center; gap: 6px; height: 28px; }
-  #topbar-row2 { display: flex; align-items: center; gap: 6px; height: 36px; }
-  #topbar .back { font-size: 12px; color: #666; white-space: nowrap; text-decoration: none; flex: none; }
-  #topbar h1 { font-size: 14px; margin: 0; flex: 1; min-width: 0; overflow: hidden;
+  #topbar { position: absolute; z-index: 2; top: 10px; left: 10px; right: 10px;
+            background: rgba(255,255,255,.92); backdrop-filter: blur(6px); border: 1px solid var(--app-line);
+            border-radius: 18px; box-shadow: 0 1px 2px rgba(18,28,20,.04), 0 10px 30px rgba(18,28,20,.08);
+            display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; }
+  #topbar-row1 { display: flex; align-items: center; gap: 8px; height: 30px; }
+  #topbar-row1 .brand { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: inherit; flex: none; }
+  #topbar-row1 .brand-mark { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center;
+    background: var(--color-accent, #1a5c3a); color: #fff; font-weight: 800; font-size: 12px; flex: none; }
+  #topbar-row1 h1 { font-size: 14px; font-weight: 800; margin: 0; flex: 1; min-width: 0; overflow: hidden;
                text-overflow: ellipsis; white-space: nowrap; }
-  #status-msg { font-size: 11px; color: #666; white-space: nowrap; flex: none; }
-  .icon-btn { flex: none; display: flex; align-items: center; gap: 4px; font-size: 12px;
-              background: #f5f5f4; border: 1px solid #ddd; border-radius: 8px;
-              padding: 0 10px; height: 34px; cursor: pointer; color: #222; }
-  .icon-btn.active { background: #2a2a28; color: #fff; border-color: #2a2a28; }
+  #topbar-row2 { display: flex; align-items: center; gap: 6px; height: 36px; }
+  #status-msg { font-size: 11px; color: var(--app-muted); white-space: nowrap; flex: none; }
+  .icon-btn { flex: none; display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700;
+              background: #f5f6f3; border: 1px solid var(--app-line); border-radius: 10px;
+              padding: 0 12px; height: 34px; cursor: pointer; color: var(--app-text); transition: background .15s ease; }
+  .icon-btn:hover { background: #eceee9; }
+  .icon-btn.active { background: #1d211d; color: #fff; border-color: #1d211d; }
   .icon-btn .glyph { font-size: 14px; line-height: 1; }
 
   #place-row { display: flex; gap: 6px; flex: 1 1 auto; min-width: 0; height: 100%; }
-  #place-row input[type=text] { flex: 1 1 auto; min-width: 40px; font-size: 13px; padding: 0 8px;
-                                 border: 1px solid #ddd; border-radius: 8px; }
-  #place-row button { flex: none; font-size: 12px; padding: 0 10px; border: 1px solid #ddd;
-                       border-radius: 8px; background: #f5f5f4; cursor: pointer; }
-  #place-msg { position: absolute; z-index: 1000; top: 88px; left: 10px; right: 10px; margin: 0;
-               font-size: 11px; color: #a33; background: #fff; border-radius: 0 0 8px 8px;
-               padding: 4px 6px; box-shadow: 0 2px 4px rgba(0,0,0,.1); }
+  #place-row input[type=text] { flex: 1 1 auto; min-width: 40px; font-size: 13px; padding: 0 10px;
+                                 border: 1px solid var(--app-line); border-radius: 10px; }
+  #place-row button { flex: none; font-size: 12px; font-weight: 700; padding: 0 12px; border: 1px solid var(--app-line);
+                       border-radius: 10px; background: #f5f6f3; cursor: pointer; }
+  #place-msg { position: absolute; z-index: 1000; top: 112px; left: 20px; right: 20px; margin: 0;
+               font-size: 11px; color: #a33; background: #fff; border-radius: 10px;
+               padding: 6px 10px; box-shadow: 0 4px 12px rgba(18,28,20,.1); }
   #place-msg:empty { display: none; }
 
-  .dropdown { position: absolute; z-index: 1000; top: 88px; right: 10px;
-              width: min(300px, calc(100vw - 20px)); max-height: calc(100vh - 116px); overflow-y: auto;
-              background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 14px;
-              font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,.15); display: none; }
+  .dropdown { position: absolute; z-index: 1000; top: 112px; right: 10px;
+              width: min(300px, calc(100vw - 20px)); max-height: calc(100vh - 140px); overflow-y: auto;
+              background: #fff; border: 1px solid var(--app-line); border-radius: 16px; padding: 14px;
+              font-size: 13px; box-shadow: 0 16px 50px rgba(18,28,20,.14); display: none; }
   .dropdown.open { display: block; }
-  .dropdown h2 { font-size: 12px; color: #666; margin: 14px 0 6px; font-weight: 500; }
+  .dropdown h2 { font-size: 12px; color: var(--app-muted); margin: 14px 0 6px; font-weight: 700; }
   .dropdown h2:first-child { margin-top: 0; }
   #search .lang label { display: flex; align-items: center; gap: 6px; padding: 2px 0; cursor: pointer; }
-  .num-filter { width: 100%; font-size: 13px; padding: 6px 8px; border: 1px solid #ddd; border-radius: 8px; }
+  .num-filter { width: 100%; font-size: 13px; padding: 7px 9px; border: 1px solid var(--app-line); border-radius: 10px; }
 
-  .popup-photo { width: 100%; max-height: 160px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; display: block; }
+  .popup-photo { width: 100%; max-height: 160px; object-fit: cover; border-radius: 12px; margin-bottom: 8px; display: block; }
   .popup-explanation { margin: 8px 0 0; color: #555; }
   .popup-like-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
-  .popup-like-btn { border: 1px solid #ddd; background: #f5f5f4; border-radius: 999px; padding: 5px 12px;
-                     font-size: 13px; cursor: pointer; }
+  .popup-like-btn { border: 1px solid var(--app-line); background: #f5f6f3; border-radius: 999px; padding: 6px 13px;
+                     font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s ease; }
   .popup-like-btn.liked { background: #fde8e8; border-color: #e2a3a3; }
-  .popup-cta { display: block; margin-top: 8px; padding: 8px 10px; text-align: center; border-radius: 8px;
-               background: var(--color-accent, #1a5c3a); color: #fff; text-decoration: none; font-size: 13px; }
+  .popup-cta { display: block; margin-top: 8px; padding: 9px 10px; text-align: center; border-radius: 10px;
+               background: var(--color-accent, #1a5c3a); color: #fff; text-decoration: none; font-size: 13px; font-weight: 700; }
 
   #legend .swatches { display: flex; flex-direction: column; gap: 3px; margin-bottom: 4px; }
   #legend .sw { display: flex; align-items: center; gap: 6px; font-size: 12px; }
-  #legend .sw i.box { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+  #legend .sw i.box { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
   #legend .sw i.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block;
                        border: 1.5px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.15); }
 
   .leaflet-popup-content { font-size: 13px; margin: 10px 12px; }
   .leaflet-popup-content table { border-collapse: collapse; }
   .leaflet-popup-content td { padding: 2px 6px 2px 0; vertical-align: top; }
-  .leaflet-popup-content td:first-child { color: #666; white-space: nowrap; }
+  .leaflet-popup-content td:first-child { color: var(--app-muted); white-space: nowrap; }
+  .leaflet-popup-content-wrapper { border-radius: 16px; }
 </style>
 <body>
 
@@ -71,7 +78,7 @@
 
 <div id="topbar">
   <div id="topbar-row1">
-    <a class="back" href="/" data-i18n="common.back_top">← トップ</a>
+    <a class="brand" href="/"><span class="brand-mark">T</span></a>
     <h1 data-i18n="map.h1">TIUC マップ</h1>
     <span id="status-msg"></span>
     <select id="lang-switcher" class="lang-switcher" style="height:28px"></select>

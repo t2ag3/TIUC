@@ -1,96 +1,108 @@
 <!doctype html>
-<html lang="ja">
+<html lang="ja" class="app-html">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f7f8f5">
 <title data-i18n="report.title">投稿する - TIUC</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="tokens.css">
 <style>
-  :root { --line:#ddd; --muted:#666; --warn:#a33; --ok:#161; }
+  :root { --app-line:#e3e6df; --app-muted:#6b7068; --app-text:#1d211d; --warn:#a33; --ok:#161; }
   * { box-sizing: border-box; }
-  body { font-family: system-ui, -apple-system, sans-serif; margin: 0 auto; padding: 16px;
-         max-width: 520px; line-height: 1.6; color: #222; }
+  body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+         line-height: 1.6; color: var(--app-text); }
 
-  #topbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 8px; }
-  #topbar a { font-size: 12px; color: var(--muted); text-decoration: none; }
-  #topbar-actions { display: flex; align-items: center; gap: 8px; }
-  #points-badge { font-size: 12px; border: 1px solid var(--line); border-radius: var(--radius-pill);
-                  padding: 3px 10px; }
+  #points-badge { font-size: 12px; border: 1px solid var(--app-line); border-radius: var(--radius-pill);
+                  padding: 4px 12px; background: rgba(255,255,255,.6); font-weight: 700; }
 
-  h1 { font-size: 19px; margin: 0 0 4px; }
-  .lead { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+  h1 { font-size: 21px; margin: 0 0 5px; font-weight: 800; letter-spacing: -.02em; }
+  .lead { color: var(--app-muted); font-size: 13px; margin: 0 0 18px; line-height: 1.7; }
 
-  #progress-bar { height: 6px; border-radius: var(--radius-pill); background: #e3e3df;
+  #progress-bar { height: 6px; border-radius: var(--radius-pill); background: #e3e6df;
                    overflow: hidden; margin: 0 0 4px; }
   #progress-fill { height: 100%; background: var(--color-accent, #1a5c3a); border-radius: var(--radius-pill);
                     transition: width .25s ease; }
-  #step-label { font-size: 11px; color: var(--muted); margin: 0 0 16px; }
+  #step-label { font-size: 11px; color: var(--app-muted); margin: 0 0 18px; font-weight: 600; }
 
   .step[hidden] { display: none; }
   .step-nav { display: flex; gap: 8px; margin: 4px 0 20px; }
-  .step-nav button { flex: 1; padding: 12px; font-size: 14px; border-radius: var(--radius-sm);
-                      cursor: pointer; }
+  .step-nav button { flex: 1; padding: 12px; font-size: 14px; font-weight: 700; border-radius: 12px;
+                      cursor: pointer; transition: background .15s ease, border-color .15s ease; }
   .step-nav .next-btn { border: 0; background: var(--color-accent, #1a5c3a); color: #fff; }
-  .step-nav .next-btn:disabled { background: #bbb; cursor: default; }
-  .step-nav .back-btn { border: 1px solid var(--line); background: #fff; color: #222; }
+  .step-nav .next-btn:hover:not(:disabled) { background: var(--color-accent-dark, #164a30); }
+  .step-nav .next-btn:disabled { background: #c3c9c2; cursor: default; }
+  .step-nav .back-btn { border: 1px solid var(--app-line); background: #fff; color: var(--app-text); }
+  .step-nav .back-btn:hover { border-color: #b9c3ba; background: #f6f8f5; }
 
-  fieldset { border: 1px solid var(--line); border-radius: var(--radius-card, 10px); padding: 12px; margin: 0 0 8px; }
-  legend { font-size: 13px; color: var(--muted); padding: 0 6px; }
+  fieldset { border: 1px solid var(--app-line); border-radius: 16px; padding: 14px; margin: 0 0 10px;
+             background: rgba(255,255,255,.7); }
+  legend { font-size: 13px; color: var(--app-muted); padding: 0 6px; font-weight: 600; }
   .choices { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-  .choices label { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px 4px;
-                   text-align: center; font-size: 13px; cursor: pointer; position: relative; }
+  .choices label { border: 1px solid var(--app-line); border-radius: var(--radius-sm); padding: 10px 4px;
+                   text-align: center; font-size: 13px; cursor: pointer; position: relative; background: #fff; }
   .choices input { position: absolute; opacity: 0; }
-  .choices label:has(input:checked) { border-color: var(--color-accent, #333); border-width: 2px;
-                                       background: var(--color-accent-soft, #f4f4f2); font-weight: 500; }
-  select, textarea, input[type=file], input[type=text] { width: 100%; font-size: 15px; padding: 8px;
-         border: 1px solid var(--line); border-radius: 8px; font-family: inherit; }
+  .choices label:has(input:checked) { border-color: var(--color-accent, #1a5c3a); border-width: 2px;
+                                       background: var(--color-accent-soft, #eef5f0); font-weight: 700; }
+  select, textarea, input[type=file], input[type=text] { width: 100%; font-size: 15px; padding: 9px 10px;
+         border: 1px solid var(--app-line); border-radius: 10px; font-family: inherit; }
+  .camera-btn, .file-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+         padding: 11px 16px; font-size: 13px; font-weight: 700; border-radius: 12px; cursor: pointer;
+         margin: 0 8px 8px 0; transition: background .15s ease, border-color .15s ease; }
+  .camera-btn { border: 0; background: var(--color-accent, #1a5c3a); color: #fff; }
+  .camera-btn:hover { background: var(--color-accent-dark, #164a30); }
+  .file-btn { border: 1px solid var(--app-line); background: #fff; color: var(--app-text); }
+  .file-btn:hover { border-color: #b9c3ba; background: #f6f8f5; }
   .toggle-row { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-top: 8px; }
   .flag-row { display: flex; align-items: center; gap: 8px; font-size: 13px;
-              border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px; margin-top: 8px; }
-  #submit { width: 100%; padding: 14px; font-size: 16px; border: 0; border-radius: 10px;
-            background: var(--color-accent, #1a5c3a); color: #fff; transition: background .2s ease; }
-  #submit:disabled { background: #bbb; }
+              border: 1px solid var(--app-line); border-radius: var(--radius-sm); padding: 10px; margin-top: 8px;
+              background: #fff; }
+  #submit { width: 100%; padding: 14px; font-size: 16px; font-weight: 700; border: 0; border-radius: 14px;
+            background: var(--color-accent, #1a5c3a); color: #fff; transition: background .2s ease; cursor: pointer; }
+  #submit:hover:not(:disabled) { background: var(--color-accent-dark, #164a30); }
+  #submit:disabled { background: #c3c9c2; cursor: default; }
   #submit.sent { background: var(--color-ok, #161); }
-  .status { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+  .status { font-size: 13px; color: var(--app-muted); margin: 6px 0 0; }
   .warn { color: var(--warn); }
   .ok { color: var(--ok); }
-  img.preview { max-width: 100%; border-radius: 8px; margin-top: 10px; display: block; }
+  img.preview { max-width: 100%; border-radius: 12px; margin-top: 10px; display: block; }
   .preview-pair { display: flex; gap: 8px; }
   .preview-pair > div { flex: 1; }
   table { width: 100%; font-size: 12px; border-collapse: collapse; }
-  td { padding: 2px 0; } td:first-child { color: var(--muted); width: 42%; }
+  td { padding: 2px 0; } td:first-child { color: var(--app-muted); width: 42%; }
   .mono { font-family: ui-monospace, monospace; }
   #map-toggle-p { font-size: 13px; margin: 8px 0 0; }
-  #map { height: 260px; border-radius: 8px; margin-top: 8px; border: 1px solid var(--line); }
-  #map-confirm { width: 100%; padding: 10px; font-size: 14px; margin-top: 8px;
-                 border: 1px solid var(--line); border-radius: 8px; background: #fff; }
-  #map-confirm:disabled { color: var(--muted); }
-  .info-notice { background: #f2f6fb; border: 1px solid #cddbea; border-radius: 8px;
-                 padding: 10px; font-size: 13px; margin-top: 10px; }
+  #map-toggle-p a { color: var(--color-accent, #1a5c3a); font-weight: 600; }
+  #map { height: 260px; border-radius: 14px; margin-top: 8px; border: 1px solid var(--app-line); }
+  #map-confirm { width: 100%; padding: 10px; font-size: 14px; margin-top: 8px; font-weight: 600;
+                 border: 1px solid var(--app-line); border-radius: 10px; background: #fff; cursor: pointer; }
+  #map-confirm:disabled { color: var(--app-muted); cursor: default; }
+  .info-notice { background: #f2f6fb; border: 1px solid #cddbea; border-radius: 12px;
+                 padding: 10px 12px; font-size: 13px; margin-top: 10px; }
 
-  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex;
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(18,28,20,.5); display: flex;
                      align-items: center; justify-content: center; padding: 16px; z-index: 10; }
   .modal-backdrop[hidden] { display: none; }
-  .modal-card { background: #fff; border-radius: 12px; max-width: 380px; width: 100%;
-                position: relative; padding: 20px; text-align: center; }
+  .modal-card { background: #fff; border-radius: 20px; max-width: 380px; width: 100%;
+                position: relative; padding: 22px; text-align: center;
+                box-shadow: 0 16px 50px rgba(18,28,20,.16); }
   .modal-close { position: absolute; top: 8px; right: 8px; border: none; background: none;
-                 font-size: 22px; cursor: pointer; color: #666; line-height: 1; padding: 4px; }
-  .modal-card .done-title { font-size: 17px; font-weight: 600; margin: 0 0 4px; }
-  .modal-card .done-desc { font-size: 13px; color: var(--muted); margin: 0 0 18px; }
+                 font-size: 22px; cursor: pointer; color: var(--app-muted); line-height: 1; padding: 4px; }
+  .modal-card .done-title { font-size: 18px; font-weight: 800; margin: 0 0 4px; }
+  .modal-card .done-desc { font-size: 13px; color: var(--app-muted); margin: 0 0 18px; }
   .modal-card .done-links { display: flex; flex-direction: column; gap: 8px; }
-  .modal-card .done-links a { display: block; padding: 11px; border: 1px solid var(--line);
-                               border-radius: 8px; text-decoration: none; color: inherit; font-size: 14px; }
-  .modal-card .done-links a:first-child { background: #1a5c3a; border-color: #1a5c3a; color: #fff; }
+  .modal-card .done-links a { display: block; padding: 12px; border: 1px solid var(--app-line);
+                               border-radius: 12px; text-decoration: none; color: inherit; font-size: 14px; font-weight: 600; }
+  .modal-card .done-links a:first-child { background: var(--color-accent, #1a5c3a); border-color: var(--color-accent, #1a5c3a); color: #fff; }
 </style>
-<body>
+<body class="app-body"><div class="app-shell">
 
-<div id="topbar">
-  <a href="/" data-i18n="common.back_top">← トップ</a>
+<header class="app-topbar">
+  <a href="/" class="brand" data-i18n-aria-label="index.brand_aria"><span class="brand-mark">T</span><span class="brand-copy"><strong>TIUC</strong><span data-i18n="common.back_top">← トップ</span></span></a>
   <div id="topbar-actions">
     <select id="lang-switcher" class="lang-switcher"></select>
     <div id="points-badge">0 pt</div>
   </div>
-</div>
+</header>
 <h1 data-i18n="report.h1">📷 外国語表記を投稿する</h1>
 <p class="lead"><span data-i18n="report.lead_text">街で見かけた外国語のメニュー・看板・注意書きを撮って投稿してください。語学力は不要です。</span> <a href="mypage.html" data-i18n="common.mypage_link">マイページ</a></p>
 
@@ -490,5 +502,6 @@ $('done-modal').addEventListener('click', (e) => { if (e.target === $('done-moda
 showStep(1);
 authReady.then(() => { loadPointsBadge(); });
 </script>
+</div>
 </body>
 </html>
