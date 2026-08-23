@@ -4,6 +4,29 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#f7f8f5" />
   <title>TIUC: Today is under construction.</title>
+  <script>
+    (() => {
+      const HOME_SEEN_KEY = "tiuc_home_seen";
+      const params = new URLSearchParams(location.search);
+      const explicitHome = params.get("home") === "1";
+
+      try {
+        if (explicitHome) {
+          localStorage.setItem(HOME_SEEN_KEY, "1");
+          return;
+        }
+
+        if (localStorage.getItem(HOME_SEEN_KEY) === "1") {
+          location.replace("game.html");
+          return;
+        }
+
+        localStorage.setItem(HOME_SEEN_KEY, "1");
+      } catch {
+        // localStorage が使えない場合は通常のトップページ表示を続ける
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="tokens.css" />
   <style>
     :root {
@@ -348,51 +371,6 @@
       line-height: 1.65;
       opacity: 0.78;
     }
-    #my-points {
-      margin-top: 14px;
-      padding: 18px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.84);
-      text-decoration: none;
-      box-shadow: var(--shadow-sm);
-    }
-    .my-copy {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 0;
-    }
-    .my-icon {
-      width: 40px;
-      height: 40px;
-      flex: none;
-      display: grid;
-      place-items: center;
-      border-radius: 13px;
-      background: #f0f3ef;
-      font-size: 18px;
-    }
-    #my-points .label {
-      display: block;
-      font-size: 12px;
-      color: var(--muted);
-    }
-    #my-points .hint {
-      display: block;
-      margin-top: 2px;
-      font-size: 11px;
-      color: #8a8f88;
-    }
-    #my-points .value {
-      flex: none;
-      font-size: 16px;
-      font-weight: 800;
-    }
     footer {
       padding: 0 0 28px;
     }
@@ -439,12 +417,6 @@
         min-height: 132px;
         padding: 18px;
       }
-      #my-points {
-        padding: 15px 16px;
-      }
-      #my-points .hint {
-        display: none;
-      }
       #buddy {
         padding: 13px 14px;
       }
@@ -458,7 +430,7 @@
   <body>
     <div class="shell">
       <header id="topbar">
-        <a href="/" class="brand" data-i18n-aria-label="index.brand_aria"
+        <a href="/?home=1" class="brand" data-i18n-aria-label="index.brand_aria"
           ><span class="brand-mark">T</span
           ><span class="brand-copy"
             ><strong>TIUC</strong
@@ -557,18 +529,6 @@
             </div></a
           >
         </div>
-        <a href="mypage.html" id="my-points"
-          ><span class="my-copy"
-            ><span class="my-icon">◎</span
-            ><span
-              ><span class="label" data-i18n="index.mypage_label"
-                >あなたの貢献</span
-              ><span class="hint" data-i18n="index.mypage_hint"
-                >履歴・ポイント・能力レベルを見る</span
-              ></span
-            ></span
-          ><span class="value" id="my-points-value">— pt</span></a
-        >
       </main>
       <footer>
         <p class="note" data-i18n="index.footer_note">
@@ -603,32 +563,26 @@
         .catch(() => {});
       authReady
         .then(() =>
-          Promise.all([
-            fetch(`/api/mypage?user_id=${userId}`)
-              .then((r) => r.json())
-              .then((j) => {
-                if (j.ok)
-                  $("my-points-value").textContent =
-                    `${j.summary.points_total} pt / Lv.${j.summary.level}`;
-              }),
-            fetch(`/api/game/character?user_id=${userId}`)
-              .then((r) => r.json())
-              .then((j) => {
-                if (!j.ok) return;
-                $("buddy-sprite").textContent = sprites[j.stage] || "🥚";
-                $("buddy-level").textContent = `Lv.${j.level}`;
-                const p = j.xp_for_next_level
-                  ? Math.min(
-                      100,
-                      Math.round((j.xp_into_level / j.xp_for_next_level) * 100),
-                    )
-                  : 0;
-                $("buddy-xp").style.width = `${p}%`;
-                $("buddy-hint").textContent = t("index.buddy_hint_with_xp", {
-                  xp: j.xp_total,
-                });
-              }),
-          ]),
+          fetch(`/api/game/character?user_id=${userId}`)
+            .then((r) => r.json())
+            .then((j) => {
+              if (!j.ok) return;
+
+              $("buddy-sprite").textContent = sprites[j.stage] || "🥚";
+              $("buddy-level").textContent = `Lv.${j.level}`;
+
+              const p = j.xp_for_next_level
+                ? Math.min(
+                    100,
+                    Math.round((j.xp_into_level / j.xp_for_next_level) * 100),
+                  )
+                : 0;
+
+              $("buddy-xp").style.width = `${p}%`;
+              $("buddy-hint").textContent = t("index.buddy_hint_with_xp", {
+                xp: j.xp_total,
+              });
+            }),
         )
         .catch(() => {});
     </script>
