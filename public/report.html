@@ -905,7 +905,7 @@
               acc: p.coords.accuracy,
             };
           } catch {
-            state.geo = null;
+              state.geo = { lat: 35.6895, lng: 139.6917 };
           }
 
           const e = state.exif || {};
