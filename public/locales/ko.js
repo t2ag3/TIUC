@@ -266,4 +266,5 @@ export default {
   "game.quest.zukan_12.desc": "12개의 언어×표기 종류 조합을 모두 채우기",
   "game.levelup_title": "축하합니다!",
   "game.levelup_close": "좋아요!",
+  "game.mypage_hint": "클릭하여 마이페이지로 이동",
 };

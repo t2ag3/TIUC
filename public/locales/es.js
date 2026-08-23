@@ -266,4 +266,5 @@ export default {
   "game.quest.zukan_12.desc": "Completa las 12 combinaciones de idioma × categoría",
   "game.levelup_title": "¡Felicidades! ¡Has subido de nivel!",
   "game.levelup_close": "¡Genial!",
+  "game.mypage_hint": "Haz clic para ir a Mi página",
 };

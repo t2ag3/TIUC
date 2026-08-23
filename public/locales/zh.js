@@ -266,4 +266,5 @@ export default {
   "game.quest.zukan_12.desc": "集齐12种语言×标识类别组合",
   "game.levelup_title": "恭喜升级！",
   "game.levelup_close": "太棒了！",
+  "game.mypage_hint": "点击前往我的页面",
 };

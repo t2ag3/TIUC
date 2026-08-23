@@ -266,4 +266,5 @@ export default {
   "game.quest.zukan_12.desc": "Fill all 12 language × sign categories",
   "game.levelup_title": "Congratulations! You leveled up!",
   "game.levelup_close": "Awesome!",
+  "game.mypage_hint": "Click to go to My Page",
 };

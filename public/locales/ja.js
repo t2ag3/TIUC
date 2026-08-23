@@ -266,4 +266,5 @@ export default {
   "game.quest.zukan_12.desc": "12種類の言語×表記カテゴリを埋める",
   "game.levelup_title": "レベルアップおめでとう！",
   "game.levelup_close": "やった！",
+  "game.mypage_hint": "クリックしてマイページへ",
 };
