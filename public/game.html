@@ -457,13 +457,16 @@
     }
 
     .levelup-firework {
-      position: absolute;
+      position: fixed;
+      z-index: 210;
       width: 8px;
       height: 8px;
       border-radius: 50%;
       background: currentColor;
       pointer-events: none;
-      animation: levelup-firework 800ms ease-out forwards;
+      opacity: 0;
+      animation: levelup-firework 900ms ease-out forwards;
+      animation-fill-mode: backwards;
     }
 
     @keyframes levelup-pop {
@@ -479,13 +482,19 @@
     }
 
     @keyframes levelup-firework {
-      from {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0)
+          scale(0);
+      }
+
+      5% {
         opacity: 1;
         transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0)
           scale(1);
       }
 
-      to {
+      100% {
         opacity: 0;
         transform: translate(-50%, -50%) rotate(var(--angle))
           translateX(var(--distance)) scale(0.25);
@@ -695,8 +704,8 @@
       }
 
       function launchLevelupFireworks() {
-        const modal = document.querySelector(".levelup-modal");
-        if (!modal) return;
+        const backdrop = $("levelup-backdrop");
+        if (!backdrop) return;
 
         const colors = [
           "#1a5c3a",
@@ -705,34 +714,50 @@
           "#a23a57",
           "#6d4aa8",
           "#e56d35",
+          "#d94f70",
+          "#3a8f80",
         ];
 
-        const bursts = [
-          { x: 16, y: 24 },
-          { x: 84, y: 24 },
-          { x: 10, y: 66 },
-          { x: 90, y: 66 },
-          { x: 50, y: 10 },
-          { x: 50, y: 82 },
-        ];
+        const FIREWORK_COUNT = 12;
 
-        bursts.forEach((burst, burstIndex) => {
-          for (let i = 0; i < 12; i++) {
+        for (let burstIndex = 0; burstIndex < FIREWORK_COUNT; burstIndex++) {
+          // Keep the center of each explosion away from the very edge.
+          const x = 10 + Math.random() * 80; // 10–90vw
+          const y = 10 + Math.random() * 80; // 10–90vh
+
+          // Randomly explode at any point during the next 1.5 seconds.
+          const delay = Math.random() * 1500;
+
+          const particleCount = 14 + Math.floor(Math.random() * 7); // 14–20
+
+          for (let i = 0; i < particleCount; i++) {
             const particle = document.createElement("span");
+
             particle.className = "levelup-firework";
-            particle.style.left = `${burst.x}%`;
-            particle.style.top = `${burst.y}%`;
+            particle.style.left = `${x}vw`;
+            particle.style.top = `${y}vh`;
             particle.style.color =
-              colors[(i + burstIndex * 2) % colors.length];
-            particle.style.setProperty("--angle", `${i * 30}deg`);
+              colors[Math.floor(Math.random() * colors.length)];
+
+            particle.style.animationDelay = `${delay}ms`;
+
+            particle.style.setProperty(
+              "--angle",
+              `${i * (360 / particleCount) + Math.random() * 8}deg`,
+            );
+
             particle.style.setProperty(
               "--distance",
-              `${46 + Math.random() * 42}px`,
+              `${45 + Math.random() * 70}px`,
             );
-            modal.appendChild(particle);
-            particle.addEventListener("animationend", () => particle.remove());
+
+            backdrop.appendChild(particle);
+
+            particle.addEventListener("animationend", () => {
+              particle.remove();
+            });
           }
-        });
+        }
       }
 
       function showLevelup(oldLevel, newLevel) {
