@@ -24,12 +24,44 @@ function characterStage(level: number): string {
 
 async function ensureCharacter(env: AppEnv, userId: string): Promise<number> {
   const now = Math.floor(Date.now() / 1000);
+
   await env.DB.batch([
-    env.DB.prepare("INSERT INTO users (id, created_at) VALUES (?1,?2) ON CONFLICT(id) DO NOTHING").bind(userId, now),
-    env.DB.prepare("INSERT INTO characters (user_id, created_at, updated_at) VALUES (?1,?2,?2) ON CONFLICT(user_id) DO NOTHING").bind(userId, now),
+    env.DB.prepare(
+      "INSERT INTO users (id, created_at) VALUES (?1,?2) ON CONFLICT(id) DO NOTHING"
+    ).bind(userId, now),
+
+    env.DB.prepare(
+      "INSERT INTO characters (user_id, created_at, updated_at) VALUES (?1,?2,?2) ON CONFLICT(user_id) DO NOTHING"
+    ).bind(userId, now),
   ]);
-  const row = await env.DB.prepare("SELECT xp_total FROM characters WHERE user_id=?1").bind(userId).first<{xp_total:number}>();
-  return row?.xp_total ?? 0;
+
+  const row = await env.DB.prepare(
+    `SELECT
+       u.points_total AS contribution_xp,
+       COALESCE((
+         SELECT SUM(xe.xp)
+         FROM xp_events xe
+         WHERE xe.user_id = u.id
+       ), 0) AS bonus_xp
+     FROM users u
+     WHERE u.id = ?1`
+  ).bind(userId).first<{
+    contribution_xp: number;
+    bonus_xp: number;
+  }>();
+
+  const xpTotal =
+    (row?.contribution_xp ?? 0) +
+    (row?.bonus_xp ?? 0);
+
+  await env.DB.prepare(
+    `UPDATE characters
+        SET xp_total = ?2,
+            updated_at = ?3
+      WHERE user_id = ?1`
+  ).bind(userId, xpTotal, now).run();
+
+  return xpTotal;
 }
 
 export async function gameCharacter(request: Request, env: AppEnv): Promise<Response> {
