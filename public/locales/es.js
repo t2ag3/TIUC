@@ -231,7 +231,7 @@ export default {
   "game.back_top": "← Acerca de TIUC",
   "game.buddy_name": "Tu compañero de traducciónes urbanas",
   "game.action_find": "Subir una imagen",
-  "game.action_review": "Ver y corregir",
+  "game.action_review": "Mirar y corregir",
   "game.action_map": "Ver la ciudad",
   "game.quests": "Misiones",
   "game.encyclopedia": "Enciclopedia de traducciónes urbanas",
