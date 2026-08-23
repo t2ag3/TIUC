@@ -7,7 +7,7 @@
 // (= 複数端末で同じユーザーに戻る仕組み)。オフライン等で /api/auth/me が失敗しても
 // 投げない — ローカルのゲストIDのまま使い続けられ、フローは止まらない。
 
-const KEY = 'tiuc_user_id';
+const KEY = "tiuc_user_id";
 
 export function getUserId() {
   let id = localStorage.getItem(KEY);
@@ -27,14 +27,18 @@ export function googleLoginUrl(userId) {
 }
 
 export async function logout() {
-  try { await fetch('/api/auth/logout'); } catch { /* Cookieが残っても再読込で無害 */ }
+  try {
+    await fetch("/api/auth/logout");
+  } catch {
+    /* Cookieが残っても再読込で無害 */
+  }
 }
 
 export async function bootstrapAuth() {
   let userId = getUserId();
   let session = null;
   try {
-    const res = await fetch('/api/auth/me');
+    const res = await fetch("/api/auth/me");
     const j = await res.json();
     if (j.ok) {
       session = j;

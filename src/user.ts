@@ -25,37 +25,52 @@ export async function mypage(request: Request, env: AppEnv): Promise<Response> {
   const userId = String(sp.get("user_id") || "");
   if (!UUID_RE.test(userId)) return bad("ユーザーIDが不正です");
 
-  const [summary, postsRes, eventsRes, levelsRes, judgmentsRes, correctionsRes] = await Promise.all([
+  const [
+    summary,
+    postsRes,
+    eventsRes,
+    levelsRes,
+    judgmentsRes,
+    correctionsRes,
+  ] = await Promise.all([
     env.DB.prepare(
       `SELECT points_total, post_count, judged_count, corrected_count, adopted_count, streak_count
-         FROM users WHERE id = ?1`
-    ).bind(userId).first<{
-      points_total: number;
-      post_count: number;
-      judged_count: number;
-      corrected_count: number;
-      adopted_count: number;
-      streak_count: number;
-    }>(),
+         FROM users WHERE id = ?1`,
+    )
+      .bind(userId)
+      .first<{
+        points_total: number;
+        post_count: number;
+        judged_count: number;
+        corrected_count: number;
+        adopted_count: number;
+        streak_count: number;
+      }>(),
     env.DB.prepare(
       `SELECT id, created_at, lang_pair, place_kind, situation, status, src_thumb_key,
               original_text, translated_text
          FROM posts
         WHERE submitter_id = ?1
         ORDER BY created_at DESC
-        LIMIT 100`
-    ).bind(userId).all(),
+        LIMIT 100`,
+    )
+      .bind(userId)
+      .all(),
     env.DB.prepare(
       `SELECT kind, points, created_at, post_id, note
          FROM point_events
         WHERE user_id = ?1
         ORDER BY created_at DESC
-        LIMIT 200`
-    ).bind(userId).all(),
+        LIMIT 200`,
+    )
+      .bind(userId)
+      .all(),
     env.DB.prepare(
       `SELECT lang_pair, submode, display_rank, declared_level
-         FROM levels WHERE user_id = ?1`
-    ).bind(userId).all(),
+         FROM levels WHERE user_id = ?1`,
+    )
+      .bind(userId)
+      .all(),
     // 過去に自分が判定した投稿(振り返り用。マイページの「違和感チェック」履歴)
     env.DB.prepare(
       `SELECT j.post_id, j.verdict, j.category, j.created_at,
@@ -64,8 +79,10 @@ export async function mypage(request: Request, env: AppEnv): Promise<Response> {
          FROM judgments j JOIN posts p ON p.id = j.post_id
         WHERE j.judge_id = ?1
         ORDER BY j.created_at DESC
-        LIMIT 100`
-    ).bind(userId).all(),
+        LIMIT 100`,
+    )
+      .bind(userId)
+      .all(),
     // 過去に自分が提案した修正(振り返り用。マイページの「修正提案」履歴)
     env.DB.prepare(
       `SELECT c.id AS correction_id, c.post_id, c.verdict, c.fixed_text, c.explanation,
@@ -75,8 +92,10 @@ export async function mypage(request: Request, env: AppEnv): Promise<Response> {
          FROM corrections c JOIN posts p ON p.id = c.post_id
         WHERE c.curator_id = ?1
         ORDER BY c.created_at DESC
-        LIMIT 100`
-    ).bind(userId).all(),
+        LIMIT 100`,
+    )
+      .bind(userId)
+      .all(),
   ]);
 
   const pointsTotal = summary?.points_total ?? 0;
@@ -98,4 +117,3 @@ export async function mypage(request: Request, env: AppEnv): Promise<Response> {
     corrections: correctionsRes.results,
   });
 }
-

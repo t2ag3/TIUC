@@ -1,19 +1,15 @@
 ---
 name: Feature request
 about: Suggest an idea for this project
-title: ''
+title: ""
 labels: enhancement
-assignees: ''
-
+assignees: ""
 ---
 
 # 箇所
 
-
 # 現状
 
-
 # 修正方向
-
 
 # 修正したい背景

@@ -1,440 +1,857 @@
 <!doctype html>
 <html lang="ja" class="app-html">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#f7f8f5">
-<title data-i18n="map.title">マップ - TIUC</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="tokens.css">
-<style>
-  :root { --app-line:#e3e6df; --app-muted:#6b7068; --app-text:#1d211d; }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--app-text); }
-  #map { position: absolute; left: 0; right: 0; bottom: 0; top: 112px; }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#f7f8f5" />
+  <title data-i18n="map.title">マップ - TIUC</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+  <link rel="stylesheet" href="tokens.css" />
+  <style>
+    :root {
+      --app-line: #e3e6df;
+      --app-muted: #6b7068;
+      --app-text: #1d211d;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    html,
+    body {
+      margin: 0;
+      height: 100%;
+      font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+      color: var(--app-text);
+    }
+    #map {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      top: 112px;
+    }
 
-  #topbar { position: absolute; z-index: 2; top: 10px; left: 10px; right: 10px;
-            background: rgba(255,255,255,.92); backdrop-filter: blur(6px); border: 1px solid var(--app-line);
-            border-radius: 18px; box-shadow: 0 1px 2px rgba(18,28,20,.04), 0 10px 30px rgba(18,28,20,.08);
-            display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; }
-  #topbar-row1 { display: flex; align-items: center; gap: 8px; height: 30px; }
-  #topbar-row1 .brand { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: inherit; flex: none; }
-  #topbar-row1 .brand-mark { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center;
-    background: var(--color-accent, #1a5c3a); color: #fff; font-weight: 800; font-size: 12px; flex: none; }
-  #topbar-row1 h1 { font-size: 14px; font-weight: 800; margin: 0; flex: 1; min-width: 0; overflow: hidden;
-               text-overflow: ellipsis; white-space: nowrap; }
-  #topbar-row2 { display: flex; align-items: center; gap: 6px; height: 36px; }
-  #status-msg { font-size: 11px; color: var(--app-muted); white-space: nowrap; flex: none; }
-  .icon-btn { flex: none; display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700;
-              background: #f5f6f3; border: 1px solid var(--app-line); border-radius: 10px;
-              padding: 0 12px; height: 34px; cursor: pointer; color: var(--app-text); transition: background .15s ease; }
-  .icon-btn:hover { background: #eceee9; }
-  .icon-btn.active { background: #1d211d; color: #fff; border-color: #1d211d; }
-  .icon-btn .glyph { font-size: 14px; line-height: 1; }
+    #topbar {
+      position: absolute;
+      z-index: 2;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(6px);
+      border: 1px solid var(--app-line);
+      border-radius: 18px;
+      box-shadow:
+        0 1px 2px rgba(18, 28, 20, 0.04),
+        0 10px 30px rgba(18, 28, 20, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px 12px;
+    }
+    #topbar-row1 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 30px;
+    }
+    #topbar-row1 .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: inherit;
+      flex: none;
+    }
+    #topbar-row1 .brand-mark {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: var(--color-accent, #1a5c3a);
+      color: #fff;
+      font-weight: 800;
+      font-size: 12px;
+      flex: none;
+    }
+    #topbar-row1 h1 {
+      font-size: 14px;
+      font-weight: 800;
+      margin: 0;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    #topbar-row2 {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      height: 36px;
+    }
+    #status-msg {
+      font-size: 11px;
+      color: var(--app-muted);
+      white-space: nowrap;
+      flex: none;
+    }
+    .icon-btn {
+      flex: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #f5f6f3;
+      border: 1px solid var(--app-line);
+      border-radius: 10px;
+      padding: 0 12px;
+      height: 34px;
+      cursor: pointer;
+      color: var(--app-text);
+      transition: background 0.15s ease;
+    }
+    .icon-btn:hover {
+      background: #eceee9;
+    }
+    .icon-btn.active {
+      background: #1d211d;
+      color: #fff;
+      border-color: #1d211d;
+    }
+    .icon-btn .glyph {
+      font-size: 14px;
+      line-height: 1;
+    }
 
-  #place-row { display: flex; gap: 6px; flex: 1 1 auto; min-width: 0; height: 100%; }
-  #place-row input[type=text] { flex: 1 1 auto; min-width: 40px; font-size: 13px; padding: 0 10px;
-                                 border: 1px solid var(--app-line); border-radius: 10px; }
-  #place-row button { flex: none; font-size: 12px; font-weight: 700; padding: 0 12px; border: 1px solid var(--app-line);
-                       border-radius: 10px; background: #f5f6f3; cursor: pointer; }
-  #place-msg { position: absolute; z-index: 1000; top: 112px; left: 20px; right: 20px; margin: 0;
-               font-size: 11px; color: #a33; background: #fff; border-radius: 10px;
-               padding: 6px 10px; box-shadow: 0 4px 12px rgba(18,28,20,.1); }
-  #place-msg:empty { display: none; }
+    #place-row {
+      display: flex;
+      gap: 6px;
+      flex: 1 1 auto;
+      min-width: 0;
+      height: 100%;
+    }
+    #place-row input[type="text"] {
+      flex: 1 1 auto;
+      min-width: 40px;
+      font-size: 13px;
+      padding: 0 10px;
+      border: 1px solid var(--app-line);
+      border-radius: 10px;
+    }
+    #place-row button {
+      flex: none;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 0 12px;
+      border: 1px solid var(--app-line);
+      border-radius: 10px;
+      background: #f5f6f3;
+      cursor: pointer;
+    }
+    #place-msg {
+      position: absolute;
+      z-index: 1000;
+      top: 112px;
+      left: 20px;
+      right: 20px;
+      margin: 0;
+      font-size: 11px;
+      color: #a33;
+      background: #fff;
+      border-radius: 10px;
+      padding: 6px 10px;
+      box-shadow: 0 4px 12px rgba(18, 28, 20, 0.1);
+    }
+    #place-msg:empty {
+      display: none;
+    }
 
-  .dropdown { position: absolute; z-index: 1000; top: 112px; right: 10px;
-              width: min(300px, calc(100vw - 20px)); max-height: calc(100vh - 140px); overflow-y: auto;
-              background: #fff; border: 1px solid var(--app-line); border-radius: 16px; padding: 14px;
-              font-size: 13px; box-shadow: 0 16px 50px rgba(18,28,20,.14); display: none; }
-  .dropdown.open { display: block; }
-  .dropdown h2 { font-size: 12px; color: var(--app-muted); margin: 14px 0 6px; font-weight: 700; }
-  .dropdown h2:first-child { margin-top: 0; }
-  #search .lang label { display: flex; align-items: center; gap: 6px; padding: 2px 0; cursor: pointer; }
-  .num-filter { width: 100%; font-size: 13px; padding: 7px 9px; border: 1px solid var(--app-line); border-radius: 10px; }
+    .dropdown {
+      position: absolute;
+      z-index: 1000;
+      top: 112px;
+      right: 10px;
+      width: min(300px, calc(100vw - 20px));
+      max-height: calc(100vh - 140px);
+      overflow-y: auto;
+      background: #fff;
+      border: 1px solid var(--app-line);
+      border-radius: 16px;
+      padding: 14px;
+      font-size: 13px;
+      box-shadow: 0 16px 50px rgba(18, 28, 20, 0.14);
+      display: none;
+    }
+    .dropdown.open {
+      display: block;
+    }
+    .dropdown h2 {
+      font-size: 12px;
+      color: var(--app-muted);
+      margin: 14px 0 6px;
+      font-weight: 700;
+    }
+    .dropdown h2:first-child {
+      margin-top: 0;
+    }
+    #search .lang label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 0;
+      cursor: pointer;
+    }
+    .num-filter {
+      width: 100%;
+      font-size: 13px;
+      padding: 7px 9px;
+      border: 1px solid var(--app-line);
+      border-radius: 10px;
+    }
 
-  .popup-photo { width: 100%; max-height: 160px; object-fit: cover; border-radius: 12px; margin-bottom: 8px; display: block; }
-  .popup-explanation { margin: 8px 0 0; color: #555; }
-  .popup-like-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
-  .popup-like-btn { border: 1px solid var(--app-line); background: #f5f6f3; border-radius: 999px; padding: 6px 13px;
-                     font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s ease; }
-  .popup-like-btn.liked { background: #fde8e8; border-color: #e2a3a3; }
-  .popup-cta { display: block; margin-top: 8px; padding: 9px 10px; text-align: center; border-radius: 10px;
-               background: var(--color-accent, #1a5c3a); color: #fff; text-decoration: none; font-size: 13px; font-weight: 700; }
+    .popup-photo {
+      width: 100%;
+      max-height: 160px;
+      object-fit: cover;
+      border-radius: 12px;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .popup-explanation {
+      margin: 8px 0 0;
+      color: #555;
+    }
+    .popup-like-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .popup-like-btn {
+      border: 1px solid var(--app-line);
+      background: #f5f6f3;
+      border-radius: 999px;
+      padding: 6px 13px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .popup-like-btn.liked {
+      background: #fde8e8;
+      border-color: #e2a3a3;
+    }
+    .popup-cta {
+      display: block;
+      margin-top: 8px;
+      padding: 9px 10px;
+      text-align: center;
+      border-radius: 10px;
+      background: var(--color-accent, #1a5c3a);
+      color: #fff;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+    }
 
-  #legend .swatches { display: flex; flex-direction: column; gap: 3px; margin-bottom: 4px; }
-  #legend .sw { display: flex; align-items: center; gap: 6px; font-size: 12px; }
-  #legend .sw i.box { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
-  #legend .sw i.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block;
-                       border: 1.5px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.15); }
+    #legend .swatches {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      margin-bottom: 4px;
+    }
+    #legend .sw {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+    #legend .sw i.box {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+    #legend .sw i.dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      border: 1.5px solid #fff;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+    }
 
-  .leaflet-popup-content { font-size: 13px; margin: 10px 12px; }
-  .leaflet-popup-content table { border-collapse: collapse; }
-  .leaflet-popup-content td { padding: 2px 6px 2px 0; vertical-align: top; }
-  .leaflet-popup-content td:first-child { color: var(--app-muted); white-space: nowrap; }
-  .leaflet-popup-content-wrapper { border-radius: 16px; }
-</style>
-<body>
+    .leaflet-popup-content {
+      font-size: 13px;
+      margin: 10px 12px;
+    }
+    .leaflet-popup-content table {
+      border-collapse: collapse;
+    }
+    .leaflet-popup-content td {
+      padding: 2px 6px 2px 0;
+      vertical-align: top;
+    }
+    .leaflet-popup-content td:first-child {
+      color: var(--app-muted);
+      white-space: nowrap;
+    }
+    .leaflet-popup-content-wrapper {
+      border-radius: 16px;
+    }
+  </style>
+  <body>
+    <div id="map"></div>
 
-<div id="map"></div>
-
-<div id="topbar">
-  <div id="topbar-row1">
-    <a class="brand" href="/"><span class="brand-mark">T</span></a>
-    <h1 data-i18n="map.h1">TIUC マップ</h1>
-    <span id="status-msg"></span>
-    <select id="lang-switcher" class="lang-switcher" style="height:28px"></select>
-  </div>
-  <div id="topbar-row2">
-    <div id="place-row">
-      <input type="text" id="place-q" data-i18n-placeholder="map.place_placeholder" placeholder="地名・住所で検索(例: 新宿区)">
-      <button type="button" id="place-go" data-i18n="map.search_btn">検索</button>
+    <div id="topbar">
+      <div id="topbar-row1">
+        <a class="brand" href="/"><span class="brand-mark">T</span></a>
+        <h1 data-i18n="map.h1">TIUC マップ</h1>
+        <span id="status-msg"></span>
+        <select
+          id="lang-switcher"
+          class="lang-switcher"
+          style="height: 28px"
+        ></select>
+      </div>
+      <div id="topbar-row2">
+        <div id="place-row">
+          <input
+            type="text"
+            id="place-q"
+            data-i18n-placeholder="map.place_placeholder"
+            placeholder="地名・住所で検索(例: 新宿区)"
+          />
+          <button type="button" id="place-go" data-i18n="map.search_btn">
+            検索
+          </button>
+        </div>
+        <button type="button" id="search-toggle" class="icon-btn">
+          <span class="glyph">⚙️</span
+          ><span data-i18n="map.lang_filter_btn">言語</span>
+        </button>
+        <button type="button" id="legend-toggle" class="icon-btn">
+          <span class="glyph">🗂</span
+          ><span data-i18n="map.legend_btn">凡例</span>
+        </button>
+      </div>
     </div>
-    <button type="button" id="search-toggle" class="icon-btn"><span class="glyph">⚙️</span><span data-i18n="map.lang_filter_btn">言語</span></button>
-    <button type="button" id="legend-toggle" class="icon-btn"><span class="glyph">🗂</span><span data-i18n="map.legend_btn">凡例</span></button>
-  </div>
-</div>
-<p id="place-msg"></p>
+    <p id="place-msg"></p>
 
-<div id="search" class="dropdown">
-  <h2 data-i18n="map.lang_pair_header">言語ペア</h2>
-  <div class="lang" id="lang-filters"></div>
-  <h2 data-i18n="map.min_likes_header">最低いいね数</h2>
-  <input type="number" id="min-likes" class="num-filter" min="0" step="1" value="0">
-  <h2 data-i18n="map.min_agree_header">最低賛成数(修正案)</h2>
-  <input type="number" id="min-agree" class="num-filter" min="0" step="1" value="0">
-</div>
+    <div id="search" class="dropdown">
+      <h2 data-i18n="map.lang_pair_header">言語ペア</h2>
+      <div class="lang" id="lang-filters"></div>
+      <h2 data-i18n="map.min_likes_header">最低いいね数</h2>
+      <input
+        type="number"
+        id="min-likes"
+        class="num-filter"
+        min="0"
+        step="1"
+        value="0"
+      />
+      <h2 data-i18n="map.min_agree_header">最低賛成数(修正案)</h2>
+      <input
+        type="number"
+        id="min-agree"
+        class="num-filter"
+        min="0"
+        step="1"
+        value="0"
+      />
+    </div>
 
-<div id="legend" class="dropdown">
-  <h2 data-i18n="map.legend_mesh_header">投稿件数(メッシュ集計)</h2>
-  <div class="swatches" id="mesh-legend"></div>
-  <h2 data-i18n="map.legend_pin_header">採用済み(店がコミュニティ検証を認めた投稿のみピン表示)</h2>
-  <div class="swatches" id="pin-legend"></div>
-  <h2 data-i18n="map.legend_unsurveyed_header">未投稿エリアの目安</h2>
-  <div class="swatches" id="unsurveyed-legend"></div>
-  <p id="unsurveyed-hint" style="margin:4px 0 0;font-size:11px;color:#666" hidden></p>
-</div>
+    <div id="legend" class="dropdown">
+      <h2 data-i18n="map.legend_mesh_header">投稿件数(メッシュ集計)</h2>
+      <div class="swatches" id="mesh-legend"></div>
+      <h2 data-i18n="map.legend_pin_header">
+        採用済み(店がコミュニティ検証を認めた投稿のみピン表示)
+      </h2>
+      <div class="swatches" id="pin-legend"></div>
+      <h2 data-i18n="map.legend_unsurveyed_header">未投稿エリアの目安</h2>
+      <div class="swatches" id="unsurveyed-legend"></div>
+      <p
+        id="unsurveyed-hint"
+        style="margin: 4px 0 0; font-size: 11px; color: #666"
+        hidden
+      ></p>
+    </div>
 
-<script type="module">
-import { meshGrid, meshGridCount, meshBounds } from './mesh.js';
-import { t, applyI18n, initLangSwitcher } from './i18n.js';
-import { getUserId } from './auth.js';
+    <script type="module">
+      import { meshGrid, meshGridCount, meshBounds } from "./mesh.js";
+      import { t, applyI18n, initLangSwitcher } from "./i18n.js";
+      import { getUserId } from "./auth.js";
 
-applyI18n();
-initLangSwitcher();
+      applyI18n();
+      initLangSwitcher();
 
-const $ = (id) => document.getElementById(id);
-const userId = getUserId();
+      const $ = (id) => document.getElementById(id);
+      const userId = getUserId();
 
-const LANG_LABEL = {
-  'ja-en': t('common.pair_label_en'), 'ja-zh': t('common.pair_label_zh'), 'ja-ko': t('common.pair_label_ko'),
-  'ja-fr': t('common.pair_label_fr'), 'ja-es': t('common.pair_label_es'), 'ja-hi': t('common.pair_label_hi'),
-};
+      const LANG_LABEL = {
+        "ja-en": t("common.pair_label_en"),
+        "ja-zh": t("common.pair_label_zh"),
+        "ja-ko": t("common.pair_label_ko"),
+        "ja-fr": t("common.pair_label_fr"),
+        "ja-es": t("common.pair_label_es"),
+        "ja-hi": t("common.pair_label_hi"),
+      };
 
-const jstLocale = { ja: 'ja-JP', en: 'en-US', zh: 'zh-CN', fr: 'fr-FR', es: 'es-ES', ko: 'ko-KR' };
-const jst = (ts) => ts ? new Date(ts * 1000).toLocaleDateString(jstLocale[document.documentElement.lang] || 'ja-JP',
-  { timeZone: 'Asia/Tokyo', year: 'numeric', month: 'numeric', day: 'numeric' }) : '—';
+      const jstLocale = {
+        ja: "ja-JP",
+        en: "en-US",
+        zh: "zh-CN",
+        fr: "fr-FR",
+        es: "es-ES",
+        ko: "ko-KR",
+      };
+      const jst = (ts) =>
+        ts
+          ? new Date(ts * 1000).toLocaleDateString(
+              jstLocale[document.documentElement.lang] || "ja-JP",
+              {
+                timeZone: "Asia/Tokyo",
+                year: "numeric",
+                month: "numeric",
+                day: "numeric",
+              },
+            )
+          : "—";
 
-const googleMapsUrl = (lat, lng) =>
-  `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+      const googleMapsUrl = (lat, lng) =>
+        `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 
-// 配色(dataviz スキルで検証した sequential 緑ランプ)。件数のしきい値は仮置き。
-const MESH_STEPS = [
-  { max: 0,  color: '#e3eee6', label: t('map.mesh_0') },
-  { max: 2,  color: '#a9d3b4', label: t('map.mesh_1_2') },
-  { max: 5,  color: '#6ab27e', label: t('map.mesh_3_5') },
-  { max: 11, color: '#2e8b52', label: t('map.mesh_6_11') },
-  { max: Infinity, color: '#155c30', label: t('map.mesh_12plus') },
-];
-const STATUS_STYLE = {
-  pending_judgment: { color: '#c9a227', label: t('map.status_reviewing') },
-  needs_fix:        { color: '#c9a227', label: t('map.status_reviewing') },
-  fix_proposed:     { color: '#c9a227', label: t('map.status_fix_proposed') },
-  looks_ok:         { color: '#8a8478', label: t('map.status_looks_ok') },
-  confirmed:        { color: '#2e6da4', label: t('map.status_confirmed') },
-  adopted:          { color: '#1a4d73', label: t('map.status_adopted') },
-};
-const PIN_DEFAULT_COLOR = '#8a8478';
+      // 配色(dataviz スキルで検証した sequential 緑ランプ)。件数のしきい値は仮置き。
+      const MESH_STEPS = [
+        { max: 0, color: "#e3eee6", label: t("map.mesh_0") },
+        { max: 2, color: "#a9d3b4", label: t("map.mesh_1_2") },
+        { max: 5, color: "#6ab27e", label: t("map.mesh_3_5") },
+        { max: 11, color: "#2e8b52", label: t("map.mesh_6_11") },
+        { max: Infinity, color: "#155c30", label: t("map.mesh_12plus") },
+      ];
+      const STATUS_STYLE = {
+        pending_judgment: {
+          color: "#c9a227",
+          label: t("map.status_reviewing"),
+        },
+        needs_fix: { color: "#c9a227", label: t("map.status_reviewing") },
+        fix_proposed: { color: "#c9a227", label: t("map.status_fix_proposed") },
+        looks_ok: { color: "#8a8478", label: t("map.status_looks_ok") },
+        confirmed: { color: "#2e6da4", label: t("map.status_confirmed") },
+        adopted: { color: "#1a4d73", label: t("map.status_adopted") },
+      };
+      const PIN_DEFAULT_COLOR = "#8a8478";
 
-for (const s of MESH_STEPS) {
-  $('mesh-legend').insertAdjacentHTML('beforeend',
-    `<div class="sw"><i class="box" style="background:${s.color}"></i>${s.label}</div>`);
-}
-const seenPinLabels = new Set();
-for (const s of Object.values(STATUS_STYLE)) {
-  if (seenPinLabels.has(s.label)) continue;
-  seenPinLabels.add(s.label);
-  $('pin-legend').insertAdjacentHTML('beforeend',
-    `<div class="sw"><i class="dot" style="background:${s.color}"></i>${s.label}</div>`);
-}
+      for (const s of MESH_STEPS) {
+        $("mesh-legend").insertAdjacentHTML(
+          "beforeend",
+          `<div class="sw"><i class="box" style="background:${s.color}"></i>${s.label}</div>`,
+        );
+      }
+      const seenPinLabels = new Set();
+      for (const s of Object.values(STATUS_STYLE)) {
+        if (seenPinLabels.has(s.label)) continue;
+        seenPinLabels.add(s.label);
+        $("pin-legend").insertAdjacentHTML(
+          "beforeend",
+          `<div class="sw"><i class="dot" style="background:${s.color}"></i>${s.label}</div>`,
+        );
+      }
 
-for (const [k, label] of Object.entries(LANG_LABEL)) {
-  $('lang-filters').insertAdjacentHTML('beforeend',
-    `<label><input type="checkbox" value="${k}" checked>${label}</label>`);
-}
+      for (const [k, label] of Object.entries(LANG_LABEL)) {
+        $("lang-filters").insertAdjacentHTML(
+          "beforeend",
+          `<label><input type="checkbox" value="${k}" checked>${label}</label>`,
+        );
+      }
 
-const UNSURVEYED_COLOR = '#ded9cd';
-$('unsurveyed-legend').insertAdjacentHTML('beforeend',
-  `<div class="sw"><i class="box" style="background:${UNSURVEYED_COLOR}"></i>${t('map.unsurveyed_legend_item')}</div>`);
+      const UNSURVEYED_COLOR = "#ded9cd";
+      $("unsurveyed-legend").insertAdjacentHTML(
+        "beforeend",
+        `<div class="sw"><i class="box" style="background:${UNSURVEYED_COLOR}"></i>${t("map.unsurveyed_legend_item")}</div>`,
+      );
 
-let leafletPromise = null;
-function loadLeaflet() {
-  if (leafletPromise) return leafletPromise;
-  leafletPromise = new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    s.onload = resolve;
-    s.onerror = () => reject(new Error(t('common.map_load_error')));
-    document.head.appendChild(s);
-  });
-  return leafletPromise;
-}
+      let leafletPromise = null;
+      function loadLeaflet() {
+        if (leafletPromise) return leafletPromise;
+        leafletPromise = new Promise((resolve, reject) => {
+          const s = document.createElement("script");
+          s.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+          s.onload = resolve;
+          s.onerror = () => reject(new Error(t("common.map_load_error")));
+          document.head.appendChild(s);
+        });
+        return leafletPromise;
+      }
 
-// MESH_STEPS のしきい値(0/2/5/11件)から塗り分け色を引く。凡例と地図で単一の情報源にする。
-function meshColor(count) {
-  for (const s of MESH_STEPS) if (count <= s.max) return s.color;
-  return MESH_STEPS[MESH_STEPS.length - 1].color;
-}
+      // MESH_STEPS のしきい値(0/2/5/11件)から塗り分け色を引く。凡例と地図で単一の情報源にする。
+      function meshColor(count) {
+        for (const s of MESH_STEPS) if (count <= s.max) return s.color;
+        return MESH_STEPS[MESH_STEPS.length - 1].color;
+      }
 
-const MESH4_MIN_ZOOM = 11;
-const MESH5_MIN_ZOOM = 12;
+      const MESH4_MIN_ZOOM = 11;
+      const MESH5_MIN_ZOOM = 12;
 
-function setStatus(text) { $('status-msg').textContent = text || ''; }
+      function setStatus(text) {
+        $("status-msg").textContent = text || "";
+      }
 
-function closeDropdowns() {
-  $('search').classList.remove('open');
-  $('legend').classList.remove('open');
-  $('search-toggle').classList.remove('active');
-  $('legend-toggle').classList.remove('active');
-}
-function toggleDropdown(panelId, btnId) {
-  const opening = !$(panelId).classList.contains('open');
-  closeDropdowns();
-  if (opening) { $(panelId).classList.add('open'); $(btnId).classList.add('active'); }
-}
-$('search-toggle').addEventListener('click', (e) => { e.stopPropagation(); toggleDropdown('search', 'search-toggle'); });
-$('legend-toggle').addEventListener('click', (e) => { e.stopPropagation(); toggleDropdown('legend', 'legend-toggle'); });
-document.querySelectorAll('.dropdown').forEach((el) => el.addEventListener('click', (e) => e.stopPropagation()));
-document.addEventListener('click', closeDropdowns);
+      function closeDropdowns() {
+        $("search").classList.remove("open");
+        $("legend").classList.remove("open");
+        $("search-toggle").classList.remove("active");
+        $("legend-toggle").classList.remove("active");
+      }
+      function toggleDropdown(panelId, btnId) {
+        const opening = !$(panelId).classList.contains("open");
+        closeDropdowns();
+        if (opening) {
+          $(panelId).classList.add("open");
+          $(btnId).classList.add("active");
+        }
+      }
+      $("search-toggle").addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleDropdown("search", "search-toggle");
+      });
+      $("legend-toggle").addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleDropdown("legend", "legend-toggle");
+      });
+      document
+        .querySelectorAll(".dropdown")
+        .forEach((el) =>
+          el.addEventListener("click", (e) => e.stopPropagation()),
+        );
+      document.addEventListener("click", closeDropdowns);
 
-async function main() {
-  await loadLeaflet();
+      async function main() {
+        await loadLeaflet();
 
-  const map = L.map('map', { zoomControl: false }).setView([35.681, 139.767], 10);
-  L.control.zoom({ position: 'topright' }).addTo(map);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
-  }).addTo(map);
+        const map = L.map("map", { zoomControl: false }).setView(
+          [35.681, 139.767],
+          10,
+        );
+        L.control.zoom({ position: "topright" }).addTo(map);
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
+        }).addTo(map);
 
-  const dataLayer = L.layerGroup().addTo(map);
+        const dataLayer = L.layerGroup().addTo(map);
 
-  function renderGeojson(geojson) {
-    dataLayer.clearLayers();
+        function renderGeojson(geojson) {
+          dataLayer.clearLayers();
 
-    const unsurveyed = geojson.features.filter((f) => f.properties.kind === 'unsurveyed');
-    const mesh = geojson.features.filter((f) => f.properties.kind === 'mesh');
-    const pins = geojson.features.filter((f) => f.properties.kind === 'pin');
+          const unsurveyed = geojson.features.filter(
+            (f) => f.properties.kind === "unsurveyed",
+          );
+          const mesh = geojson.features.filter(
+            (f) => f.properties.kind === "mesh",
+          );
+          const pins = geojson.features.filter(
+            (f) => f.properties.kind === "pin",
+          );
 
-    L.geoJSON({ type: 'FeatureCollection', features: unsurveyed }, {
-      style: { fillColor: UNSURVEYED_COLOR, fillOpacity: 0.45, color: '#8a8478', opacity: 0.5, weight: 1, dashArray: '2,2' },
-      onEachFeature: (feature, layer) => {
-        layer.on('click', (e) => {
-          const code = feature.properties.mesh;
-          const b = meshBounds(code);
-          const centerLat = (b.latMin + b.latMax) / 2, centerLng = (b.lngMin + b.lngMax) / 2;
-          L.popup({ maxWidth: 240 })
-            .setLatLng(e.latlng)
-            .setContent(`<p style="margin:0">${t('map.unsurveyed_popup_text')}</p>
+          L.geoJSON(
+            { type: "FeatureCollection", features: unsurveyed },
+            {
+              style: {
+                fillColor: UNSURVEYED_COLOR,
+                fillOpacity: 0.45,
+                color: "#8a8478",
+                opacity: 0.5,
+                weight: 1,
+                dashArray: "2,2",
+              },
+              onEachFeature: (feature, layer) => {
+                layer.on("click", (e) => {
+                  const code = feature.properties.mesh;
+                  const b = meshBounds(code);
+                  const centerLat = (b.latMin + b.latMax) / 2,
+                    centerLng = (b.lngMin + b.lngMax) / 2;
+                  L.popup({ maxWidth: 240 })
+                    .setLatLng(e.latlng)
+                    .setContent(
+                      `<p style="margin:0">${t("map.unsurveyed_popup_text")}</p>
               <p style="margin:8px 0 0"><a href="${googleMapsUrl(centerLat, centerLng)}"
-                target="_blank" rel="noopener">${t('map.goto_link')}</a></p>`)
-            .openOn(map);
-        });
-      },
-    }).addTo(dataLayer);
+                target="_blank" rel="noopener">${t("map.goto_link")}</a></p>`,
+                    )
+                    .openOn(map);
+                });
+              },
+            },
+          ).addTo(dataLayer);
 
-    L.geoJSON({ type: 'FeatureCollection', features: mesh }, {
-      style: (feature) => ({
-        fillColor: meshColor(feature.properties.post_count),
-        fillOpacity: 0.6, color: '#155c30', opacity: 0.5, weight: 1,
-      }),
-    }).addTo(dataLayer);
+          L.geoJSON(
+            { type: "FeatureCollection", features: mesh },
+            {
+              style: (feature) => ({
+                fillColor: meshColor(feature.properties.post_count),
+                fillOpacity: 0.6,
+                color: "#155c30",
+                opacity: 0.5,
+                weight: 1,
+              }),
+            },
+          ).addTo(dataLayer);
 
-    L.geoJSON({ type: 'FeatureCollection', features: pins }, {
-      pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
-        radius: 7,
-        fillColor: (STATUS_STYLE[feature.properties.status] || {}).color || PIN_DEFAULT_COLOR,
-        fillOpacity: 1, color: '#fff', weight: 1.5,
-      }),
-      onEachFeature: (feature, layer) => {
-        layer.on('click', (e) => {
-          const p = feature.properties;
-          const isConfirmed = p.status === 'confirmed' || p.status === 'adopted';
-          const popup = L.popup({ maxWidth: 280 })
-            .setLatLng(e.latlng)
-            .setContent(isConfirmed ? confirmedPinHtml(p, e.latlng) : pendingPinHtml(p, e.latlng))
-            .openOn(map);
-          if (isConfirmed) wireLikeButton(popup, p);
-        });
-      },
-    }).addTo(dataLayer);
-  }
+          L.geoJSON(
+            { type: "FeatureCollection", features: pins },
+            {
+              pointToLayer: (feature, latlng) =>
+                L.circleMarker(latlng, {
+                  radius: 7,
+                  fillColor:
+                    (STATUS_STYLE[feature.properties.status] || {}).color ||
+                    PIN_DEFAULT_COLOR,
+                  fillOpacity: 1,
+                  color: "#fff",
+                  weight: 1.5,
+                }),
+              onEachFeature: (feature, layer) => {
+                layer.on("click", (e) => {
+                  const p = feature.properties;
+                  const isConfirmed =
+                    p.status === "confirmed" || p.status === "adopted";
+                  const popup = L.popup({ maxWidth: 280 })
+                    .setLatLng(e.latlng)
+                    .setContent(
+                      isConfirmed
+                        ? confirmedPinHtml(p, e.latlng)
+                        : pendingPinHtml(p, e.latlng),
+                    )
+                    .openOn(map);
+                  if (isConfirmed) wireLikeButton(popup, p);
+                });
+              },
+            },
+          ).addTo(dataLayer);
+        }
 
-  function confirmedPinHtml(p, latlng) {
-    const photo = p.src_thumb_key
-      ? `<img class="popup-photo" src="/img/${p.src_thumb_key}" alt="${escapeHtml(t('common.alt_translated'))}">` : '';
-    return `${photo}<table>
-        <tr><td>${t('map.row_status')}</td><td>${escapeHtml((STATUS_STYLE[p.status] || {}).label || p.status)}</td></tr>
-        <tr><td>${t('map.row_lang')}</td><td>${LANG_LABEL[p.lang_pair] || p.lang_pair}</td></tr>
-        <tr><td>${t('map.row_original')}</td><td>${escapeHtml(p.original_text || t('map.not_entered'))}</td></tr>
-        <tr><td>${t('map.label_confirmed_translation')}</td><td>${escapeHtml(p.translated_text || t('map.not_entered'))}</td></tr>
-        <tr><td>${t('map.row_date')}</td><td>${jst(p.event_at)}</td></tr>
+        function confirmedPinHtml(p, latlng) {
+          const photo = p.src_thumb_key
+            ? `<img class="popup-photo" src="/img/${p.src_thumb_key}" alt="${escapeHtml(t("common.alt_translated"))}">`
+            : "";
+          return `${photo}<table>
+        <tr><td>${t("map.row_status")}</td><td>${escapeHtml((STATUS_STYLE[p.status] || {}).label || p.status)}</td></tr>
+        <tr><td>${t("map.row_lang")}</td><td>${LANG_LABEL[p.lang_pair] || p.lang_pair}</td></tr>
+        <tr><td>${t("map.row_original")}</td><td>${escapeHtml(p.original_text || t("map.not_entered"))}</td></tr>
+        <tr><td>${t("map.label_confirmed_translation")}</td><td>${escapeHtml(p.translated_text || t("map.not_entered"))}</td></tr>
+        <tr><td>${t("map.row_date")}</td><td>${jst(p.event_at)}</td></tr>
       </table>
-      ${p.explanation ? `<p class="popup-explanation">${escapeHtml(p.explanation)}</p>` : ''}
+      ${p.explanation ? `<p class="popup-explanation">${escapeHtml(p.explanation)}</p>` : ""}
       <div class="popup-like-row">
-        <button type="button" class="popup-like-btn" id="like-btn-${p.id}">👍 ${t('map.like_btn')}</button>
+        <button type="button" class="popup-like-btn" id="like-btn-${p.id}">👍 ${t("map.like_btn")}</button>
         <span id="like-count-${p.id}">${p.like_count}</span>
       </div>
       <p style="margin:8px 0 0"><a href="${googleMapsUrl(latlng.lat, latlng.lng)}"
-        target="_blank" rel="noopener">${t('map.goto_link')}</a></p>`;
-  }
+        target="_blank" rel="noopener">${t("map.goto_link")}</a></p>`;
+        }
 
-  const REVIEWABLE = new Set(['ja-en', 'ja-zh', 'ja-ko']);
-  function pendingPinHtml(p, latlng) {
-    let cta = '';
-    if (REVIEWABLE.has(p.lang_pair)) {
-      if (p.status === 'pending_judgment') {
-        cta = `<a class="popup-cta" href="judge.html?lang_pair=${encodeURIComponent(p.lang_pair)}">${t('map.goto_judge_cta')}</a>`;
-      } else if (p.status === 'needs_fix') {
-        cta = `<a class="popup-cta" href="curate.html?lang_pair=${encodeURIComponent(p.lang_pair)}">${t('map.goto_curate_cta')}</a>`;
-      }
-    }
-    return `<table>
-        <tr><td>${t('map.row_status')}</td><td>${escapeHtml((STATUS_STYLE[p.status] || {}).label || p.status)}</td></tr>
-        <tr><td>${t('map.row_lang')}</td><td>${LANG_LABEL[p.lang_pair] || p.lang_pair}</td></tr>
-        <tr><td>${t('map.row_original')}</td><td>${escapeHtml(p.original_text || t('map.not_entered'))}</td></tr>
-        <tr><td>${t('map.label_unconfirmed_translation')}</td><td>${escapeHtml(p.translated_text || t('map.not_entered'))}</td></tr>
-        <tr><td>${t('map.row_date')}</td><td>${jst(p.event_at)}</td></tr>
+        const REVIEWABLE = new Set(["ja-en", "ja-zh", "ja-ko"]);
+        function pendingPinHtml(p, latlng) {
+          let cta = "";
+          if (REVIEWABLE.has(p.lang_pair)) {
+            if (p.status === "pending_judgment") {
+              cta = `<a class="popup-cta" href="judge.html?lang_pair=${encodeURIComponent(p.lang_pair)}">${t("map.goto_judge_cta")}</a>`;
+            } else if (p.status === "needs_fix") {
+              cta = `<a class="popup-cta" href="curate.html?lang_pair=${encodeURIComponent(p.lang_pair)}">${t("map.goto_curate_cta")}</a>`;
+            }
+          }
+          return `<table>
+        <tr><td>${t("map.row_status")}</td><td>${escapeHtml((STATUS_STYLE[p.status] || {}).label || p.status)}</td></tr>
+        <tr><td>${t("map.row_lang")}</td><td>${LANG_LABEL[p.lang_pair] || p.lang_pair}</td></tr>
+        <tr><td>${t("map.row_original")}</td><td>${escapeHtml(p.original_text || t("map.not_entered"))}</td></tr>
+        <tr><td>${t("map.label_unconfirmed_translation")}</td><td>${escapeHtml(p.translated_text || t("map.not_entered"))}</td></tr>
+        <tr><td>${t("map.row_date")}</td><td>${jst(p.event_at)}</td></tr>
       </table>
       ${cta}
       <p style="margin:8px 0 0"><a href="${googleMapsUrl(latlng.lat, latlng.lng)}"
-        target="_blank" rel="noopener">${t('map.goto_link')}</a></p>`;
-  }
+        target="_blank" rel="noopener">${t("map.goto_link")}</a></p>`;
+        }
 
-  function wireLikeButton(popup, p) {
-    const btn = document.getElementById(`like-btn-${p.id}`);
-    if (!btn) return;
-    btn.addEventListener('click', async () => {
-      btn.disabled = true;
-      try {
-        const res = await fetch('/api/posts/like', {
-          method: 'POST', headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ user_id: userId, post_id: p.id }),
+        function wireLikeButton(popup, p) {
+          const btn = document.getElementById(`like-btn-${p.id}`);
+          if (!btn) return;
+          btn.addEventListener("click", async () => {
+            btn.disabled = true;
+            try {
+              const res = await fetch("/api/posts/like", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ user_id: userId, post_id: p.id }),
+              });
+              const j = await res.json();
+              if (!j.ok) throw new Error(j.error);
+              p.like_count = j.count;
+              btn.classList.toggle("liked", j.liked);
+              const countEl = document.getElementById(`like-count-${p.id}`);
+              if (countEl) countEl.textContent = j.count;
+            } catch {
+              /* 失敗しても地図の閲覧自体は継続できる */
+            } finally {
+              btn.disabled = false;
+            }
+          });
+        }
+
+        function checkedLangs() {
+          return [
+            ...document.querySelectorAll("#search .lang input:checked"),
+          ].map((el) => el.value);
+        }
+
+        const MESH_GRID_CAP = 8000;
+        function addUnsurveyedFeatures(geojson, bounds, level) {
+          const minLat = bounds.getSouth(),
+            maxLat = bounds.getNorth();
+          const minLng = bounds.getWest(),
+            maxLng = bounds.getEast();
+          if (
+            meshGridCount(minLat, minLng, maxLat, maxLng, level) > MESH_GRID_CAP
+          ) {
+            $("unsurveyed-hint").hidden = false;
+            $("unsurveyed-hint").textContent = t("map.area_too_large_hint");
+            return;
+          }
+          $("unsurveyed-hint").hidden = true;
+          const reported = new Set(
+            geojson.features
+              .filter((f) => f.properties.kind === "mesh")
+              .map((f) => f.properties.mesh),
+          );
+          for (const code of meshGrid(minLat, minLng, maxLat, maxLng, level)) {
+            if (reported.has(code)) continue;
+            const b = meshBounds(code);
+            geojson.features.push({
+              type: "Feature",
+              properties: { kind: "unsurveyed", mesh: code },
+              geometry: {
+                type: "Polygon",
+                coordinates: [
+                  [
+                    [b.lngMin, b.latMin],
+                    [b.lngMax, b.latMin],
+                    [b.lngMax, b.latMax],
+                    [b.lngMin, b.latMax],
+                    [b.lngMin, b.latMin],
+                  ],
+                ],
+              },
+            });
+          }
+        }
+
+        let controller = null;
+        async function refresh() {
+          if (controller) controller.abort();
+          controller = new AbortController();
+
+          const b = map.getBounds();
+          const zoom = map.getZoom();
+          const level =
+            zoom >= MESH5_MIN_ZOOM
+              ? "mesh5"
+              : zoom >= MESH4_MIN_ZOOM
+                ? "mesh4"
+                : "mesh3";
+          const langs = checkedLangs();
+          const minLikes = Math.max(0, Number($("min-likes").value) || 0);
+          const minAgree = Math.max(0, Number($("min-agree").value) || 0);
+          const params = new URLSearchParams({
+            bbox: [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()].join(
+              ",",
+            ),
+            level,
+            lang_pair: langs.join(","),
+            min_likes: String(minLikes),
+            min_agree: String(minAgree),
+          });
+
+          setStatus(t("common.loading"));
+          try {
+            const res = await fetch(`/api/map?${params}`, {
+              signal: controller.signal,
+            });
+            const geojson = await res.json();
+            if (!res.ok)
+              throw new Error(geojson.error || t("common.fetch_error"));
+            addUnsurveyedFeatures(geojson, b, level);
+            renderGeojson(geojson);
+            setStatus("");
+          } catch (e) {
+            if (e.name === "AbortError") return;
+            setStatus(e.message);
+          }
+        }
+
+        let debounceTimer = null;
+        function scheduleRefresh() {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(refresh, 300);
+        }
+        map.on("moveend", scheduleRefresh);
+        document
+          .querySelectorAll("#search .lang input")
+          .forEach((el) => el.addEventListener("change", scheduleRefresh));
+        $("min-likes").addEventListener("input", scheduleRefresh);
+        $("min-agree").addEventListener("input", scheduleRefresh);
+
+        async function searchPlace() {
+          const q = $("place-q").value.trim();
+          const msg = $("place-msg");
+          msg.textContent = "";
+          if (!q) return;
+          msg.textContent = t("map.searching");
+          try {
+            const res = await fetch(
+              `https://msearch.gsi.go.jp/address-search/AddressSearch?q=${encodeURIComponent(q)}`,
+            );
+            if (!res.ok) throw new Error(t("map.search_failed"));
+            const results = await res.json();
+            if (!results.length) {
+              msg.textContent = t("map.not_found");
+              return;
+            }
+            const [lng, lat] = results[0].geometry.coordinates;
+            map.flyTo([lat, lng], Math.max(map.getZoom(), 14));
+            msg.textContent = "";
+          } catch (e) {
+            msg.textContent = e.message;
+          }
+        }
+        $("place-go").addEventListener("click", searchPlace);
+        $("place-q").addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            searchPlace();
+          }
         });
-        const j = await res.json();
-        if (!j.ok) throw new Error(j.error);
-        p.like_count = j.count;
-        btn.classList.toggle('liked', j.liked);
-        const countEl = document.getElementById(`like-count-${p.id}`);
-        if (countEl) countEl.textContent = j.count;
-      } catch { /* 失敗しても地図の閲覧自体は継続できる */ }
-      finally { btn.disabled = false; }
-    });
-  }
 
-  function checkedLangs() {
-    return [...document.querySelectorAll('#search .lang input:checked')].map((el) => el.value);
-  }
+        refresh();
+      }
 
-  const MESH_GRID_CAP = 8000;
-  function addUnsurveyedFeatures(geojson, bounds, level) {
-    const minLat = bounds.getSouth(), maxLat = bounds.getNorth();
-    const minLng = bounds.getWest(), maxLng = bounds.getEast();
-    if (meshGridCount(minLat, minLng, maxLat, maxLng, level) > MESH_GRID_CAP) {
-      $('unsurveyed-hint').hidden = false;
-      $('unsurveyed-hint').textContent = t('map.area_too_large_hint');
-      return;
-    }
-    $('unsurveyed-hint').hidden = true;
-    const reported = new Set(
-      geojson.features.filter((f) => f.properties.kind === 'mesh').map((f) => f.properties.mesh)
-    );
-    for (const code of meshGrid(minLat, minLng, maxLat, maxLng, level)) {
-      if (reported.has(code)) continue;
-      const b = meshBounds(code);
-      geojson.features.push({
-        type: 'Feature', properties: { kind: 'unsurveyed', mesh: code },
-        geometry: { type: 'Polygon', coordinates: [[
-          [b.lngMin, b.latMin], [b.lngMax, b.latMin],
-          [b.lngMax, b.latMax], [b.lngMin, b.latMax], [b.lngMin, b.latMin],
-        ]] },
-      });
-    }
-  }
+      function escapeHtml(s) {
+        return String(s).replace(
+          /[&<>"]/g,
+          (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
+        );
+      }
 
-  let controller = null;
-  async function refresh() {
-    if (controller) controller.abort();
-    controller = new AbortController();
-
-    const b = map.getBounds();
-    const zoom = map.getZoom();
-    const level = zoom >= MESH5_MIN_ZOOM ? 'mesh5' : (zoom >= MESH4_MIN_ZOOM ? 'mesh4' : 'mesh3');
-    const langs = checkedLangs();
-    const minLikes = Math.max(0, Number($('min-likes').value) || 0);
-    const minAgree = Math.max(0, Number($('min-agree').value) || 0);
-    const params = new URLSearchParams({
-      bbox: [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()].join(','),
-      level, lang_pair: langs.join(','),
-      min_likes: String(minLikes), min_agree: String(minAgree),
-    });
-
-    setStatus(t('common.loading'));
-    try {
-      const res = await fetch(`/api/map?${params}`, { signal: controller.signal });
-      const geojson = await res.json();
-      if (!res.ok) throw new Error(geojson.error || t('common.fetch_error'));
-      addUnsurveyedFeatures(geojson, b, level);
-      renderGeojson(geojson);
-      setStatus('');
-    } catch (e) {
-      if (e.name === 'AbortError') return;
-      setStatus(e.message);
-    }
-  }
-
-  let debounceTimer = null;
-  function scheduleRefresh() { clearTimeout(debounceTimer); debounceTimer = setTimeout(refresh, 300); }
-  map.on('moveend', scheduleRefresh);
-  document.querySelectorAll('#search .lang input').forEach((el) => el.addEventListener('change', scheduleRefresh));
-  $('min-likes').addEventListener('input', scheduleRefresh);
-  $('min-agree').addEventListener('input', scheduleRefresh);
-
-  async function searchPlace() {
-    const q = $('place-q').value.trim();
-    const msg = $('place-msg');
-    msg.textContent = '';
-    if (!q) return;
-    msg.textContent = t('map.searching');
-    try {
-      const res = await fetch(`https://msearch.gsi.go.jp/address-search/AddressSearch?q=${encodeURIComponent(q)}`);
-      if (!res.ok) throw new Error(t('map.search_failed'));
-      const results = await res.json();
-      if (!results.length) { msg.textContent = t('map.not_found'); return; }
-      const [lng, lat] = results[0].geometry.coordinates;
-      map.flyTo([lat, lng], Math.max(map.getZoom(), 14));
-      msg.textContent = '';
-    } catch (e) { msg.textContent = e.message; }
-  }
-  $('place-go').addEventListener('click', searchPlace);
-  $('place-q').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); searchPlace(); } });
-
-  refresh();
-}
-
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-}
-
-main().catch((e) => setStatus(e.message));
-</script>
-</body>
+      main().catch((e) => setStatus(e.message));
+    </script>
+  </body>
 </html>

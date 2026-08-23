@@ -10,8 +10,9 @@
     "types": ["./worker-configuration.d.ts"]
   },
   "include": [
-	"src/**/*.ts",
-	"public/**/*.d.ts",
-	"worker-configuration.d.ts"
-, "public/public/mesh.js.d.ts"]
+    "src/**/*.ts",
+    "public/**/*.d.ts",
+    "worker-configuration.d.ts",
+    "public/public/mesh.js.d.ts"
+  ]
 }

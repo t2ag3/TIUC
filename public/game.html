@@ -1,494 +1,517 @@
 <!doctype html>
 <html lang="ja">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>相棒とクエスト - TIUC</title>
-<link rel="stylesheet" href="tokens.css">
-<style>
-  :root {
-    --line: #e3e6df;
-    --muted: #6b7068;
-    --bg: #f5f7f3;
-    --card: #fff;
-    --accent: var(--color-accent, #1a5c3a);
-  }
-
-  * {
-    box-sizing: border-box;
-  }
-
-  body {
-    margin: 0;
-    background: linear-gradient(180deg, #eef5f0, #f7f8f5 34%);
-    font-family: system-ui, -apple-system, sans-serif;
-    color: #1e231f;
-  }
-
-  .wrap {
-    width: min(100%, 760px);
-    margin: auto;
-    padding: 16px 16px 50px;
-  }
-
-  .top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-
-  .top a {
-    font-size: 12px;
-    color: var(--muted);
-    text-decoration: none;
-  }
-
-  .hero {
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 28px;
-    padding: 28px 20px;
-    text-align: center;
-    box-shadow: 0 14px 36px rgba(20, 40, 25, 0.07);
-  }
-
-  #sprite {
-    font-size: 88px;
-    line-height: 1;
-  }
-
-  .lv {
-    font-size: 22px;
-    font-weight: 800;
-    margin-top: 8px;
-  }
-
-  .stage {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 2px;
-  }
-
-  .bar {
-    width: min(100%, 340px);
-    height: 11px;
-    background: #e5e8e2;
-    border-radius: 999px;
-    margin: 18px auto 6px;
-    overflow: hidden;
-  }
-
-  .fill {
-    height: 100%;
-    background: var(--accent);
-    border-radius: inherit;
-    transition: width 0.35s;
-  }
-
-  .xp {
-    font-size: 12px;
-    color: var(--muted);
-  }
-
-  .actions {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-top: 16px;
-  }
-
-  .action {
-    padding: 14px 8px;
-    border-radius: 16px;
-    text-decoration: none;
-    text-align: center;
-    border: 1px solid var(--line);
-    background: #fff;
-    font-size: 12px;
-    font-weight: 700;
-  }
-
-  .action span {
-    display: block;
-    font-size: 24px;
-    margin-bottom: 4px;
-  }
-
-  .action.primary {
-    background: #1d603e;
-    color: #fff;
-    border-color: #1d603e;
-  }
-
-  .action.secondary {
-    background: #214f69;
-    color: #fff;
-    border-color: #214f69;
-  }
-
-  h2 {
-    font-size: 17px;
-    margin: 28px 2px 10px;
-  }
-
-  .card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    padding: 15px;
-    margin-bottom: 9px;
-  }
-
-  .quest {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .quest-body {
-    flex: 1;
-  }
-
-  .qt {
-    font-size: 14px;
-    font-weight: 750;
-  }
-
-  .qd {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 3px;
-  }
-
-  .qr {
-    font-size: 11px;
-    color: var(--accent);
-    margin-top: 4px;
-  }
-
-  .claim {
-    border: 1px solid var(--accent);
-    border-radius: 999px;
-    padding: 8px 12px;
-    background: #fff;
-    color: var(--accent);
-    font-weight: 700;
-    font-size: 11px;
-  }
-
-  .claim.ready {
-    background: var(--accent);
-    color: #fff;
-  }
-
-  .claim:disabled {
-    border-color: #ddd;
-    color: #aaa;
-    background: #f7f7f5;
-  }
-
-  .zukan {
-    display: grid;
-    grid-template-columns: 80px repeat(4, 1fr);
-    gap: 6px;
-    align-items: center;
-  }
-
-  .zh {
-    font-size: 10px;
-    color: var(--muted);
-    text-align: center;
-  }
-
-  .zl {
-    font-size: 11px;
-    font-weight: 700;
-  }
-
-  .slot {
-    aspect-ratio: 1;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    display: grid;
-    place-items: center;
-    background: #f7f7f5;
-    color: #bbb;
-    font-size: 15px;
-  }
-
-  .slot.on {
-    background: #edf5ef;
-    border-color: #75a987;
-    color: #1d603e;
-    font-size: clamp(20px, 6vw, 72px);
-  }
-
-  .impact {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-  }
-
-  .tile {
-    text-align: center;
-    padding: 12px 4px;
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    background: #fff;
-  }
-
-  .tile .n {
-    font-size: 18px;
-    font-weight: 800;
-  }
-
-  .tile .l {
-    font-size: 10px;
-    color: var(--muted);
-    margin-top: 2px;
-  }
-
-  .empty {
-    font-size: 12px;
-    color: var(--muted);
-    padding: 10px 2px;
-  }
-
-  @media (max-width: 560px) {
-    .actions {
-      grid-template-columns: repeat(3, 1fr);
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>相棒とクエスト - TIUC</title>
+  <link rel="stylesheet" href="tokens.css" />
+  <style>
+    :root {
+      --line: #e3e6df;
+      --muted: #6b7068;
+      --bg: #f5f7f3;
+      --card: #fff;
+      --accent: var(--color-accent, #1a5c3a);
     }
-    .zukan {
-      grid-template-columns: 64px repeat(4, 1fr);
+
+    * {
+      box-sizing: border-box;
     }
-    .impact {
-      grid-template-columns: repeat(2, 1fr);
+
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #eef5f0, #f7f8f5 34%);
+      font-family:
+        system-ui,
+        -apple-system,
+        sans-serif;
+      color: #1e231f;
     }
+
+    .wrap {
+      width: min(100%, 760px);
+      margin: auto;
+      padding: 16px 16px 50px;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .top a {
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: none;
+    }
+
     .hero {
-      padding-top: 24px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 28px 20px;
+      text-align: center;
+      box-shadow: 0 14px 36px rgba(20, 40, 25, 0.07);
     }
-  }
-</style>
-<body>
-<div class="wrap">
-  <div class="top">
-    <a href="/" data-i18n="game.back_top">← TIUCに戻る</a>
-    <div style="display:flex;align-items:center;gap:10px">
-      <select id="lang-switcher" class="lang-switcher"></select>
-      <a href="mypage.html" data-i18n="common.mypage_link">マイページ</a>
+
+    #sprite {
+      font-size: 88px;
+      line-height: 1;
+    }
+
+    .lv {
+      font-size: 22px;
+      font-weight: 800;
+      margin-top: 8px;
+    }
+
+    .stage {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .bar {
+      width: min(100%, 340px);
+      height: 11px;
+      background: #e5e8e2;
+      border-radius: 999px;
+      margin: 18px auto 6px;
+      overflow: hidden;
+    }
+
+    .fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: inherit;
+      transition: width 0.35s;
+    }
+
+    .xp {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .action {
+      padding: 14px 8px;
+      border-radius: 16px;
+      text-decoration: none;
+      text-align: center;
+      border: 1px solid var(--line);
+      background: #fff;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .action span {
+      display: block;
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+
+    .action.primary {
+      background: #1d603e;
+      color: #fff;
+      border-color: #1d603e;
+    }
+
+    .action.secondary {
+      background: #214f69;
+      color: #fff;
+      border-color: #214f69;
+    }
+
+    h2 {
+      font-size: 17px;
+      margin: 28px 2px 10px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 15px;
+      margin-bottom: 9px;
+    }
+
+    .quest {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .quest-body {
+      flex: 1;
+    }
+
+    .qt {
+      font-size: 14px;
+      font-weight: 750;
+    }
+
+    .qd {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .qr {
+      font-size: 11px;
+      color: var(--accent);
+      margin-top: 4px;
+    }
+
+    .claim {
+      border: 1px solid var(--accent);
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: #fff;
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 11px;
+    }
+
+    .claim.ready {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .claim:disabled {
+      border-color: #ddd;
+      color: #aaa;
+      background: #f7f7f5;
+    }
+
+    .zukan {
+      display: grid;
+      grid-template-columns: 80px repeat(4, 1fr);
+      gap: 6px;
+      align-items: center;
+    }
+
+    .zh {
+      font-size: 10px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .zl {
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .slot {
+      aspect-ratio: 1;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      background: #f7f7f5;
+      color: #bbb;
+      font-size: 15px;
+    }
+
+    .slot.on {
+      background: #edf5ef;
+      border-color: #75a987;
+      color: #1d603e;
+      font-size: clamp(20px, 6vw, 72px);
+    }
+
+    .impact {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .tile {
+      text-align: center;
+      padding: 12px 4px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+    }
+
+    .tile .n {
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .tile .l {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .empty {
+      font-size: 12px;
+      color: var(--muted);
+      padding: 10px 2px;
+    }
+
+    @media (max-width: 560px) {
+      .actions {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .zukan {
+        grid-template-columns: 64px repeat(4, 1fr);
+      }
+      .impact {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .hero {
+        padding-top: 24px;
+      }
+    }
+  </style>
+  <body>
+    <div class="wrap">
+      <div class="top">
+        <a href="/" data-i18n="game.back_top">← TIUCに戻る</a>
+        <div style="display: flex; align-items: center; gap: 10px">
+          <select id="lang-switcher" class="lang-switcher"></select>
+          <a href="mypage.html" data-i18n="common.mypage_link">マイページ</a>
+        </div>
+      </div>
+
+      <section class="hero">
+        <div id="sprite">🥚</div>
+        <div class="lv" id="level">Lv.1</div>
+        <div class="stage" id="stage" data-i18n="game.buddy_name">
+          街ことばの相棒
+        </div>
+        <div class="bar">
+          <div class="fill" id="fill" style="width: 0%"></div>
+        </div>
+        <div class="xp" id="xp">0 / 2 XP</div>
+      </section>
+
+      <div class="actions">
+        <a class="action primary" href="report.html">
+          <span>📷</span><span data-i18n="game.action_find">見つける</span>
+        </a>
+        <a class="action secondary" href="judge.html">
+          <span>🔍</span><span data-i18n="game.action_judge">判定する</span>
+        </a>
+        <a class="action" href="map.html">
+          <span>🗺️</span><span data-i18n="game.action_map">街を見る</span>
+        </a>
+      </div>
+
+      <h2 data-i18n="game.quests">クエスト</h2>
+      <div id="quests">
+        <div class="empty" data-i18n="common.loading">読み込み中…</div>
+      </div>
+
+      <h2>
+        <span data-i18n="game.encyclopedia">街ことば図鑑</span>
+        <span
+          id="zukan-count"
+          style="font-size: 12px; color: var(--muted); font-weight: 400"
+        ></span>
+      </h2>
+
+      <div class="card">
+        <div id="zukan"></div>
+      </div>
+
+      <h2 data-i18n="game.impact">地域インパクト</h2>
+      <div id="impact">
+        <div class="empty" data-i18n="game.impact_empty">
+          まだ地域データがありません。
+        </div>
+      </div>
     </div>
-  </div>
 
-  <section class="hero">
-    <div id="sprite">🥚</div>
-    <div class="lv" id="level">Lv.1</div>
-    <div class="stage" id="stage" data-i18n="game.buddy_name">街ことばの相棒</div>
-    <div class="bar">
-      <div class="fill" id="fill" style="width:0%"></div>
-    </div>
-    <div class="xp" id="xp">0 / 2 XP</div>
-  </section>
+    <script type="module">
+      import { getUserId, bootstrapAuth } from "./auth.js";
+      import { t, applyI18n, initLangSwitcher } from "./i18n.js";
 
-  <div class="actions">
-    <a class="action primary" href="report.html">
-      <span>📷</span><span data-i18n="game.action_find">見つける</span>
-    </a>
-    <a class="action secondary" href="judge.html">
-      <span>🔍</span><span data-i18n="game.action_judge">判定する</span>
-    </a>
-    <a class="action" href="map.html">
-      <span>🗺️</span><span data-i18n="game.action_map">街を見る</span>
-    </a>
-  </div>
+      applyI18n();
+      initLangSwitcher();
+      document.title = t("game.title");
 
-  <h2 data-i18n="game.quests">クエスト</h2>
-  <div id="quests">
-    <div class="empty" data-i18n="common.loading">読み込み中…</div>
-  </div>
+      let userId = getUserId();
+      await bootstrapAuth().then((r) => {
+        userId = r.userId;
+      });
 
-  <h2>
-    <span data-i18n="game.encyclopedia">街ことば図鑑</span>
-    <span id="zukan-count" style="font-size:12px;color:var(--muted);font-weight:400"></span>
-  </h2>
+      const $ = (id) => document.getElementById(id);
 
-  <div class="card">
-    <div id="zukan"></div>
-  </div>
+      const sprites = {
+        egg: "🥚",
+        chick: "🐣",
+        bird: "🐦",
+        guide: "🦉",
+      };
 
-  <h2 data-i18n="game.impact">地域インパクト</h2>
-  <div id="impact">
-    <div class="empty" data-i18n="game.impact_empty">まだ地域データがありません。</div>
-  </div>
-</div>
+      async function loadCharacter() {
+        const j = await fetch(`/api/game/character?user_id=${userId}`).then(
+          (r) => r.json(),
+        );
+        if (!j.ok) return;
 
-<script type="module">
-import { getUserId, bootstrapAuth } from './auth.js';
-import { t, applyI18n, initLangSwitcher } from './i18n.js';
+        $("sprite").textContent = sprites[j.stage] || "🥚";
+        $("level").textContent = `Lv.${j.level}`;
+        $("xp").textContent = `${j.xp_into_level} / ${j.xp_for_next_level} XP`;
 
-applyI18n();
-initLangSwitcher();
-document.title = t('game.title');
+        const p = j.xp_for_next_level
+          ? Math.min(
+              100,
+              Math.round((j.xp_into_level / j.xp_for_next_level) * 100),
+            )
+          : 0;
 
-let userId = getUserId();
-await bootstrapAuth().then(r => {
-  userId = r.userId;
-});
+        $("fill").style.width = `${p}%`;
+      }
 
-const $ = id => document.getElementById(id);
+      async function loadQuests() {
+        const j = await fetch(`/api/game/quests?user_id=${userId}`).then((r) =>
+          r.json(),
+        );
+        if (!j.ok) return;
 
-const sprites = {
-  egg: '🥚',
-  chick: '🐣',
-  bird: '🐦',
-  guide: '🦉'
-};
+        $("quests").innerHTML = j.quests
+          .map((q) => {
+            const title = t(`game.quest.${q.id}.title`);
+            const desc = t(`game.quest.${q.id}.desc`);
 
-async function loadCharacter() {
-  const j = await fetch(`/api/game/character?user_id=${userId}`).then(r => r.json());
-  if (!j.ok) return;
+            const buttonText = q.claimed
+              ? t("game.quest_claimed")
+              : q.done
+                ? t("game.quest_claim")
+                : t("game.quest_incomplete");
 
-  $('sprite').textContent = sprites[j.stage] || '🥚';
-  $('level').textContent = `Lv.${j.level}`;
-  $('xp').textContent = `${j.xp_into_level} / ${j.xp_for_next_level} XP`;
-
-  const p = j.xp_for_next_level
-    ? Math.min(100, Math.round(j.xp_into_level / j.xp_for_next_level * 100))
-    : 0;
-
-  $('fill').style.width = `${p}%`;
-}
-
-async function loadQuests() {
-  const j = await fetch(`/api/game/quests?user_id=${userId}`).then(r => r.json());
-  if (!j.ok) return;
-
-  $('quests').innerHTML = j.quests.map(q => {
-    const title = t(`game.quest.${q.id}.title`);
-    const desc = t(`game.quest.${q.id}.desc`);
-
-    const buttonText = q.claimed
-      ? t('game.quest_claimed')
-      : q.done
-        ? t('game.quest_claim')
-        : t('game.quest_incomplete');
-
-    return `
+            return `
       <div class="card quest">
         <div class="quest-body">
-          <div class="qt">${q.claimed ? '🏆 ' : ''}${title}</div>
+          <div class="qt">${q.claimed ? "🏆 " : ""}${title}</div>
           <div class="qd">${desc}</div>
           <div class="qr">+${q.reward} XP</div>
         </div>
         <button
-          class="claim ${q.done && !q.claimed ? 'ready' : ''}"
+          class="claim ${q.done && !q.claimed ? "ready" : ""}"
           data-id="${q.id}"
-          ${!q.done || q.claimed ? 'disabled' : ''}
+          ${!q.done || q.claimed ? "disabled" : ""}
         >${buttonText}</button>
       </div>
     `;
-  }).join('');
+          })
+          .join("");
 
-  document.querySelectorAll('.claim.ready').forEach(b =>
-    b.addEventListener('click', async () => {
-      b.disabled = true;
+        document.querySelectorAll(".claim.ready").forEach((b) =>
+          b.addEventListener("click", async () => {
+            b.disabled = true;
 
-      const r = await fetch('/api/game/quests/claim', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          user_id: userId,
-          quest_id: b.dataset.id
-        })
-      }).then(x => x.json());
+            const r = await fetch("/api/game/quests/claim", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                user_id: userId,
+                quest_id: b.dataset.id,
+              }),
+            }).then((x) => x.json());
 
-      if (r.ok) {
-        await Promise.all([
-          loadCharacter(),
-          loadQuests()
-        ]);
+            if (r.ok) {
+              await Promise.all([loadCharacter(), loadQuests()]);
+            }
+          }),
+        );
       }
-    })
-  );
-}
 
-async function loadZukan() {
-  const j = await fetch(`/api/game/encyclopedia?user_id=${userId}`).then(r => r.json());
-  if (!j.ok) return;
+      async function loadZukan() {
+        const j = await fetch(`/api/game/encyclopedia?user_id=${userId}`).then(
+          (r) => r.json(),
+        );
+        if (!j.ok) return;
 
-  const have = new Set(
-    j.slots.map(x => `${x.lang_pair}:${x.place_kind}`)
-  );
+        const have = new Set(
+          j.slots.map((x) => `${x.lang_pair}:${x.place_kind}`),
+        );
 
-  const langs = [
-    ['ja-en', t('game.lang_en')],
-    ['ja-zh', t('game.lang_zh')],
-    ['ja-ko', t('game.lang_ko')]
-  ];
+        const langs = [
+          ["ja-en", t("game.lang_en")],
+          ["ja-zh", t("game.lang_zh")],
+          ["ja-ko", t("game.lang_ko")],
+        ];
 
-  const kinds = [
-    ['menu', t('game.kind_menu')],
-    ['sign', t('game.kind_sign')],
-    ['notice', t('game.kind_notice')],
-    ['other', t('game.kind_other')]
-  ];
+        const kinds = [
+          ["menu", t("game.kind_menu")],
+          ["sign", t("game.kind_sign")],
+          ["notice", t("game.kind_notice")],
+          ["other", t("game.kind_other")],
+        ];
 
-  let h =
-    '<div class="zukan"><div></div>' +
-    kinds.map(k => `<div class="zh">${k[1]}</div>`).join('');
+        let h =
+          '<div class="zukan"><div></div>' +
+          kinds.map((k) => `<div class="zh">${k[1]}</div>`).join("");
 
-  for (const l of langs) {
-    h +=
-      `<div class="zl">${l[1]}</div>` +
-      kinds.map(k => {
-        const unlocked = have.has(`${l[0]}:${k[0]}`);
-        return `<div class="slot ${unlocked ? 'on' : ''}">${unlocked ? '🏆' : '?'}</div>`;
-      }).join('');
-  }
+        for (const l of langs) {
+          h +=
+            `<div class="zl">${l[1]}</div>` +
+            kinds
+              .map((k) => {
+                const unlocked = have.has(`${l[0]}:${k[0]}`);
+                return `<div class="slot ${unlocked ? "on" : ""}">${unlocked ? "🏆" : "?"}</div>`;
+              })
+              .join("");
+        }
 
-  h += '</div>';
+        h += "</div>";
 
-  $('zukan').innerHTML = h;
-  $('zukan-count').textContent = `${j.total} / 12`;
-}
+        $("zukan").innerHTML = h;
+        $("zukan-count").textContent = `${j.total} / 12`;
+      }
 
-async function loadImpact() {
-  const j = await fetch(`/api/game/impact?user_id=${userId}`).then(r => r.json());
+      async function loadImpact() {
+        const j = await fetch(`/api/game/impact?user_id=${userId}`).then((r) =>
+          r.json(),
+        );
 
-  if (!j.ok || !j.region) {
-    $('impact').innerHTML = `<div class="empty">${t('game.impact_empty')}</div>`;
-    return;
-  }
+        if (!j.ok || !j.region) {
+          $("impact").innerHTML =
+            `<div class="empty">${t("game.impact_empty")}</div>`;
+          return;
+        }
 
-  const x = j.region;
+        const x = j.region;
 
-  $('impact').innerHTML = `
+        $("impact").innerHTML = `
     <div class="impact">
       <div class="tile">
         <div class="n">${x.posts || 0}</div>
-        <div class="l">${t('game.impact_posts')}</div>
+        <div class="l">${t("game.impact_posts")}</div>
       </div>
       <div class="tile">
         <div class="n">${x.confirmed || 0}</div>
-        <div class="l">${t('game.impact_confirmed')}</div>
+        <div class="l">${t("game.impact_confirmed")}</div>
       </div>
       <div class="tile">
         <div class="n">${x.adopted || 0}</div>
-        <div class="l">${t('game.impact_adopted')}</div>
+        <div class="l">${t("game.impact_adopted")}</div>
       </div>
       <div class="tile">
-        <div class="n">${t('game.rank_value', { rank: x.rank })}</div>
-        <div class="l">${t('game.impact_rank')}</div>
+        <div class="n">${t("game.rank_value", { rank: x.rank })}</div>
+        <div class="l">${t("game.impact_rank")}</div>
       </div>
     </div>
   `;
-}
+      }
 
-Promise.all([
-  loadCharacter(),
-  loadQuests(),
-  loadZukan(),
-  loadImpact()
-]).catch(console.error);
-</script>
-</body>
+      Promise.all([
+        loadCharacter(),
+        loadQuests(),
+        loadZukan(),
+        loadImpact(),
+      ]).catch(console.error);
+    </script>
+  </body>
 </html>
