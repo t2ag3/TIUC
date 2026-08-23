@@ -87,11 +87,12 @@
     .brand-mark {
       width: 36px;
       height: 36px;
-      border-radius: 12px;
+      border-radius: 11px;
       display: grid;
       place-items: center;
-      background: var(--color-accent, #1a5c3a);
+      background: #1a5c3a;
       color: #fff;
+      font-size: 17px;
       font-weight: 800;
       box-shadow: var(--shadow-sm);
     }
@@ -133,9 +134,10 @@
     #hero {
       position: relative;
       overflow: hidden;
+      min-height: 470px;
       border: 1px solid rgba(32, 93, 58, 0.1);
       border-radius: 30px;
-      padding: clamp(34px, 6vw, 72px) clamp(22px, 7vw, 76px);
+      padding: clamp(34px, 6vw, 72px) clamp(22px, 5vw, 60px);
       background:
         radial-gradient(
           circle at 88% 16%,
@@ -145,6 +147,61 @@
         linear-gradient(135deg, #eef6ef 0%, #f8faf5 58%, #eef4f7 100%);
       box-shadow: var(--shadow-lg);
     }
+
+    .hero-content {
+      position: relative;
+      z-index: 3;
+      width: min(75%, 760px);
+      min-width: 0;
+      padding: clamp(18px, 2.5vw, 28px);
+      margin: calc(clamp(18px, 2.5vw, 28px) * -1);
+      border-radius: 24px;
+      background: rgba(248, 250, 247, 0.48);
+      box-shadow: 0 8px 30px rgba(18, 28, 20, 0.025);
+      backdrop-filter: blur(1.5px);
+      -webkit-backdrop-filter: blur(1.5px);
+    }
+
+    .hero-art {
+      position: absolute;
+      z-index: 1;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: min(58%, 560px);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      pointer-events: none;
+    }
+
+    .hero-art::before {
+      content: "";
+      position: absolute;
+      z-index: 2;
+      top: -15%;
+      bottom: -15%;
+      left: -30%;
+      width: 65%;
+      background: linear-gradient(
+        90deg,
+        rgba(245, 248, 244, 0.55) 0%,
+        rgba(245, 248, 244, 0.38) 30%,
+        rgba(245, 248, 244, 0.15) 65%,
+        rgba(245, 248, 244, 0) 100%
+      );
+      pointer-events: none;
+    }
+
+    .hero-art img {
+      position: relative;
+      z-index: 1;
+      display: block;
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+    }
+
     #hero::after {
       content: "";
       position: absolute;
@@ -180,7 +237,7 @@
     #hero h1 {
       position: relative;
       z-index: 1;
-      max-width: 760px;
+      max-width: 100%;
       margin: 0;
       font-size: clamp(30px, 5.8vw, 58px);
       line-height: 1.12;
@@ -193,7 +250,7 @@
     .hero-lead {
       position: relative;
       z-index: 1;
-      max-width: 640px;
+      max-width: 100%;
       margin: 20px 0 0;
       color: #5f675f;
       font-size: clamp(14px, 2vw, 17px);
@@ -225,70 +282,182 @@
     }
     #buddy {
       position: relative;
-      overflow: visible;
+      isolation: isolate;
+      overflow: hidden;
       margin-top: 14px;
+      min-height: 130px;
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 14px;
-      min-height: 88px;
-      padding: 18px 22px;
-      border: 1px solid #dbe4dc;
-      border-radius: 22px;
-      background: linear-gradient(110deg, #fff, #f0f6ef);
+      gap: 18px;
+      padding: 24px 28px;
+      border: 1px solid rgba(9, 100, 60, 0.35);
+      border-radius: 24px;
+      background:
+        radial-gradient(
+          circle at 85% 20%,
+          rgba(70, 190, 125, 0.22),
+          transparent 30%
+        ),
+        linear-gradient(135deg, #087447, #0a8b55);
+      color: #fff;
       text-decoration: none;
-      box-shadow: var(--shadow-sm);
+      box-shadow:
+        0 1px 2px rgba(18, 28, 20, 0.05),
+        0 14px 34px rgba(8, 100, 60, 0.18);
       transition:
         transform 0.18s ease,
         box-shadow 0.18s ease;
     }
 
     #buddy:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 14px 34px rgba(18, 28, 20, 0.09);
+      transform: translateY(-3px);
+      box-shadow:
+        0 1px 2px rgba(18, 28, 20, 0.05),
+        0 20px 42px rgba(8, 100, 60, 0.25);
+    }
+
+    .buddy-icon {
+      position: relative;
+      z-index: 2;
+      flex: 0 0 auto;
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #fff;
+      font-size: 30px;
+      line-height: 1;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .buddy-copy {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      min-width: 0;
     }
 
     .buddy-game {
-      font-size: clamp(20px, 4vw, 28px);
+      color: #fff;
+      font-size: clamp(24px, 4vw, 34px);
       font-weight: 850;
-      letter-spacing: -0.02em;
-      color: var(--color-accent, #1a5c3a);
+      line-height: 1.05;
+      letter-spacing: -0.025em;
     }
 
-    .buddy-game span {
-      margin-left: 6px;
+    .buddy-subtitle {
+      margin-top: 7px;
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .buddy-arrow {
+      position: relative;
+      z-index: 2;
+      flex: 0 0 auto;
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #fff;
+      color: #087447;
+      font-size: 30px;
+      line-height: 1;
+    }
+
+    .buddy-decoration {
+      position: absolute;
+      z-index: 0;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.22;
+    }
+
+    .map-route {
+      position: absolute;
+      right: 7%;
+      bottom: 17%;
+      width: 38%;
+      height: 42%;
+      border-bottom: 3px solid rgba(255, 255, 255, 0.75);
+      border-radius: 0 0 55% 45%;
+      transform: rotate(-7deg);
+    }
+
+    .map-pin {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border: 4px solid rgba(255, 255, 255, 0.8);
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+    }
+
+    .map-pin::after {
+      content: "";
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      left: 2px;
+      top: 2px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    .pin-one {
+      right: 9%;
+      top: 19%;
+    }
+
+    .pin-two {
+      right: 25%;
+      bottom: 20%;
+      transform: rotate(-45deg) scale(0.75);
+    }
+
+    .pin-three {
+      right: 38%;
+      top: 26%;
+      transform: rotate(-45deg) scale(0.6);
     }
 
     .firework {
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 8px;
-      height: 8px;
+      width: 9px;
+      height: 9px;
       pointer-events: none;
       border-radius: 50%;
       background: currentColor;
-      transform: translate(-50%, -50%);
-      animation: firework-burst 520ms ease-out forwards;
-      z-index: 5;
+      z-index: 6;
+      opacity: 0;
+      animation: firework-burst 800ms ease-out forwards;
     }
 
     @keyframes firework-burst {
       0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0)
+          scale(0);
+      }
+
+      10% {
         opacity: 1;
         transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0)
-          scale(1);
+          scale(1.15);
       }
+
       100% {
         opacity: 0;
         transform: translate(-50%, -50%) rotate(var(--angle))
-          translateX(var(--distance)) scale(0.35);
+          translateX(var(--distance)) scale(0.25);
       }
     }
-    .buddy-arrow {
-      font-size: 18px;
-      color: #809086;
-    }
+
     @media (max-width: 720px) {
       .shell {
         padding: 0 14px;
@@ -300,8 +469,32 @@
         padding-top: 16px;
       }
       #hero {
+        min-height: 0;
         border-radius: 24px;
-        padding: 30px 20px 26px;
+        padding: 30px 20px 24px;
+      }
+
+      .hero-content {
+        width: 100%;
+        margin: 0;
+        padding: 16px;
+        background: rgba(248, 250, 247, 0.58);
+        backdrop-filter: blur(1px);
+        -webkit-backdrop-filter: blur(1px);
+      }
+
+      .hero-art {
+        position: relative;
+        right: auto;
+        top: auto;
+        bottom: auto;
+        transform: none;
+        width: min(100%, 430px);
+        margin: 18px auto -10px;
+      }
+
+      .hero-art::before {
+        display: none;
       }
       #hero h1 {
         font-size: clamp(31px, 10vw, 45px);
@@ -312,20 +505,38 @@
         padding: 12px;
       }
       #buddy {
-        padding: 13px 14px;
+        min-height: 105px;
+        gap: 12px;
+        padding: 18px;
+      }
+
+      .buddy-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 25px;
+      }
+
+      .buddy-arrow {
+        width: 42px;
+        height: 42px;
+        font-size: 26px;
+      }
+
+      .buddy-subtitle {
+        font-size: 11px;
       }
     }
   </style>
   <body>
     <div class="shell">
       <header id="topbar">
-        <a href="/?home=1" class="brand" data-i18n-aria-label="index.brand_aria"
-          ><span class="brand-mark">T</span
-          ><span class="brand-copy"
-            ><strong>TIUC</strong
-            ><span>Today is under construction.</span></span
-          ></a
-        >
+        <a href="/?home=1" class="brand" data-i18n-aria-label="index.brand_aria">
+          <span class="brand-mark">T</span>
+          <span class="brand-copy">
+            <strong>TIUC</strong>
+            <span>Today is under construction.</span>
+          </span>
+        </a>
         <div id="topbar-actions">
           <select id="lang-switcher" class="lang-switcher"></select
           ><a id="login-link" href="#" data-i18n="common.login">ログイン</a>
@@ -333,33 +544,58 @@
       </header>
       <main>
         <section id="hero">
-          <p class="eyebrow">CIVIC TRANSLATION PROJECT</p>
-          <h1 data-i18n-html="index.hero_title">
-            街の外国語を、<br /><span class="accent"
-              >みんなで少しずつ良くする。</span
-            >
-          </h1>
-          <p class="hero-lead" data-i18n="index.hero_lead">
-            気になった外国語表記を撮る。自然かどうかを確かめる。より良い表現を提案する。小さな参加を積み重ねて、街のことばをアップデートします。
-          </p>
-          <div id="stats-row">
-            <div class="stat">
-              <div class="n" id="stat-posts">—</div>
-              <div class="label" data-i18n="index.stat_posts_label">
-                集まった投稿
+          <div class="hero-content">
+            <p class="eyebrow">CIVIC TRANSLATION PROJECT</p>
+            <h1 data-i18n-html="index.hero_title">
+              街の外国語を、<br /><span class="accent"
+                >みんなで少しずつ良くする。</span
+              >
+            </h1>
+            <p class="hero-lead" data-i18n="index.hero_lead">
+              気になった外国語表記を撮る。自然かどうかを確かめる。より良い表現を提案する。小さな参加を積み重ねて、街のことばをアップデートします。
+            </p>
+            <div id="stats-row">
+              <div class="stat">
+                <div class="n" id="stat-posts">—</div>
+                <div class="label" data-i18n="index.stat_posts_label">
+                  集まった投稿
+                </div>
               </div>
-            </div>
-            <div class="stat">
-              <div class="n" id="stat-fixed">—</div>
-              <div class="label" data-i18n="index.stat_fixed_label">
-                確定した修正
+              <div class="stat">
+                <div class="n" id="stat-fixed">—</div>
+                <div class="label" data-i18n="index.stat_fixed_label">
+                  確定した修正
+                </div>
               </div>
             </div>
           </div>
+
+          <div class="hero-art">
+            <img
+              src="images/title-image.png"
+              alt=""
+              aria-hidden="true"
+            />
+          </div>
         </section>
         <a id="buddy" href="game.html">
-          <div class="buddy-game">🎮 <span>Game on</span></div>
-          <span class="buddy-arrow">›</span>
+          <div class="buddy-decoration" aria-hidden="true">
+            <span class="map-pin pin-one"></span>
+            <span class="map-pin pin-two"></span>
+            <span class="map-pin pin-three"></span>
+            <span class="map-route"></span>
+          </div>
+
+          <div style="padding-bottom:1%;" class="buddy-icon" aria-hidden="true">🎮</div>
+
+          <div class="buddy-copy">
+            <div class="buddy-game">Game on</div>
+            <div class="buddy-subtitle">
+              Start finding and fixing mistranslations!
+            </div>
+          </div>
+
+          <span style="padding-bottom:1%;" class="buddy-arrow">›</span>
         </a>
       </main>
     </div>
@@ -393,6 +629,36 @@
         .catch(() => {});
 
       const buddy = $("buddy");
+
+      function launchBuddyFireworks() {
+        const colors = [
+          "#ffffff",
+          "#ffd34e",
+          "#8ee0ad",
+          "#82c7ff",
+          "#ff9770",
+        ];
+
+        const particleCount = 28;
+
+        for (let i = 0; i < particleCount; i++) {
+          const particle = document.createElement("span");
+          particle.className = "firework";
+          particle.style.color = colors[i % colors.length];
+          particle.style.setProperty(
+            "--angle",
+            `${i * (360 / particleCount)}deg`,
+          );
+          particle.style.setProperty(
+            "--distance",
+            `${140 + Math.random() * 100}px`,
+          );
+
+          buddy.appendChild(particle);
+          particle.addEventListener("animationend", () => particle.remove());
+        }
+      }
+
       buddy.addEventListener("click", (event) => {
         if (
           event.defaultPrevented ||
@@ -407,24 +673,11 @@
 
         event.preventDefault();
 
-        const colors = ["#1a5c3a", "#214f69", "#d39426", "#a23a57", "#6d4aa8"];
-
-        for (let i = 0; i < 18; i++) {
-          const particle = document.createElement("span");
-          particle.className = "firework";
-          particle.style.setProperty("--angle", `${i * 20}deg`);
-          particle.style.setProperty(
-            "--distance",
-            `${54 + Math.random() * 44}px`,
-          );
-          particle.style.color = colors[i % colors.length];
-          buddy.appendChild(particle);
-          particle.addEventListener("animationend", () => particle.remove());
-        }
+        launchBuddyFireworks();
 
         setTimeout(() => {
           location.href = buddy.href;
-        }, 430);
+        }, 760);
       });
     </script>
   </body>
