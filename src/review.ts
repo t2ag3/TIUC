@@ -2,7 +2,7 @@ import {
 	CORRECT_HOURLY_LIMIT,
 	JUDGE_HOURLY_LIMIT,
 	JUDGMENT_THRESHOLD,
-	LANG_PAIRS,
+	REVIEWABLE_LANG_PAIRS,
 	POINTS_CORRECTION_CONFIRM_BONUS,
 	POINTS_CORRECTION_PROPOSE,
 	POINTS_JUDGMENT,
@@ -25,7 +25,7 @@ export async function judgeNext(request: Request, env: AppEnv): Promise<Response
   const userId = String(sp.get("user_id") || "");
   if (!UUID_RE.test(userId)) return bad("ユーザーIDが不正です");
   const langPair = String(sp.get("lang_pair") || "");
-  if (!LANG_PAIRS.has(langPair)) return bad("言語ペアの指定が不正です");
+  if (!REVIEWABLE_LANG_PAIRS.has(langPair)) return bad("言語ペアの指定が不正です");
 
   const exclude = String(sp.get("exclude") || "")
     .split(",").map((s) => s.trim()).filter((s) => /^[0-9a-f-]{36}$/.test(s)).slice(0, 20);
@@ -131,7 +131,7 @@ export async function correctNext(request: Request, env: AppEnv): Promise<Respon
   const userId = String(sp.get("user_id") || "");
   if (!UUID_RE.test(userId)) return bad("ユーザーIDが不正です");
   const langPair = String(sp.get("lang_pair") || "");
-  if (!LANG_PAIRS.has(langPair)) return bad("言語ペアの指定が不正です");
+  if (!REVIEWABLE_LANG_PAIRS.has(langPair)) return bad("言語ペアの指定が不正です");
 
   const row = await env.DB.prepare(
     `SELECT id, src_image_key, tgt_image_key, situation, place_kind,
@@ -228,7 +228,7 @@ export async function correctVoteNext(request: Request, env: AppEnv): Promise<Re
   const userId = String(sp.get("user_id") || "");
   if (!UUID_RE.test(userId)) return bad("ユーザーIDが不正です");
   const langPair = String(sp.get("lang_pair") || "");
-  if (!LANG_PAIRS.has(langPair)) return bad("言語ペアの指定が不正です");
+  if (!REVIEWABLE_LANG_PAIRS.has(langPair)) return bad("言語ペアの指定が不正です");
 
   const row = await env.DB.prepare(
     `SELECT c.id, c.fixed_text, c.explanation, c.verdict, c.curator_id,

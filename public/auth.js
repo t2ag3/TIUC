@@ -26,6 +26,10 @@ export function googleLoginUrl(userId) {
   return `/api/auth/google/start?user_id=${encodeURIComponent(userId)}`;
 }
 
+export async function logout() {
+  try { await fetch('/api/auth/logout'); } catch { /* Cookieが残っても再読込で無害 */ }
+}
+
 export async function bootstrapAuth() {
   let userId = getUserId();
   let session = null;

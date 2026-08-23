@@ -11,6 +11,6 @@
   "license": "ISC",
   "devDependencies": {
     "typescript": "^7.0.2",
-    "wrangler": "^4.114.0"
+    "wrangler": "^4.125.0"
   }
 }

@@ -37,3 +37,43 @@
   color: var(--color-text, #222);
   cursor: pointer;
 }
+
+/* [hidden]属性は、displayを指定する他のクラスと同じ詳細度でも常に勝つようにする。
+   (class="toggle-row" hidden のような組み合わせで hidden が無視される事故を防ぐ) */
+[hidden] { display: none !important; }
+
+/* ==== 共通トーン&マナー（トップページ index.html を基準に統一） ==== */
+html.app-html { background: #f7f8f5; }
+body.app-body {
+  margin: 0; min-height: 100vh;
+  background: radial-gradient(circle at 10% 0%, rgba(46,108,72,.10), transparent 28rem),
+              linear-gradient(180deg, #fbfcfa 0%, #f5f7f3 100%);
+}
+.app-shell { width: min(100%, 640px); margin: 0 auto; padding: 16px 20px 40px; }
+
+.app-topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0 20px; }
+.app-topbar .brand { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; color: inherit; flex: none; }
+.app-topbar .brand-mark { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center;
+  background: var(--color-accent, #1a5c3a); color: #fff; font-weight: 800; font-size: 14px;
+  box-shadow: 0 1px 2px rgba(18,28,20,.04), 0 10px 30px rgba(18,28,20,.05); flex: none; }
+.app-topbar .brand-copy { display: flex; flex-direction: column; line-height: 1.05; min-width: 0; }
+.app-topbar .brand-copy strong { font-size: 14px; font-weight: 800; }
+.app-topbar .brand-copy span { margin-top: 3px; color: var(--app-muted, #6b7068); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#topbar-actions, .app-topbar-actions { display: flex; align-items: center; gap: 8px; flex: none; }
+.app-pill-link { min-height: 32px; display: inline-flex; align-items: center; justify-content: center; padding: 0 13px;
+  border: 1px solid var(--app-line, #e3e6df); border-radius: 999px; background: rgba(255,255,255,.78);
+  color: #3d5145; text-decoration: none; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.app-pill-badge { min-height: 32px; display: inline-flex; align-items: center; padding: 0 13px;
+  border: 1px solid var(--app-line, #e3e6df); border-radius: 999px; background: rgba(255,255,255,.6);
+  font-size: 12px; font-weight: 700; color: var(--app-text, #1d211d); white-space: nowrap; }
+
+.app-card { border: 1px solid var(--app-line, #e3e6df); border-radius: 20px; background: rgba(255,255,255,.9);
+  box-shadow: 0 1px 2px rgba(18,28,20,.04), 0 10px 30px rgba(18,28,20,.05); }
+
+.app-btn-primary { border: 0; border-radius: 14px; background: var(--color-accent, #1a5c3a); color: #fff;
+  font-weight: 700; cursor: pointer; transition: background .15s ease, transform .15s ease; }
+.app-btn-primary:hover { background: var(--color-accent-dark, #164a30); }
+.app-btn-primary:disabled { background: #c3c9c2; cursor: default; }
+.app-btn-secondary { border: 1px solid var(--app-line, #e3e6df); border-radius: 14px; background: #fff;
+  color: var(--app-text, #1d211d); font-weight: 600; cursor: pointer; transition: border-color .15s ease, background .15s ease; }
+.app-btn-secondary:hover { border-color: #b9c3ba; background: #f6f8f5; }

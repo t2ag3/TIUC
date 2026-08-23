@@ -1,75 +1,82 @@
 <!doctype html>
-<html lang="ja">
+<html lang="ja" class="app-html">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f7f8f5">
 <title data-i18n="curate.title">修正・投票 - TIUC</title>
 <link rel="stylesheet" href="tokens.css">
 <style>
-  :root { --line:#ddd; --muted:#666; --warn:#a33; --ok:#161; }
+  :root { --app-line:#e3e6df; --app-muted:#6b7068; --app-text:#1d211d; --warn:#a33; --ok:#161; }
   * { box-sizing: border-box; }
-  body { font-family: system-ui, -apple-system, sans-serif; margin: 0 auto; padding: 16px;
-         max-width: 480px; line-height: 1.6; color: #222; }
-  #topbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 8px; }
-  #topbar a { font-size: 12px; color: var(--muted); text-decoration: none; }
-  #topbar-actions { display: flex; align-items: center; gap: 8px; }
-  #points-badge { font-size: 12px; border: 1px solid var(--line); border-radius: var(--radius-pill); padding: 3px 10px; }
-  h1 { font-size: 19px; margin: 0 0 4px; }
-  .lead { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+  body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+         line-height: 1.6; color: var(--app-text); }
+  #points-badge { font-size: 12px; border: 1px solid var(--app-line); border-radius: var(--radius-pill);
+                  padding: 4px 12px; background: rgba(255,255,255,.6); font-weight: 700; }
+  h1 { font-size: 21px; margin: 0 0 5px; font-weight: 800; letter-spacing: -.02em; }
+  .lead { color: var(--app-muted); font-size: 13px; margin: 0 0 14px; line-height: 1.7; }
 
   .row-select { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
-  .row-select button { flex: 1; padding: 9px; font-size: 12px; border: 1px solid var(--line);
-                        border-radius: var(--radius-sm); background: #fff; cursor: pointer; white-space: nowrap; }
+  .row-select button { flex: 1; padding: 10px; font-size: 12px; font-weight: 600; border: 1px solid var(--app-line);
+                        border-radius: var(--radius-sm); background: rgba(255,255,255,.8); cursor: pointer; white-space: nowrap;
+                        transition: background .15s ease, border-color .15s ease; }
+  .row-select button:hover { border-color: #b9c3ba; }
   .row-select button.active { background: var(--color-accent, #1a5c3a); color: #fff; border-color: var(--color-accent, #1a5c3a); }
-  #tabs { display: flex; gap: 8px; margin-bottom: 14px; }
-  #tabs button { flex: 1; padding: 10px; font-size: 13px; border: 1px solid var(--line);
-                 border-radius: var(--radius-sm); background: #fff; cursor: pointer; }
-  #tabs button.active { background: #222; color: #fff; border-color: #222; }
+  #tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  #tabs button { flex: 1; padding: 10px; font-size: 13px; font-weight: 600; border: 1px solid var(--app-line);
+                 border-radius: var(--radius-sm); background: rgba(255,255,255,.8); cursor: pointer;
+                 transition: background .15s ease, border-color .15s ease; }
+  #tabs button.active { background: #1d211d; color: #fff; border-color: #1d211d; }
 
   .panel[hidden] { display: none; }
-  #card, #vote-card { border: 1px solid var(--line); border-radius: var(--radius-card, 16px); padding: 16px; }
+  #card, #vote-card { border: 1px solid var(--app-line); border-radius: 22px; padding: 18px; background: rgba(255,255,255,.9);
+                       box-shadow: 0 1px 2px rgba(18,28,20,.04), 0 10px 30px rgba(18,28,20,.05); }
   #card[hidden], #vote-card[hidden] { display: none; }
   .imgs { display: flex; gap: 8px; }
   .imgs > div { flex: 1; }
-  .imgs img { width: 100%; max-height: 240px; object-fit: contain; border-radius: 10px; background: #f2f2f0; display: block; }
-  .imgs .cap { font-size: 11px; color: var(--muted); text-align: center; margin-top: 4px; }
-  .meta { font-size: 12px; color: var(--muted); margin: 10px 0; }
+  .imgs img { width: 100%; max-height: 240px; object-fit: contain; border-radius: 14px; background: #f2f2f0; display: block; }
+  .imgs .cap { font-size: 11px; color: var(--app-muted); text-align: center; margin-top: 4px; }
+  .meta { font-size: 12px; color: var(--app-muted); margin: 10px 0; }
 
-  label.field { display: block; font-size: 12px; color: var(--muted); margin: 10px 0 3px; }
-  input[type=text], textarea { width: 100%; font-size: 14px; padding: 8px; border: 1px solid var(--line);
-                                border-radius: 8px; font-family: inherit; }
+  label.field { display: block; font-size: 12px; color: var(--app-muted); margin: 10px 0 3px; }
+  input[type=text], textarea { width: 100%; font-size: 14px; padding: 9px 10px; border: 1px solid var(--app-line);
+                                border-radius: 10px; font-family: inherit; }
   .verdict-row { display: flex; gap: 8px; margin: 10px 0; }
-  .verdict-row label { flex: 1; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px;
+  .verdict-row label { flex: 1; border: 1px solid var(--app-line); border-radius: var(--radius-sm); padding: 10px;
                         text-align: center; font-size: 13px; cursor: pointer; position: relative; }
   .verdict-row input { position: absolute; opacity: 0; }
-  .verdict-row label:has(input:checked) { border-color: #222; border-width: 2px; background: #f4f4f2; font-weight: 600; }
-  #submit-fix { width: 100%; margin-top: 12px; padding: 12px; font-size: 15px; border: 0;
-                border-radius: 10px; background: var(--color-accent, #1a5c3a); color: #fff; }
-  #submit-fix:disabled { background: #bbb; }
+  .verdict-row label:has(input:checked) { border-color: var(--color-accent, #1a5c3a); border-width: 2px; background: var(--color-accent-soft, #eef5f0); font-weight: 700; }
+  #submit-fix { width: 100%; margin-top: 14px; padding: 13px; font-size: 15px; border: 0;
+                border-radius: 14px; background: var(--color-accent, #1a5c3a); color: #fff; font-weight: 700; cursor: pointer;
+                transition: background .15s ease; }
+  #submit-fix:hover:not(:disabled) { background: var(--color-accent-dark, #164a30); }
+  #submit-fix:disabled { background: #c3c9c2; cursor: default; }
 
-  .fixed-box { background: #eef5f0; border: 1px solid #cfe3d8; border-radius: 8px; padding: 10px; margin: 10px 0; font-size: 14px; }
-  .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
-  .btns button { padding: 16px 8px; font-size: 14px; font-weight: 600; border-radius: var(--radius-card, 12px);
-                 border: 2px solid var(--line); background: #fff; cursor: pointer; }
+  .fixed-box { background: var(--color-accent-soft, #eef5f0); border: 1px solid #cfe3d8; border-radius: 12px; padding: 11px 12px; margin: 10px 0; font-size: 14px; }
+  .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .btns button { padding: 16px 8px; font-size: 14px; font-weight: 700; border-radius: 16px;
+                 border: 2px solid var(--app-line); background: #fff; cursor: pointer;
+                 transition: transform .12s ease, box-shadow .12s ease; }
+  .btns button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(18,28,20,.08); }
   .btns button.agree { border-color: var(--ok); color: var(--ok); }
   .btns button.disagree { border-color: var(--warn); color: var(--warn); }
 
-  #empty { text-align: center; padding: 40px 16px; color: var(--muted); }
+  #empty { text-align: center; padding: 40px 16px; color: var(--app-muted); }
   #empty .icon { font-size: 40px; }
-  .status { font-size: 13px; color: var(--muted); margin-top: 10px; text-align: center; }
+  .status { font-size: 13px; color: var(--app-muted); margin-top: 10px; text-align: center; }
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-           background: #222; color: #fff; padding: 10px 20px; border-radius: 999px;
+           background: #1d211d; color: #fff; padding: 10px 20px; border-radius: 999px;
            font-size: 13px; opacity: 0; transition: opacity .2s ease; pointer-events: none; }
   .toast.show { opacity: 1; }
 </style>
-<body>
+<body class="app-body"><div class="app-shell">
 
-<div id="topbar">
-  <a href="menu.html" data-i18n="common.back_curation">← キュレーション</a>
+<header class="app-topbar">
+  <a href="menu.html" class="brand"><span class="brand-mark">T</span><span class="brand-copy"><strong>TIUC</strong><span data-i18n="common.back_curation">← キュレーション</span></span></a>
   <div id="topbar-actions">
     <select id="lang-switcher" class="lang-switcher"></select>
     <div id="points-badge">0 pt</div>
   </div>
-</div>
+</header>
 <h1 data-i18n="curate.h1">✏️ 修正・投票</h1>
 <p class="lead" data-i18n="curate.lead">バイリンガル向けサブモード。正しい訳を提案するか、他の人の提案に投票してください。</p>
 
@@ -140,6 +147,15 @@ let langPair = 'ja-en';
 let mode = 'fix';
 let currentPost = null;
 let currentCorrection = null;
+
+// 地図のピンから「修正・投票へ」で来た場合、指定の言語ペアを最初から選ぶ
+const urlLangPair = new URLSearchParams(location.search).get('lang_pair');
+const urlLangBtn = urlLangPair && document.querySelector(`#lang-select button[data-lang="${urlLangPair}"]`);
+if (urlLangBtn) {
+  document.querySelectorAll('#lang-select button').forEach((b) => b.classList.remove('active'));
+  urlLangBtn.classList.add('active');
+  langPair = urlLangPair;
+}
 
 async function loadPointsBadge() {
   try {
@@ -285,5 +301,6 @@ $('btn-disagree').addEventListener('click', () => vote(false));
 
 authReady.then(() => { loadPointsBadge(); refreshCurrent(); });
 </script>
+</div>
 </body>
 </html>

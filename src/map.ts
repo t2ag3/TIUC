@@ -34,6 +34,10 @@ export async function publicMap(request: Request, env: AppEnv): Promise<Response
   if (!langPairs.length) return bad("lang_pair の指定が不正です");
   const langSql = langPairs.map((_, i) => `?${i + 5}`).join(",");
 
+  // いいね数・修正案への賛成票数での絞り込み(任意。0件なら未指定と同じ)
+  const minLikes = Math.max(0, Number(sp.get("min_likes")) || 0);
+  const minAgree = Math.max(0, Number(sp.get("min_agree")) || 0);
+
   const cache = (caches as CacheStorage & { default: Cache }).default;
   const url = new URL(request.url);
   const cacheKey = new Request(url.toString(), { method: "GET" });
@@ -54,14 +58,37 @@ export async function publicMap(request: Request, env: AppEnv): Promise<Response
 
   // rule1改定(2026-08-22): 投稿直後から公開マップに正確なピンを出す。
   // 写真品質NGで機械的に除外された投稿(auto_rejected)のみ除く。
+  // like_count: 投稿への「いいね」総数。agree_count: 修正案のうち最も賛成票が
+  // 集まったものの票数(未確定でも先頭の提案を指標にする)。explanation は
+  // 確定した修正案の解説(2026-08-23改定: 確定投稿は地図から写真ごと閲覧可)。
+  const havingParts = [];
+  if (minLikes > 0) havingParts.push("like_count >= " + minLikes);
+  if (minAgree > 0) havingParts.push("agree_count >= " + minAgree);
+  const havingSql = havingParts.length ? `WHERE ${havingParts.join(" AND ")}` : "";
+
   const pinSql = `
-    SELECT id, lat, lng, lang_pair, place_kind, status, original_text, translated_text,
-           COALESCE(observed_at, created_at) AS event_at
-      FROM posts
-     WHERE status <> 'auto_rejected'
-       AND lat BETWEEN ?1 AND ?2 AND lng BETWEEN ?3 AND ?4
-       AND lang_pair IN (${langSql})
-     LIMIT 500`;
+    SELECT * FROM (
+      SELECT id, lat, lng, lang_pair, place_kind, status, original_text, translated_text,
+             src_thumb_key,
+             COALESCE(observed_at, created_at) AS event_at,
+             (SELECT COUNT(*) FROM post_likes pl WHERE pl.post_id = posts.id) AS like_count,
+             COALESCE((
+               SELECT MAX(agree_cnt) FROM (
+                 SELECT COUNT(*) FILTER (WHERE v.agree = 1) AS agree_cnt
+                   FROM corrections c LEFT JOIN votes v ON v.correction_id = c.id
+                  WHERE c.post_id = posts.id
+                  GROUP BY c.id
+               )
+             ), 0) AS agree_count,
+             (SELECT c2.explanation FROM corrections c2
+               WHERE c2.post_id = posts.id AND c2.status = 'confirmed' LIMIT 1) AS explanation
+        FROM posts
+       WHERE status <> 'auto_rejected'
+         AND lat BETWEEN ?1 AND ?2 AND lng BETWEEN ?3 AND ?4
+         AND lang_pair IN (${langSql})
+    )
+    ${havingSql}
+    LIMIT 500`;
 
   const bind = [minLat, maxLat, minLng, maxLng, ...langPairs];
   const [meshRows, pinRows] = await Promise.all([
@@ -81,7 +108,11 @@ export async function publicMap(request: Request, env: AppEnv): Promise<Response
       status: string;
       original_text: string | null;
       translated_text: string | null;
+      src_thumb_key: string;
       event_at: number;
+      like_count: number;
+      agree_count: number;
+      explanation: string | null;
     }>(),
   ]);
 
@@ -108,13 +139,20 @@ export async function publicMap(request: Request, env: AppEnv): Promise<Response
     });
   }
   for (const row of pinRows.results) {
+    const isConfirmed = row.status === "confirmed" || row.status === "adopted";
     features.push({
       type: "Feature",
       properties: {
         kind: "pin", id: row.id, lang_pair: row.lang_pair, place_kind: row.place_kind,
         status: row.status,
         original_text: row.original_text, translated_text: row.translated_text,
+        // 未確定の投稿は写真キーを渡さない(そもそも/imgが401を返すが、
+        // フロント側で試行させないため確定・採用済みのみ含める)
+        src_thumb_key: isConfirmed ? row.src_thumb_key : null,
+        explanation: isConfirmed ? row.explanation : null,
         event_at: row.event_at,
+        like_count: row.like_count,
+        agree_count: row.agree_count,
       },
       geometry: { type: "Point", coordinates: [row.lng, row.lat] },
     });

@@ -13,7 +13,7 @@ import {
 } from "./game";
 import { serveImage } from "./images";
 import { publicMap } from "./map";
-import { createPost, deletePost, nearbyCheck } from "./posts";
+import { createPost, deletePost, nearbyCheck, togglePostLike } from "./posts";
 import {
 	correctNext,
 	correctSubmit,
@@ -37,6 +37,7 @@ export default {
 			if (path === "/api/posts" && request.method === "POST") return await createPost(request, env);
 			if (path === "/api/posts/delete" && request.method === "POST") return await deletePost(request, env);
 			if (path === "/api/nearby" && request.method === "GET") return await nearbyCheck(request, env);
+			if (path === "/api/posts/like" && request.method === "POST") return await togglePostLike(request, env);
 
 			// --- ②違和感チェック ---
 			if (path === "/api/judge/next" && request.method === "GET") return await judgeNext(request, env);
