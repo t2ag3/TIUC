@@ -264,4 +264,6 @@ export default {
   "game.quest.three_languages.desc": "发现英语、中文和韩语标识",
   "game.quest.zukan_12.title": "城市语言图鉴全收集",
   "game.quest.zukan_12.desc": "集齐12种语言×标识类别组合",
+  "game.levelup_title": "恭喜升级！",
+  "game.levelup_close": "太棒了！",
 };

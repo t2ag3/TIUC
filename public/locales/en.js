@@ -264,4 +264,6 @@ export default {
   "game.quest.three_languages.desc": "Find English, Chinese and Korean signs",
   "game.quest.zukan_12.title": "City-words collector",
   "game.quest.zukan_12.desc": "Fill all 12 language × sign categories",
+  "game.levelup_title": "Congratulations! You leveled up!",
+  "game.levelup_close": "Awesome!",
 };

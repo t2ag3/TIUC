@@ -293,6 +293,208 @@
       padding: 10px 2px;
     }
 
+
+    .quest-heading-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 28px;
+      margin-bottom: 10px;
+    }
+
+    .quest-heading-row h2 {
+      margin: 0;
+    }
+
+    .test-buttons {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 6px;
+    }
+
+    .test-button {
+      width: 120px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: #fff;
+      color: var(--muted);
+      font: inherit;
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .test-button:hover {
+      border-color: #b9c3ba;
+      color: #1e231f;
+    }
+
+    .claim-popper {
+      position: fixed;
+      z-index: 120;
+      pointer-events: none;
+      font-size: 34px;
+      line-height: 1;
+      transform-origin: 50% 50%;
+      animation: claim-popper-fire 650ms ease-out forwards;
+    }
+
+    .claim-confetti {
+      position: fixed;
+      z-index: 119;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      pointer-events: none;
+      background: currentColor;
+      animation: claim-confetti-fire 700ms ease-out forwards;
+    }
+
+    @keyframes claim-popper-fire {
+      0% {
+        opacity: 0;
+        transform: translate(-14px, -50%) rotate(45deg) scale(0.55);
+      }
+
+      20% {
+        opacity: 1;
+        transform: translate(-8px, -50%) rotate(45deg) scale(1.05);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(18px, -50%) rotate(45deg) scale(0.85);
+      }
+    }
+
+    @keyframes claim-confetti-fire {
+      0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0)
+          scale(1);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) rotate(var(--angle))
+          translateX(var(--distance)) scale(0.3);
+      }
+    }
+
+    .levelup-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(15, 22, 17, 0.64);
+      backdrop-filter: blur(4px);
+    }
+
+    .levelup-backdrop[hidden] {
+      display: none;
+    }
+
+    .levelup-modal {
+      position: relative;
+      width: min(100%, 430px);
+      overflow: visible;
+      padding: 28px 24px 26px;
+      border-radius: 28px;
+      background: #fff;
+      text-align: center;
+      box-shadow: 0 24px 70px rgba(10, 25, 15, 0.3);
+      animation: levelup-pop 420ms cubic-bezier(0.2, 1.35, 0.4, 1);
+    }
+
+    .levelup-poppers {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: -2px 8px 6px;
+      font-size: clamp(44px, 12vw, 64px);
+      line-height: 1;
+    }
+
+    .levelup-poppers .left {
+      transform: rotate(-12deg);
+    }
+
+    .levelup-poppers .right {
+      transform: scaleX(-1) rotate(-12deg);
+    }
+
+    .levelup-title {
+      margin: 0;
+      font-size: clamp(23px, 6vw, 31px);
+      line-height: 1.2;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+
+    .levelup-levels {
+      margin-top: 12px;
+      color: var(--accent);
+      font-size: clamp(20px, 5vw, 26px);
+      font-weight: 850;
+    }
+
+    .levelup-close {
+      margin-top: 22px;
+      min-width: 150px;
+      padding: 11px 22px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .levelup-firework {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      pointer-events: none;
+      animation: levelup-firework 800ms ease-out forwards;
+    }
+
+    @keyframes levelup-pop {
+      from {
+        opacity: 0;
+        transform: scale(0.72);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes levelup-firework {
+      from {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0)
+          scale(1);
+      }
+
+      to {
+        opacity: 0;
+        transform: translate(-50%, -50%) rotate(var(--angle))
+          translateX(var(--distance)) scale(0.25);
+      }
+    }
+
     @media (max-width: 560px) {
       .actions {
         grid-template-columns: repeat(3, 1fr);
@@ -349,7 +551,17 @@
         </a>
       </div>
 
-      <h2 data-i18n="game.quests">クエスト</h2>
+      <div class="quest-heading-row">
+        <h2 data-i18n="game.quests">クエスト</h2>
+        <div class="test-buttons">
+          <button class="test-button" id="popper-test" type="button">
+            🎉 Test popper
+          </button>
+          <button class="test-button" id="levelup-test" type="button">
+            🎆 Test level up
+          </button>
+        </div>
+      </div>
       <div id="quests">
         <div class="empty" data-i18n="common.loading">読み込み中…</div>
       </div>
@@ -371,6 +583,39 @@
         <div class="empty" data-i18n="game.impact_empty">
           まだ地域データがありません。
         </div>
+      </div>
+    </div>
+
+    <div id="levelup-backdrop" class="levelup-backdrop" hidden>
+      <div
+        class="levelup-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="levelup-title"
+      >
+        <div class="levelup-poppers" aria-hidden="true">
+          <span class="left">🎉</span>
+          <span class="right">🎉</span>
+        </div>
+
+        <h2
+          id="levelup-title"
+          class="levelup-title"
+          data-i18n="game.levelup_title"
+        >
+          レベルアップおめでとう！
+        </h2>
+
+        <div id="levelup-levels" class="levelup-levels">Lv.5 → Lv.6</div>
+
+        <button
+          id="levelup-close"
+          class="levelup-close"
+          type="button"
+          data-i18n="game.levelup_close"
+        >
+          やった！
+        </button>
       </div>
     </div>
 
@@ -396,6 +641,134 @@
         guide: "🦉",
       };
 
+      function launchClaimPopper(sourceEl) {
+        if (!sourceEl) return;
+
+        const rect = sourceEl.getBoundingClientRect();
+        const originX = rect.right + 4;
+        const originY = rect.top + rect.height / 2;
+        const colors = [
+          "#1a5c3a",
+          "#214f69",
+          "#d39426",
+          "#a23a57",
+          "#6d4aa8",
+          "#e56d35",
+        ];
+
+        const popper = document.createElement("span");
+        popper.className = "claim-popper";
+        popper.textContent = "🎉";
+        popper.style.left = `${originX}px`;
+        popper.style.top = `${originY}px`;
+        document.body.appendChild(popper);
+        popper.addEventListener("animationend", () => popper.remove());
+
+        for (let i = 0; i < 16; i++) {
+          const particle = document.createElement("span");
+          particle.className = "claim-confetti";
+          particle.style.left = `${originX + 26}px`;
+          particle.style.top = `${originY}px`;
+          particle.style.color = colors[i % colors.length];
+          particle.style.setProperty("--angle", `${-55 + i * 7}deg`);
+          particle.style.setProperty(
+            "--distance",
+            `${44 + Math.random() * 56}px`,
+          );
+          document.body.appendChild(particle);
+          particle.addEventListener("animationend", () => particle.remove());
+        }
+      }
+
+      function launchLevelupFireworks() {
+        const modal = document.querySelector(".levelup-modal");
+        if (!modal) return;
+
+        const colors = [
+          "#1a5c3a",
+          "#214f69",
+          "#d39426",
+          "#a23a57",
+          "#6d4aa8",
+          "#e56d35",
+        ];
+
+        const bursts = [
+          { x: 16, y: 24 },
+          { x: 84, y: 24 },
+          { x: 10, y: 66 },
+          { x: 90, y: 66 },
+          { x: 50, y: 10 },
+          { x: 50, y: 82 },
+        ];
+
+        bursts.forEach((burst, burstIndex) => {
+          for (let i = 0; i < 12; i++) {
+            const particle = document.createElement("span");
+            particle.className = "levelup-firework";
+            particle.style.left = `${burst.x}%`;
+            particle.style.top = `${burst.y}%`;
+            particle.style.color =
+              colors[(i + burstIndex * 2) % colors.length];
+            particle.style.setProperty("--angle", `${i * 30}deg`);
+            particle.style.setProperty(
+              "--distance",
+              `${46 + Math.random() * 42}px`,
+            );
+            modal.appendChild(particle);
+            particle.addEventListener("animationend", () => particle.remove());
+          }
+        });
+      }
+
+      function showLevelup(oldLevel, newLevel) {
+        $("levelup-levels").textContent = `Lv.${oldLevel} → Lv.${newLevel}`;
+        $("levelup-backdrop").hidden = false;
+        requestAnimationFrame(launchLevelupFireworks);
+      }
+
+      function checkLevelup(currentLevel) {
+        try {
+          const key = `tiuc_game_level_${userId}`;
+          const previousRaw = localStorage.getItem(key);
+
+          if (previousRaw === null) {
+            localStorage.setItem(key, String(currentLevel));
+            return;
+          }
+
+          const previousLevel = Number(previousRaw);
+          localStorage.setItem(key, String(currentLevel));
+
+          if (
+            Number.isFinite(previousLevel) &&
+            currentLevel > previousLevel
+          ) {
+            showLevelup(previousLevel, currentLevel);
+          }
+        } catch {
+          // localStorage が使えなくても通常表示を続ける
+        }
+      }
+
+      $("levelup-close").addEventListener("click", () => {
+        $("levelup-backdrop").hidden = true;
+      });
+
+      $("levelup-backdrop").addEventListener("click", (event) => {
+        if (event.target === $("levelup-backdrop")) {
+          $("levelup-backdrop").hidden = true;
+        }
+      });
+
+      $("popper-test").addEventListener("click", (event) => {
+        launchClaimPopper(event.currentTarget);
+      });
+
+      $("levelup-test").addEventListener("click", () => {
+        showLevelup(8, 9);
+      });
+
       async function loadCharacter() {
         const j = await fetch(`/api/game/character?user_id=${userId}`).then(
           (r) => r.json(),
@@ -405,6 +778,8 @@
         $("sprite").textContent = sprites[j.stage] || "🥚";
         $("level").textContent = `Lv.${j.level}`;
         $("xp").textContent = `${j.xp_into_level} / ${j.xp_for_next_level} XP`;
+
+        checkLevelup(j.level);
 
         const p = j.xp_for_next_level
           ? Math.min(
@@ -452,6 +827,7 @@
 
         document.querySelectorAll(".claim.ready").forEach((b) =>
           b.addEventListener("click", async () => {
+            launchClaimPopper(b);
             b.disabled = true;
 
             const r = await fetch("/api/game/quests/claim", {

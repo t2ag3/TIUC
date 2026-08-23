@@ -264,4 +264,6 @@ export default {
   "game.quest.three_languages.desc": "영어·중국어·한국어 표기를 모두 발견하기",
   "game.quest.zukan_12.title": "도시 언어 도감 완성",
   "game.quest.zukan_12.desc": "12개의 언어×표기 종류 조합을 모두 채우기",
+  "game.levelup_title": "축하합니다!",
+  "game.levelup_close": "좋아요!",
 };

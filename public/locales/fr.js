@@ -264,4 +264,6 @@ export default {
   "game.quest.three_languages.desc": "Trouver des panneaux en anglais, chinois et coréen",
   "game.quest.zukan_12.title": "Encyclopédie complète",
   "game.quest.zukan_12.desc": "Remplir les 12 combinaisons langue × catégorie",
+  "game.levelup_title": "Félicitations ! Niveau supérieur !",
+  "game.levelup_close": "Super !",
 };
