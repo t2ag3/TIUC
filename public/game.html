@@ -2,7 +2,7 @@
 <html lang="ja">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>相棒とクエスト - TIUC</title>
+  <title>レベルとステータス - TIUC</title>
   <link rel="stylesheet" href="tokens.css" />
   <style>
     :root {
@@ -156,163 +156,18 @@
       border-color: #214f69;
     }
 
-    h2 {
-      font-size: 17px;
-      margin: 28px 2px 10px;
-    }
-
-    .sec-sub {
+    .mypage-link {
+      display: block;
+      margin-top: 10px;
+      padding: 13px 8px;
+      border-radius: 16px;
+      text-decoration: none;
+      text-align: center;
+      border: 1px dashed var(--line);
+      background: rgba(255, 255, 255, 0.6);
       font-size: 12px;
-      color: var(--muted);
-      margin: -6px 2px 12px;
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 15px;
-      margin-bottom: 9px;
-    }
-
-    .quest {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .quest.claimed {
-      background: #e1e5e0;
-      border-color: #c6ccc5;
-    }
-
-    .quest.claimed .qt,
-    .quest.claimed .qd,
-    .quest.claimed .qr {
-      opacity: 0.72;
-    }
-
-    .quest-icon {
-      flex: none;
-      font-size: 22px;
-      width: 36px;
-      text-align: center;
-    }
-
-    .quest-body {
-      flex: 1;
-    }
-
-    .qt {
-      font-size: 14px;
-      font-weight: 750;
-    }
-
-    .qd {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 3px;
-    }
-
-    .qr {
-      font-size: 11px;
-      color: var(--accent);
-      margin-top: 4px;
-    }
-
-    .claim {
-      border: 1px solid var(--accent);
-      border-radius: 999px;
-      padding: 8px 12px;
-      background: #fff;
-      color: var(--accent);
       font-weight: 700;
-      font-size: 11px;
-    }
-
-    .claim.ready {
-      background: var(--accent);
-      color: #fff;
-    }
-
-    .claim:disabled {
-      border-color: #ddd;
-      color: #aaa;
-      background: #f7f7f5;
-    }
-
-    .celebrate {
-      animation: claim-celebrate 550ms ease-out;
-    }
-
-    @keyframes claim-confetti-fire {
-      0% {
-        opacity: 1;
-        transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0)
-          scale(1);
-      }
-
-      100% {
-        opacity: 0;
-        transform: translate(-50%, -50%) rotate(var(--angle))
-          translateX(var(--distance)) scale(0.3);
-      }
-    }
-
-    @keyframes claim-celebrate {
-      0% {
-        transform: scale(1);
-        box-shadow: 0 0 0 rgba(26, 92, 58, 0);
-      }
-
-      35% {
-        transform: scale(1.12);
-        box-shadow: 0 0 18px rgba(26, 92, 58, 0.45);
-      }
-
-      65% {
-        transform: scale(0.96);
-      }
-
-      100% {
-        transform: scale(1);
-        box-shadow: 0 0 0 rgba(26, 92, 58, 0);
-      }
-    }
-    .zukan {
-      display: grid;
-      grid-template-columns: 80px repeat(4, 1fr);
-      gap: 6px;
-      align-items: center;
-    }
-
-    .zh {
-      font-size: 10px;
       color: var(--muted);
-      text-align: center;
-    }
-
-    .zl {
-      font-size: 11px;
-      font-weight: 700;
-    }
-
-    .slot {
-      aspect-ratio: 1;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      display: grid;
-      place-items: center;
-      background: #f7f7f5;
-      color: #bbb;
-      font-size: 15px;
-    }
-
-    .slot.on {
-      background: #edf5ef;
-      border-color: #75a987;
-      color: #1d603e;
-      font-size: clamp(20px, 6vw, 72px);
     }
 
     /* ---- ヒーロー: 表示設定したキャラの見た目(選んでいなければ卵のプレースホルダー) ---- */
@@ -346,51 +201,6 @@
     .hero-mon-empty {
       font-size: 34px;
       line-height: 1;
-    }
-
-    .impact {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-    }
-
-    .tile {
-      text-align: center;
-      padding: 12px 4px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: #fff;
-    }
-
-    .tile .n {
-      font-size: 18px;
-      font-weight: 800;
-    }
-
-    .tile .l {
-      font-size: 10px;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-
-    .empty {
-      font-size: 12px;
-      color: var(--muted);
-      padding: 10px 2px;
-    }
-
-
-    .quest-heading-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-top: 28px;
-      margin-bottom: 10px;
-    }
-
-    .quest-heading-row h2 {
-      margin: 0;
     }
 
     .levelup-backdrop {
@@ -512,15 +322,6 @@
     }
 
     @media (max-width: 560px) {
-      .actions {
-        grid-template-columns: repeat(3, 1fr);
-      }
-      .zukan {
-        grid-template-columns: 64px repeat(4, 1fr);
-      }
-      .impact {
-        grid-template-columns: repeat(2, 1fr);
-      }
       .hero {
         padding-top: 24px;
       }
@@ -571,31 +372,9 @@
         </a>
       </div>
 
-      <div class="quest-heading-row">
-        <h2 data-i18n="game.quests">クエスト</h2>
-      </div>
-      <div id="quests">
-        <div class="empty" data-i18n="common.loading">読み込み中…</div>
-      </div>
-
-      <h2>
-        <span data-i18n="game.encyclopedia">街ことば図鑑</span>
-        <span
-          id="zukan-count"
-          style="font-size: 12px; color: var(--muted); font-weight: 400"
-        ></span>
-      </h2>
-
-      <div class="card">
-        <div id="zukan"></div>
-      </div>
-
-      <h2 data-i18n="game.impact">地域インパクト</h2>
-      <div id="impact">
-        <div class="empty" data-i18n="game.impact_empty">
-          まだ地域データがありません。
-        </div>
-      </div>
+      <a class="mypage-link" href="mypage.html" data-i18n="game.mypage_full_hint">
+        トロフィー・コレクション・図鑑・地域インパクトはマイページで見られます →
+      </a>
     </div>
 
     <div id="levelup-backdrop" class="levelup-backdrop" hidden>
@@ -645,70 +424,6 @@
       });
 
       const $ = (id) => document.getElementById(id);
-
-      function celebrateButton(button) {
-        if (!button) return;
-
-        button.classList.remove("celebrate");
-
-        // Force the animation to restart when repeatedly testing.
-        void button.offsetWidth;
-
-        button.classList.add("celebrate");
-        button.addEventListener(
-          "animationend",
-          () => button.classList.remove("celebrate"),
-          { once: true },
-        );
-      }
-
-      function launchClaimPopper(sourceEl) {
-        if (!sourceEl) return;
-
-        const rect = sourceEl.getBoundingClientRect();
-        const centerY = rect.top + rect.height / 2;
-
-        launchButtonFirework(rect.left - 18, centerY);
-        launchButtonFirework(rect.right + 18, centerY);
-      }
-
-      function launchButtonFirework(x, y) {
-        const colors = [
-          "#1a5c3a",
-          "#214f69",
-          "#d39426",
-          "#a23a57",
-          "#6d4aa8",
-          "#e56d35",
-        ];
-
-        for (let i = 0; i < 16; i++) {
-          const particle = document.createElement("span");
-          particle.className = "claim-confetti";
-          particle.style.position = "fixed";
-          particle.style.zIndex = "119";
-          particle.style.width = "7px";
-          particle.style.height = "7px";
-          particle.style.borderRadius = "50%";
-          particle.style.pointerEvents = "none";
-          particle.style.left = `${x}px`;
-          particle.style.top = `${y}px`;
-          particle.style.color = colors[i % colors.length];
-          particle.style.background = "currentColor";
-          particle.style.setProperty("--angle", `${i * (360 / 16)}deg`);
-          particle.style.setProperty(
-            "--distance",
-            `${32 + Math.random() * 34}px`,
-          );
-          particle.style.animation = "claim-confetti-fire 700ms ease-out forwards";
-
-          document.body.appendChild(particle);
-
-          particle.addEventListener("animationend", () => {
-            particle.remove();
-          });
-        }
-      }
 
       function launchLevelupFireworks() {
         const backdrop = $("levelup-backdrop");
@@ -843,148 +558,7 @@
         $("fill").style.width = `${p}%`;
       }
 
-      async function loadQuests() {
-        const j = await fetch(`/api/game/quests?user_id=${userId}`).then((r) =>
-          r.json(),
-        );
-        if (!j.ok) return;
-
-        $("quests").innerHTML = j.quests
-          .map((q) => {
-            const title = t(`game.quest.${q.id}.title`);
-            const desc = t(`game.quest.${q.id}.desc`);
-
-            const buttonText = q.claimed
-              ? t("game.quest_claimed")
-              : q.done
-                ? t("game.quest_claim")
-                : t("game.quest_incomplete");
-
-            return `
-              <div class="card quest ${q.claimed ? "claimed" : ""}">
-                <div class="quest-icon">${q.icon}</div>
-                <div class="quest-body">
-                  <div class="qt">${title}</div>
-                  <div class="qd">${desc}</div>
-                  <div class="qr">+${q.reward} XP</div>
-                </div>
-                <button
-                  class="claim ${q.done && !q.claimed ? "ready" : ""}"
-                  data-id="${q.id}"
-                  ${!q.done || q.claimed ? "disabled" : ""}
-                >${buttonText}</button>
-              </div>
-            `;
-          })
-          .join("");
-
-        document.querySelectorAll(".claim.ready").forEach((b) =>
-          b.addEventListener("click", async () => {
-            celebrateButton(b);
-            launchClaimPopper(b);
-            b.disabled = true;
-
-            const r = await fetch("/api/game/quests/claim", {
-              method: "POST",
-              headers: { "content-type": "application/json" },
-              body: JSON.stringify({
-                user_id: userId,
-                quest_id: b.dataset.id,
-              }),
-            }).then((x) => x.json());
-
-            if (r.ok) {
-              await Promise.all([loadCharacter(), loadQuests()]);
-            }
-          }),
-        );
-      }
-
-      async function loadZukan() {
-        const j = await fetch(`/api/game/encyclopedia?user_id=${userId}`).then(
-          (r) => r.json(),
-        );
-        if (!j.ok) return;
-
-        const have = new Set(
-          j.slots.map((x) => `${x.lang_pair}:${x.place_kind}`),
-        );
-
-        const langs = [
-          ["ja-en", t("game.lang_en")],
-          ["ja-zh", t("game.lang_zh")],
-          ["ja-ko", t("game.lang_ko")],
-        ];
-
-        const kinds = [
-          ["menu", t("game.kind_menu")],
-          ["sign", t("game.kind_sign")],
-          ["notice", t("game.kind_notice")],
-          ["other", t("game.kind_other")],
-        ];
-
-        let h =
-          '<div class="zukan"><div></div>' +
-          kinds.map((k) => `<div class="zh">${k[1]}</div>`).join("");
-
-        for (const l of langs) {
-          h +=
-            `<div class="zl">${l[1]}</div>` +
-            kinds
-              .map((k) => {
-                const unlocked = have.has(`${l[0]}:${k[0]}`);
-                return `<div class="slot ${unlocked ? "on" : ""}">${unlocked ? "🏆" : "?"}</div>`;
-              })
-              .join("");
-        }
-
-        h += "</div>";
-
-        $("zukan").innerHTML = h;
-        $("zukan-count").textContent = `${j.total} / 12`;
-      }
-
-      async function loadImpact() {
-        const j = await fetch(`/api/game/impact?user_id=${userId}`).then((r) =>
-          r.json(),
-        );
-
-        if (!j.ok || !j.region) {
-          $("impact").innerHTML =
-            `<div class="empty">${t("game.impact_empty")}</div>`;
-          return;
-        }
-
-        const x = j.region;
-
-        $("impact").innerHTML = `
-    <div class="impact">
-      <div class="tile">
-        <div class="n">${x.posts || 0}</div>
-        <div class="l">${t("game.impact_posts")}</div>
-      </div>
-      <div class="tile">
-        <div class="n">${x.confirmed || 0}</div>
-        <div class="l">${t("game.impact_confirmed")}</div>
-      </div>
-      <div class="tile">
-        <div class="n">${x.adopted || 0}</div>
-        <div class="l">${t("game.impact_adopted")}</div>
-      </div>
-      <div class="tile">
-        <div class="n">${t("game.rank_value", { rank: x.rank })}</div>
-        <div class="l">${t("game.impact_rank")}</div>
-      </div>
-    </div>
-  `;
-      }
-
-      Promise.all([
-        loadCharacter(),
-        loadQuests(),
-        loadZukan(),
-        loadImpact(),
-      ]).catch(console.error);
+      loadCharacter().catch(console.error);
     </script>
   </body>
 </html>

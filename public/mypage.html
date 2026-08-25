@@ -330,6 +330,142 @@
       filter: grayscale(1);
       opacity: 0.4;
     }
+    .link-btn {
+      display: inline-block;
+      border: none;
+      background: none;
+      padding: 0;
+      margin: 0 0 4px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--color-accent, #1a5c3a);
+      cursor: pointer;
+    }
+
+    /* ---- トロフィー詳細モーダル内のクエストカード(game.htmlから移設) ---- */
+    .quest {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid var(--app-line);
+      border-radius: 16px;
+      padding: 13px;
+      margin-bottom: 8px;
+    }
+    .quest.claimed {
+      background: #e1e5e0;
+      border-color: #c6ccc5;
+    }
+    .quest.claimed .qt,
+    .quest.claimed .qd,
+    .quest.claimed .qr {
+      opacity: 0.72;
+    }
+    .quest-icon {
+      flex: none;
+      font-size: 20px;
+      width: 32px;
+      text-align: center;
+    }
+    .quest-body {
+      flex: 1;
+    }
+    .qt {
+      font-size: 13px;
+      font-weight: 750;
+    }
+    .qd {
+      font-size: 11px;
+      color: var(--app-muted);
+      margin-top: 3px;
+    }
+    .qr {
+      font-size: 11px;
+      color: var(--color-accent, #1a5c3a);
+      margin-top: 4px;
+    }
+    .claim {
+      border: 1px solid var(--color-accent, #1a5c3a);
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: #fff;
+      color: var(--color-accent, #1a5c3a);
+      font-weight: 700;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .claim.ready {
+      background: var(--color-accent, #1a5c3a);
+      color: #fff;
+    }
+    .claim:disabled {
+      border-color: #ddd;
+      color: #aaa;
+      background: #f7f7f5;
+      cursor: default;
+    }
+    .celebrate {
+      animation: claim-celebrate 550ms ease-out;
+    }
+    @keyframes claim-celebrate {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(26, 92, 58, 0);
+      }
+      35% {
+        transform: scale(1.12);
+        box-shadow: 0 0 18px rgba(26, 92, 58, 0.45);
+      }
+      65% {
+        transform: scale(0.96);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(26, 92, 58, 0);
+      }
+    }
+    @keyframes claim-confetti-fire {
+      0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0)
+          scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) rotate(var(--angle))
+          translateX(var(--distance)) scale(0.3);
+      }
+    }
+
+    /* ---- 地域インパクト ---- */
+    .impact-tiles {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    @media (max-width: 480px) {
+      .impact-tiles {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    .impact-tiles .tile {
+      text-align: center;
+      padding: 12px 4px;
+      border: 1px solid var(--app-line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.8);
+    }
+    .impact-tiles .n {
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .impact-tiles .l {
+      font-size: 10px;
+      color: var(--app-muted);
+      margin-top: 2px;
+    }
+
     .sec-sub {
       font-size: 12px;
       color: var(--app-muted);
@@ -499,6 +635,9 @@
       <div class="trophies" id="trophies">
         <div class="empty" data-i18n="common.loading">読み込み中…</div>
       </div>
+      <button type="button" id="trophies-more" class="link-btn" data-i18n="mypage.trophies_see_all">
+        すべて見る →
+      </button>
 
       <h2 data-i18n="game.collect_title">街ことばコレクション</h2>
       <p class="sec-sub" data-i18n="game.collect_sub">
@@ -515,6 +654,13 @@
       <div class="card">
         <div id="my-map"></div>
         <p class="map-caption" id="map-caption"></p>
+      </div>
+
+      <h2 data-i18n="game.impact">地域インパクト</h2>
+      <div id="impact">
+        <div class="empty" data-i18n="game.impact_empty">
+          まだ地域データがありません。
+        </div>
       </div>
 
       <h2 id="history-title" data-i18n="mypage.h2_posts">投稿履歴</h2>
@@ -542,6 +688,24 @@
             alt="投稿時の写真"
           />
           <div id="detail-body"></div>
+        </div>
+      </div>
+
+      <div id="trophy-modal" class="modal-backdrop" hidden>
+        <div class="modal-card">
+          <button
+            type="button"
+            id="trophy-close"
+            class="modal-close"
+            data-i18n-aria-label="common.close"
+            aria-label="閉じる"
+          >
+            ×
+          </button>
+          <h2 style="margin: 0 0 12px" data-i18n="mypage.h2_trophies">
+            トロフィー
+          </h2>
+          <div id="trophy-list"></div>
         </div>
       </div>
     </div>
@@ -631,25 +795,168 @@
           $("page-status").innerHTML = `<span class="warn">${e.message}</span>`;
         }
 
-        Promise.all([loadTrophies(), loadCollection(), loadMySpots()]).catch(
-          console.error,
-        );
+        Promise.all([
+          loadTrophies(),
+          loadCollection(),
+          loadMySpots(),
+          loadImpact(),
+        ]).catch(console.error);
       }
 
       // =====================================================================
-      // トロフィー(クエスト流用)・街ことばコレクション・マップコレクション
+      // トロフィー(クエスト流用・詳細はモーダルでもう一段深く)
+      // 街ことばコレクション・マップコレクション・地域インパクト
       // =====================================================================
+      let quests = [];
+
       async function loadTrophies() {
         const j = await fetch(`/api/game/quests?user_id=${userId}`).then(
           (r) => r.json(),
         );
         if (!j.ok) return;
-        $("trophies").innerHTML = j.quests
+        quests = j.quests;
+        $("trophies").innerHTML = quests
           .map(
             (q) =>
               `<span class="${q.claimed ? "" : "locked"}" title="${t(`game.quest.${q.id}.title`)}">${q.icon}</span>`,
           )
           .join("");
+      }
+
+      function celebrateButton(button) {
+        if (!button) return;
+        button.classList.remove("celebrate");
+        void button.offsetWidth;
+        button.classList.add("celebrate");
+        button.addEventListener(
+          "animationend",
+          () => button.classList.remove("celebrate"),
+          { once: true },
+        );
+      }
+
+      function launchButtonFirework(x, y) {
+        const colors = [
+          "#1a5c3a",
+          "#214f69",
+          "#d39426",
+          "#a23a57",
+          "#6d4aa8",
+          "#e56d35",
+        ];
+        for (let i = 0; i < 16; i++) {
+          const particle = document.createElement("span");
+          particle.style.position = "fixed";
+          particle.style.zIndex = "220";
+          particle.style.width = "7px";
+          particle.style.height = "7px";
+          particle.style.borderRadius = "50%";
+          particle.style.pointerEvents = "none";
+          particle.style.left = `${x}px`;
+          particle.style.top = `${y}px`;
+          particle.style.color = colors[i % colors.length];
+          particle.style.background = "currentColor";
+          particle.style.setProperty("--angle", `${i * (360 / 16)}deg`);
+          particle.style.setProperty(
+            "--distance",
+            `${32 + Math.random() * 34}px`,
+          );
+          particle.style.animation =
+            "claim-confetti-fire 700ms ease-out forwards";
+          document.body.appendChild(particle);
+          particle.addEventListener("animationend", () => particle.remove());
+        }
+      }
+
+      function launchClaimPopper(sourceEl) {
+        if (!sourceEl) return;
+        const rect = sourceEl.getBoundingClientRect();
+        const centerY = rect.top + rect.height / 2;
+        launchButtonFirework(rect.left - 18, centerY);
+        launchButtonFirework(rect.right + 18, centerY);
+      }
+
+      function renderTrophyList() {
+        $("trophy-list").innerHTML = quests
+          .map((q) => {
+            const title = t(`game.quest.${q.id}.title`);
+            const desc = t(`game.quest.${q.id}.desc`);
+            const buttonText = q.claimed
+              ? t("game.quest_claimed")
+              : q.done
+                ? t("game.quest_claim")
+                : t("game.quest_incomplete");
+            return `
+              <div class="quest ${q.claimed ? "claimed" : ""}">
+                <div class="quest-icon">${q.icon}</div>
+                <div class="quest-body">
+                  <div class="qt">${title}</div>
+                  <div class="qd">${desc}</div>
+                  <div class="qr">+${q.reward} XP</div>
+                </div>
+                <button
+                  class="claim ${q.done && !q.claimed ? "ready" : ""}"
+                  data-id="${q.id}"
+                  ${!q.done || q.claimed ? "disabled" : ""}
+                >${buttonText}</button>
+              </div>
+            `;
+          })
+          .join("");
+
+        $("trophy-list")
+          .querySelectorAll(".claim.ready")
+          .forEach((b) =>
+            b.addEventListener("click", async () => {
+              celebrateButton(b);
+              launchClaimPopper(b);
+              b.disabled = true;
+              const r = await fetch("/api/game/quests/claim", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({
+                  user_id: userId,
+                  quest_id: b.dataset.id,
+                }),
+              }).then((x) => x.json());
+              if (r.ok) {
+                await loadTrophies();
+                renderTrophyList();
+              } else {
+                b.disabled = false;
+              }
+            }),
+          );
+      }
+
+      $("trophies-more").addEventListener("click", () => {
+        renderTrophyList();
+        $("trophy-modal").hidden = false;
+      });
+      $("trophy-close").addEventListener("click", () => {
+        $("trophy-modal").hidden = true;
+      });
+      $("trophy-modal").addEventListener("click", (e) => {
+        if (e.target === $("trophy-modal")) $("trophy-modal").hidden = true;
+      });
+
+      async function loadImpact() {
+        const j = await fetch(`/api/game/impact?user_id=${userId}`).then(
+          (r) => r.json(),
+        );
+        if (!j.ok || !j.region) {
+          $("impact").innerHTML = `<div class="empty">${t("game.impact_empty")}</div>`;
+          return;
+        }
+        const x = j.region;
+        $("impact").innerHTML = `
+          <div class="impact-tiles">
+            <div class="tile"><div class="n">${x.posts || 0}</div><div class="l">${t("game.impact_posts")}</div></div>
+            <div class="tile"><div class="n">${x.confirmed || 0}</div><div class="l">${t("game.impact_confirmed")}</div></div>
+            <div class="tile"><div class="n">${x.adopted || 0}</div><div class="l">${t("game.impact_adopted")}</div></div>
+            <div class="tile"><div class="n">${t("game.rank_value", { rank: x.rank })}</div><div class="l">${t("game.impact_rank")}</div></div>
+          </div>
+        `;
       }
 
       let currentDisplaySpeciesId = null;
