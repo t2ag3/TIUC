@@ -203,7 +203,7 @@ const QUESTS: QuestDef[] = [
     title: "違和感ハンター",
     desc: "違和感チェックを10件行う",
     reward: 10,
-    icon: "🔥",
+    icon: "👀",
   },
   {
     id: "fix_1",
@@ -233,7 +233,44 @@ const QUESTS: QuestDef[] = [
     reward: 25,
     icon: "⭐",
   },
+  {
+    id: "streak_3",
+    title: "三日坊主卒業",
+    desc: "3日連続で活動する",
+    reward: 10,
+    icon: "🔥",
+  },
+  {
+    id: "streak_7",
+    title: "一週間の相棒",
+    desc: "7日連続で活動する",
+    reward: 20,
+    icon: "🔥",
+  },
+  {
+    id: "streak_14",
+    title: "半月マスター",
+    desc: "14日連続で活動する",
+    reward: 35,
+    icon: "🔥",
+  },
+  {
+    id: "streak_30",
+    title: "ひと月の主",
+    desc: "30日連続で活動する",
+    reward: 60,
+    icon: "🔥",
+  },
 ];
+
+// streak_best（過去最長ストリーク。途切れても減らないハイウォーターマーク）に対する
+// マイルストーン日数。questDone/gameClaimQuest の両方から参照する。
+const STREAK_MILESTONES: Record<string, number> = {
+  streak_3: 3,
+  streak_7: 7,
+  streak_14: 14,
+  streak_30: 30,
+};
 
 async function questDone(
   env: AppEnv,
@@ -287,6 +324,14 @@ async function questDone(
       .bind(userId)
       .first<{ n: number }>();
     return (r?.n ?? 0) >= 12;
+  }
+  if (id in STREAK_MILESTONES) {
+    const r = await env.DB.prepare(
+      "SELECT streak_best AS n FROM users WHERE id=?1",
+    )
+      .bind(userId)
+      .first<{ n: number }>();
+    return (r?.n ?? 0) >= STREAK_MILESTONES[id];
   }
   return false;
 }
@@ -345,10 +390,15 @@ export async function gameClaimQuest(
       "UPDATE characters SET xp_total=xp_total+?2,updated_at=?3 WHERE user_id=?1",
     ).bind(userId, q.reward, now),
   ];
-  // 図鑑コンプリートだけは、採用フロー実装まで唯一到達可能な mystery(★4)の入手経路。
-  if (questId === "zukan_12") {
+  // 図鑑コンプリートと30日ストリークは、採用フロー実装まで唯一到達可能な mystery(★4)の入手経路。
+  // 7日・14日ストリークはレア確定ドロップで途中の山場を作る。
+  if (questId === "zukan_12" || questId === "streak_30") {
     stmts.push(
-      dropStatement(env, userId, "mystery", `drop:quest:${userId}:zukan_12`, now),
+      dropStatement(env, userId, "mystery", `drop:quest:${userId}:${questId}`, now),
+    );
+  } else if (questId === "streak_7" || questId === "streak_14") {
+    stmts.push(
+      dropStatement(env, userId, rollRareDrop(), `drop:quest:${userId}:${questId}`, now),
     );
   }
   await env.DB.batch(stmts);

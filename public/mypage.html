@@ -45,6 +45,15 @@
       margin: 0 0 18px;
       line-height: 1.7;
     }
+    .streak-line {
+      font-size: 13px;
+      color: var(--app-muted);
+      margin: -6px 0 14px;
+    }
+    .streak-line b {
+      color: #c9601f;
+      font-weight: 800;
+    }
     .stats {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -560,6 +569,7 @@
       </header>
       <h1 data-i18n="mypage.h1">マイページ</h1>
       <p class="lead" data-i18n="mypage.lead">これまでの貢献とポイントです。</p>
+      <div class="streak-line" id="streak-line"></div>
 
       <div class="stats" id="stats"></div>
 
@@ -962,6 +972,9 @@
       }
 
       function renderStats(s) {
+        $("streak-line").innerHTML = s.streak_count
+          ? `🔥 ${t("game.streak_label", { n: `<b>${s.streak_count}</b>` })}`
+          : "";
         $("stats").innerHTML = `
     <div class="stat"><div class="n">${s.points_total}</div><div class="label">${t("mypage.stat_points", { level: s.level })}</div></div>
     <button type="button" class="stat" data-tab="posts"><div class="n">${s.post_count}</div><div class="label">${t("mypage.stat_posts")}</div></button>

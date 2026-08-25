@@ -34,7 +34,8 @@ export async function mypage(request: Request, env: AppEnv): Promise<Response> {
     correctionsRes,
   ] = await Promise.all([
     env.DB.prepare(
-      `SELECT points_total, post_count, judged_count, corrected_count, adopted_count, streak_count
+      `SELECT points_total, post_count, judged_count, corrected_count, adopted_count,
+              streak_count, streak_best
          FROM users WHERE id = ?1`,
     )
       .bind(userId)
@@ -45,6 +46,7 @@ export async function mypage(request: Request, env: AppEnv): Promise<Response> {
         corrected_count: number;
         adopted_count: number;
         streak_count: number;
+        streak_best: number;
       }>(),
     env.DB.prepare(
       `SELECT id, created_at, lang_pair, place_kind, situation, status, src_thumb_key,
@@ -109,6 +111,7 @@ export async function mypage(request: Request, env: AppEnv): Promise<Response> {
       corrected_count: summary?.corrected_count ?? 0,
       adopted_count: summary?.adopted_count ?? 0,
       streak_count: summary?.streak_count ?? 0,
+      streak_best: summary?.streak_best ?? 0,
     },
     posts: postsRes.results,
     point_events: eventsRes.results,

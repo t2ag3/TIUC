@@ -115,15 +115,16 @@ export async function judgeSubmit(
 
   const judgmentId = crypto.randomUUID();
   const streakRow = await env.DB.prepare(
-    "SELECT streak_count, streak_at FROM users WHERE id = ?1",
+    "SELECT streak_count, streak_at, streak_best FROM users WHERE id = ?1",
   )
     .bind(userId)
-    .first<{ streak_count: number; streak_at: number | null }>();
+    .first<{ streak_count: number; streak_at: number | null; streak_best: number }>();
   const newStreak = nextStreakCount(
     streakRow?.streak_count ?? 0,
     streakRow?.streak_at ?? null,
     now,
   );
+  const newBest = Math.max(streakRow?.streak_best ?? 0, newStreak);
 
   await env.DB.batch([
     env.DB.prepare(
@@ -139,9 +140,9 @@ export async function judgeSubmit(
     ).bind(userId, postId, POINTS_JUDGMENT, now),
     env.DB.prepare(
       `UPDATE users SET judged_count = judged_count + 1, points_total = points_total + ?2,
-              streak_count = ?3, streak_at = ?4
+              streak_count = ?3, streak_at = ?4, streak_best = ?5
         WHERE id = ?1`,
-    ).bind(userId, POINTS_JUDGMENT, newStreak, now),
+    ).bind(userId, POINTS_JUDGMENT, newStreak, now, newBest),
     dropStatement(env, userId, rollNormalDrop(), `drop:judge:${judgmentId}`, now),
   ]);
 

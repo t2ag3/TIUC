@@ -344,6 +344,23 @@ posts.status:
     データモデル変更は行っていない）。
   - タイル面からは★レア度・所持数テキストを外し、アイコン＋名前のみの簡素な表示にした
     （5列の密なグリッドで文字が窮屈になるため。詳細はタップ後のモーダルに集約）。
+- **（2026-08-26改定）ストリークをmypage.htmlにも表示し、マイルストーン報酬を追加した（ユーザー指示、
+  2026-08-26）**。ストリーク自体（`users.streak_count`/`streak_at`の更新・game.htmlでの表示）は
+  2026-08-25時点で既に実装済みだったため、今回はその2点の追加のみ：
+  - `migrations/0014_streak_best.sql`：`users.streak_best`（過去最長ストリーク、途切れても減らない
+    ハイウォーターマーク）を新設。`streak_count`は途切れると1にリセットされるため、これをマイルストーン
+    実績の判定に使うと「あと少しで7日達成のところで1日空けてしまい、二度と`streak_7`が取れなくなる」という
+    行き止まりを生む（rule3の「行き止まりを作らない」に反する）。`src/posts.ts`/`src/review.ts`の
+    ストリーク更新箇所で`streak_count`と同時に`streak_best = MAX(streak_best, newStreak)`も書き込む。
+  - `src/game.ts`の`QUESTS`（＝mypage.htmlの「トロフィー」）に`streak_3`/`streak_7`/`streak_14`/`streak_30`を
+    追加。新規テーブルは作らず、既存のクエスト＝トロフィー機構をそのまま再利用（`questDone`に
+    `streak_best >= N`の判定を追加しただけ）。`streak_7`/`streak_14`はレア確定ドロップ、`streak_30`は
+    `zukan_12`と同じくmystery（★4）確定ドロップも同時付与する。
+  - `judge_10`のアイコンを🔥から👀に変更（元々🔥は判定タスクの内容と無関係だった上、ストリーク4件と
+    アイコンが重複するため）。
+  - `mypage.html`の見出し下に`#streak-line`（🔥 N日連続）を新設。`/api/user/mypage`（`src/user.ts`の
+    `mypage()`）のレスポンスにも`streak_best`を追加済み（現状フロント表示は`streak_count`のみ使用、
+    `streak_best`は将来の「自己ベスト」表示用に温存）。
 
 **動いているもの**
 
