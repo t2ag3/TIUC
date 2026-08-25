@@ -1,3 +1,5 @@
+<img width="720" alt="Image" src="https://github.com/user-attachments/assets/92745f1d-3788-4a27-9e02-925a2baf1e30" />
+
 # TIUC: Today is under construction
 
 ### 街のヘンな外国語を、みんなで直すゲーム。
