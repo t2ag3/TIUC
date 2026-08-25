@@ -39,6 +39,24 @@ export async function hmac(text: string, secret: string): Promise<string> {
   return b64url(await crypto.subtle.sign("HMAC", key, enc.encode(text)));
 }
 
+// 「今日活動したか」の連続日数ストリーク。JSTで日付を区切る(主要ユーザー層に合わせる)。
+const JST_OFFSET_SEC = 9 * 3600;
+function jstDayNumber(unixSec: number): number {
+  return Math.floor((unixSec + JST_OFFSET_SEC) / 86400);
+}
+export function nextStreakCount(
+  prevCount: number,
+  prevAt: number | null,
+  now: number,
+): number {
+  if (prevAt === null) return 1;
+  const prevDay = jstDayNumber(prevAt);
+  const today = jstDayNumber(now);
+  if (today === prevDay) return prevCount; // 同日の2件目以降はそのまま
+  if (today === prevDay + 1) return prevCount + 1; // 連続
+  return 1; // 途切れたのでリセット
+}
+
 export function readCookie(request: Request, name: string): string | null {
   const raw = request.headers.get("cookie") || "";
 

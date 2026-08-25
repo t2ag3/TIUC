@@ -11,7 +11,8 @@ import {
   UUID_RE,
 } from "./config";
 
-import { bad, sha256Short } from "./utils";
+import { bad, nextStreakCount, sha256Short } from "./utils";
+import { dropStatement, rollNormalDrop } from "./game";
 import type { AppEnv } from "./types";
 
 // =====================================================================
@@ -142,6 +143,17 @@ export async function createPost(
 
   const points = POINTS_POST_SUBMIT;
 
+  const streakRow = await env.DB.prepare(
+    "SELECT streak_count, streak_at FROM users WHERE id = ?1",
+  )
+    .bind(userId)
+    .first<{ streak_count: number; streak_at: number | null }>();
+  const newStreak = nextStreakCount(
+    streakRow?.streak_count ?? 0,
+    streakRow?.streak_at ?? null,
+    now,
+  );
+
   await env.DB.batch([
     env.DB.prepare(
       "INSERT INTO users (id, created_at) VALUES (?1, ?2) ON CONFLICT(id) DO NOTHING",
@@ -185,9 +197,11 @@ export async function createPost(
        VALUES (?1,?2,'post_submit',?3,?4)`,
     ).bind(userId, id, points, now),
     env.DB.prepare(
-      `UPDATE users SET post_count = post_count + 1, points_total = points_total + ?2
+      `UPDATE users SET post_count = post_count + 1, points_total = points_total + ?2,
+              streak_count = ?3, streak_at = ?4
         WHERE id = ?1`,
-    ).bind(userId, points),
+    ).bind(userId, points, newStreak, now),
+    dropStatement(env, userId, rollNormalDrop(), `drop:post:${id}`, now),
   ]);
 
   return Response.json({ ok: true, id, mesh3: mesh.mesh3, points });

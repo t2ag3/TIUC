@@ -15,11 +15,63 @@ function levelFromXp(total: number): number {
   while (xpForLevel(level + 1) <= total) level++;
   return level;
 }
-function characterStage(level: number): string {
-  if (level >= 10) return "guide";
-  if (level >= 6) return "bird";
-  if (level >= 3) return "chick";
-  return "egg";
+// レベル称号。相棒(1体育成)の見た目段階に代わり、収集ガチャの世界観での称号を返す。
+const LEVEL_TITLES: Array<{ min: number; key: string }> = [
+  { min: 1, key: "novice" },
+  { min: 4, key: "apprentice" },
+  { min: 7, key: "journeyman" },
+  { min: 10, key: "master" },
+  { min: 14, key: "sage" },
+];
+function levelTitleKey(level: number): string {
+  let key = LEVEL_TITLES[0].key;
+  for (const t of LEVEL_TITLES) if (level >= t.min) key = t.key;
+  return key;
+}
+
+// 通常ドロップ(投稿・判定・修正提案・投票)とレア確定ドロップ(レベルアップ・修正確定)の
+// 抽選テーブル。種族は migrations/0012 で固定4種のみ投入しているため、コード側に直書きする
+// (QUESTS配列と同じくハードコード方針)。
+const NORMAL_DROP_TABLE: Array<{ id: string; weight: number }> = [
+  { id: "sparrow", weight: 65 },
+  { id: "white_eye", weight: 25 },
+  { id: "kingfisher", weight: 10 },
+];
+const RARE_DROP_TABLE: Array<{ id: string; weight: number }> = [
+  { id: "white_eye", weight: 70 },
+  { id: "kingfisher", weight: 30 },
+];
+
+function weightedPick(table: Array<{ id: string; weight: number }>): string {
+  const total = table.reduce((s, t) => s + t.weight, 0);
+  let r = Math.random() * total;
+  for (const t of table) {
+    if (r < t.weight) return t.id;
+    r -= t.weight;
+  }
+  return table[table.length - 1].id;
+}
+
+export function rollNormalDrop(): string {
+  return weightedPick(NORMAL_DROP_TABLE);
+}
+export function rollRareDrop(): string {
+  return weightedPick(RARE_DROP_TABLE);
+}
+
+// character_drops への1行を返す。source_key はイベント単位で一意にし、リトライでの
+// 二重ドロップを防ぐ(所持数の加算は migrations/0012 のトリガー任せ、ここではpushしない)。
+export function dropStatement(
+  env: AppEnv,
+  userId: string,
+  speciesId: string,
+  sourceKey: string,
+  now: number,
+) {
+  return env.DB.prepare(
+    `INSERT INTO character_drops (user_id, species_id, source_key, created_at)
+     VALUES (?1,?2,?3,?4) ON CONFLICT(source_key) DO NOTHING`,
+  ).bind(userId, speciesId, sourceKey, now);
 }
 
 async function ensureCharacter(env: AppEnv, userId: string): Promise<number> {
@@ -42,26 +94,50 @@ async function ensureCharacter(env: AppEnv, userId: string): Promise<number> {
          SELECT SUM(xe.xp)
          FROM xp_events xe
          WHERE xe.user_id = u.id
-       ), 0) AS bonus_xp
+       ), 0) AS bonus_xp,
+       c.last_level AS last_level
      FROM users u
+     JOIN characters c ON c.user_id = u.id
      WHERE u.id = ?1`,
   )
     .bind(userId)
     .first<{
       contribution_xp: number;
       bonus_xp: number;
+      last_level: number;
     }>();
 
   const xpTotal = (row?.contribution_xp ?? 0) + (row?.bonus_xp ?? 0);
+  const lastLevel = row?.last_level ?? 1;
+  const currentLevel = levelFromXp(xpTotal);
 
-  await env.DB.prepare(
-    `UPDATE characters
-        SET xp_total = ?2,
-            updated_at = ?3
-      WHERE user_id = ?1`,
-  )
-    .bind(userId, xpTotal, now)
-    .run();
+  const stmts = [
+    env.DB.prepare(
+      `UPDATE characters
+          SET xp_total = ?2,
+              last_level = ?3,
+              updated_at = ?4
+        WHERE user_id = ?1`,
+    ).bind(userId, xpTotal, currentLevel, now),
+  ];
+
+  // レベルが上がっていたら、その到達を1回だけレア確定ドロップとして記録する。
+  // source_key がレベル単位で一意なので、複数エンドポイントから呼ばれても二重発行されない。
+  if (currentLevel > lastLevel) {
+    for (let lv = lastLevel + 1; lv <= currentLevel; lv++) {
+      stmts.push(
+        dropStatement(
+          env,
+          userId,
+          rollRareDrop(),
+          `drop:levelup:${userId}:${lv}`,
+          now,
+        ),
+      );
+    }
+  }
+
+  await env.DB.batch(stmts);
 
   return xpTotal;
 }
@@ -76,59 +152,77 @@ export async function gameCharacter(
   const level = levelFromXp(xpTotal);
   const base = xpForLevel(level);
   const next = xpForLevel(level + 1);
-  const recent = await env.DB.prepare(
-    "SELECT kind,xp,created_at,note FROM xp_events WHERE user_id=?1 ORDER BY created_at DESC,id DESC LIMIT 20",
-  )
-    .bind(userId)
-    .all();
+  const [recent, streak] = await Promise.all([
+    env.DB.prepare(
+      "SELECT kind,xp,created_at,note FROM xp_events WHERE user_id=?1 ORDER BY created_at DESC,id DESC LIMIT 20",
+    )
+      .bind(userId)
+      .all(),
+    env.DB.prepare("SELECT streak_count AS n FROM users WHERE id=?1")
+      .bind(userId)
+      .first<{ n: number }>(),
+  ]);
   return Response.json({
     ok: true,
     xp_total: xpTotal,
     level,
-    stage: characterStage(level),
+    title_key: levelTitleKey(level),
     xp_into_level: xpTotal - base,
     xp_for_next_level: next - base,
+    streak_count: streak?.n ?? 0,
     recent: recent.results,
   });
 }
 
-type QuestDef = { id: string; title: string; desc: string; reward: number };
+type QuestDef = {
+  id: string;
+  title: string;
+  desc: string;
+  reward: number;
+  icon: string;
+};
 const QUESTS: QuestDef[] = [
   {
     id: "first_post",
     title: "はじめての発見",
     desc: "外国語表記を1件投稿する",
     reward: 5,
+    icon: "🏅",
   },
   {
     id: "judge_10",
     title: "違和感ハンター",
     desc: "違和感チェックを10件行う",
     reward: 10,
+    icon: "🔥",
   },
   {
     id: "fix_1",
     title: "ことばの職人",
     desc: "修正案を1件提出する",
     reward: 10,
+    icon: "🛠️",
   },
   {
     id: "confirmed_1",
     title: "みんなの正解",
     desc: "自分の修正案が1件確定する",
     reward: 15,
+    icon: "🌐",
   },
   {
     id: "three_languages",
     title: "三言語チャレンジ",
     desc: "英語・中国語・韓国語をすべて発見する",
     reward: 20,
+    icon: "👑",
   },
   {
     id: "zukan_12",
     title: "街ことば図鑑コンプリート",
     desc: "12種類の言語×表記カテゴリを埋める",
     reward: 25,
+    icon: "⭐",
   },
 ];
 
@@ -231,7 +325,7 @@ export async function gameClaimQuest(
     .first();
   if (already) return bad("受け取り済みです");
   const now = Math.floor(Date.now() / 1000);
-  await env.DB.batch([
+  const stmts = [
     env.DB.prepare(
       "INSERT INTO quest_claims (user_id,quest_id,claimed_at) VALUES (?1,?2,?3)",
     ).bind(userId, questId, now),
@@ -241,7 +335,14 @@ export async function gameClaimQuest(
     env.DB.prepare(
       "UPDATE characters SET xp_total=xp_total+?2,updated_at=?3 WHERE user_id=?1",
     ).bind(userId, q.reward, now),
-  ]);
+  ];
+  // 図鑑コンプリートだけは、採用フロー実装まで唯一到達可能な mystery(★4)の入手経路。
+  if (questId === "zukan_12") {
+    stmts.push(
+      dropStatement(env, userId, "mystery", `drop:quest:${userId}:zukan_12`, now),
+    );
+  }
+  await env.DB.batch(stmts);
   return Response.json({ ok: true, reward: q.reward });
 }
 
@@ -261,6 +362,52 @@ export async function gameEncyclopedia(
     slots: rows.results,
     total: rows.results.length,
     max: 12,
+  });
+}
+
+export async function gameCollection(
+  request: Request,
+  env: AppEnv,
+): Promise<Response> {
+  const userId = String(new URL(request.url).searchParams.get("user_id") || "");
+  if (!UUID_RE.test(userId)) return bad("ユーザーIDが不正です");
+  const rows = await env.DB.prepare(
+    `SELECT s.id, s.name_key, s.rarity, s.sort_order,
+            COALESCE(uc.count, 0) AS count
+       FROM species s
+       LEFT JOIN user_characters uc ON uc.species_id = s.id AND uc.user_id = ?1
+      ORDER BY s.sort_order`,
+  )
+    .bind(userId)
+    .all();
+  return Response.json({ ok: true, species: rows.results });
+}
+
+export async function gameMapSpots(
+  request: Request,
+  env: AppEnv,
+): Promise<Response> {
+  const userId = String(new URL(request.url).searchParams.get("user_id") || "");
+  if (!UUID_RE.test(userId)) return bad("ユーザーIDが不正です");
+  const [spots, areas] = await Promise.all([
+    env.DB.prepare(
+      `SELECT id, lat, lng, status FROM posts
+        WHERE submitter_id = ?1 AND status IN ('confirmed','adopted')
+        ORDER BY created_at DESC LIMIT 200`,
+    )
+      .bind(userId)
+      .all(),
+    env.DB.prepare(
+      `SELECT COUNT(DISTINCT mesh4) AS n FROM posts
+        WHERE submitter_id = ?1 AND status IN ('confirmed','adopted')`,
+    )
+      .bind(userId)
+      .first<{ n: number }>(),
+  ]);
+  return Response.json({
+    ok: true,
+    spots: spots.results,
+    area_count: areas?.n ?? 0,
   });
 }
 

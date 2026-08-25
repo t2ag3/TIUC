@@ -3,6 +3,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>相棒とクエスト - TIUC</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="tokens.css" />
   <style>
     :root {
@@ -11,6 +12,9 @@
       --bg: #f5f7f3;
       --card: #fff;
       --accent: var(--color-accent, #1a5c3a);
+      --hair: var(--line);
+      --grey: var(--muted);
+      --brand: var(--accent);
     }
 
     * {
@@ -55,32 +59,22 @@
       box-shadow: 0 14px 36px rgba(20, 40, 25, 0.07);
     }
 
-    #sprite-link {
-      display: inline-block;
+    #hero-link {
+      display: block;
       color: inherit;
       text-decoration: none;
       cursor: pointer;
     }
 
-    #sprite-link:hover #sprite {
-      transform: scale(1.06);
-    }
-
-    #sprite {
-      font-size: 88px;
-      line-height: 1;
-      transition: transform 0.15s ease;
-    }
-
-    .lv {
+    .char-lv {
       font-size: 22px;
       font-weight: 800;
-      margin-top: 8px;
     }
 
-    .stage {
-      font-size: 12px;
-      color: var(--muted);
+    .char-title {
+      font-size: 13px;
+      color: var(--accent);
+      font-weight: 700;
       margin-top: 2px;
     }
 
@@ -103,6 +97,40 @@
     .xp {
       font-size: 12px;
       color: var(--muted);
+    }
+
+    .trophies {
+      display: flex;
+      gap: 8px;
+      margin: 16px 0 4px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .trophies span {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      border: 1px solid var(--hair);
+    }
+
+    .trophies .locked {
+      filter: grayscale(1);
+      opacity: 0.4;
+    }
+
+    .streak {
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .streak b {
+      color: #c9601f;
     }
 
     .actions {
@@ -159,6 +187,12 @@
       margin: 28px 2px 10px;
     }
 
+    .sec-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin: -6px 2px 12px;
+    }
+
     .card {
       background: var(--card);
       border: 1px solid var(--line);
@@ -182,6 +216,13 @@
     .quest.claimed .qd,
     .quest.claimed .qr {
       opacity: 0.72;
+    }
+
+    .quest-icon {
+      flex: none;
+      font-size: 22px;
+      width: 36px;
+      text-align: center;
     }
 
     .quest-body {
@@ -228,6 +269,20 @@
 
     .celebrate {
       animation: claim-celebrate 550ms ease-out;
+    }
+
+    @keyframes claim-confetti-fire {
+      0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0)
+          scale(1);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) rotate(var(--angle))
+          translateX(var(--distance)) scale(0.3);
+      }
     }
 
     @keyframes claim-celebrate {
@@ -286,6 +341,117 @@
       font-size: clamp(20px, 6vw, 72px);
     }
 
+    /* ---- COLLECT: 種族収集ガチャ(lp_mock.html準拠のカード/レア度表現) ---- */
+    .dex-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 560px) {
+      .dex-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    .dex-grid .dex-card {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--hair);
+      background: #fff;
+    }
+    .dex-grid .art {
+      position: relative;
+      height: 110px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .dex-grid .mon {
+      width: 56px;
+      height: 56px;
+      image-rendering: pixelated;
+      position: relative;
+      z-index: 2;
+      filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, 0.18));
+    }
+    .dex-grid .r1 .art {
+      background: #e7ece9;
+    }
+    .dex-grid .r2 .art {
+      background: radial-gradient(circle at 50% 42%, #bfe3d3, #7fc4aa);
+    }
+    .dex-grid .r3 .art {
+      background: radial-gradient(circle at 50% 40%, #a9e8ff, #4f9bd6 70%, #2f6ea8);
+    }
+    .dex-grid .r4 .art {
+      background: linear-gradient(135deg, #fff27a, #ffb347 26%, #ff6fd8 52%, #8f7bff 76%, #5ec6ff);
+      background-size: 240% 240%;
+      animation: dex-shine 3.2s ease infinite;
+    }
+    @keyframes dex-shine {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    .dex-grid .badge {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      z-index: 3;
+      background: #fff;
+      color: #b02a8a;
+      font-size: 8px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 8px;
+      letter-spacing: 0.06em;
+    }
+    .dex-grid .meta {
+      padding: 10px 12px;
+    }
+    .dex-grid .cn {
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .dex-grid .stars {
+      font-size: 11px;
+      letter-spacing: 1px;
+      margin-top: 2px;
+    }
+    .dex-grid .r1 .stars { color: #9aa8a1; }
+    .dex-grid .r2 .stars { color: var(--brand); }
+    .dex-grid .r3 .stars { color: #2f6ea8; }
+    .dex-grid .r4 .stars { color: #c0397a; }
+    .dex-grid .own {
+      font-size: 10px;
+      color: var(--grey);
+      margin-top: 4px;
+    }
+    .dex-grid .dex-card.locked .art {
+      filter: grayscale(1);
+      opacity: 0.4;
+    }
+    .dex-grid .dex-card.locked .mon {
+      filter: grayscale(1);
+    }
+
+    /* ---- MAP COLLECTION ---- */
+    #my-map {
+      height: 220px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      overflow: hidden;
+    }
+    .map-caption {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+      text-align: center;
+    }
+    .map-caption b {
+      color: var(--accent);
+    }
+
     .impact {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -329,58 +495,6 @@
 
     .quest-heading-row h2 {
       margin: 0;
-    }
-
-    .test-buttons {
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 6px;
-    }
-
-    .test-button {
-      width: 120px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 6px 10px;
-      background: #fff;
-      color: var(--muted);
-      font: inherit;
-      font-size: 11px;
-      font-weight: 700;
-      text-align: center;
-      white-space: nowrap;
-      cursor: pointer;
-    }
-
-    .test-button:hover {
-      border-color: #b9c3ba;
-      color: #1e231f;
-    }
-
-    .claim-confetti {
-      position: fixed;
-      z-index: 119;
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      pointer-events: none;
-      background: currentColor;
-      animation: claim-confetti-fire 700ms ease-out forwards;
-    }
-
-    @keyframes claim-confetti-fire {
-      0% {
-        opacity: 1;
-        transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0)
-          scale(1);
-      }
-
-      100% {
-        opacity: 0;
-        transform: translate(-50%, -50%) rotate(var(--angle))
-          translateX(var(--distance)) scale(0.3);
-      }
     }
 
     .levelup-backdrop {
@@ -527,19 +641,18 @@
       </div>
 
       <section class="hero">
-        <a id="sprite-link" href="mypage.html" aria-label="My Page">
-          <div id="sprite">🥚</div>
-          <div class="lv" id="level">Lv.1</div>
-          <div class="stage" id="stage" data-i18n="game.mypage_hint">
-            クリックしてマイページへ
-          </div>
-        </a>
-        
+        <a id="hero-link" href="mypage.html" aria-label="My Page">
+          <div class="char-lv" id="level">Lv.1</div>
+          <div class="char-title" id="title"></div>
 
-        <div class="bar">
-          <div class="fill" id="fill" style="width: 0%"></div>
-        </div>
-        <div class="xp" id="xp">0 / 2 XP</div>
+          <div class="bar">
+            <div class="fill" id="fill" style="width: 0%"></div>
+          </div>
+          <div class="xp" id="xp">0 / 2 XP</div>
+
+          <div class="trophies" id="trophies" aria-hidden="true"></div>
+          <div class="streak" id="streak"></div>
+        </a>
       </section>
 
       <div class="actions">
@@ -559,16 +672,16 @@
         </a>
       </div>
 
+      <h2 data-i18n="game.collect_title">街ことばコレクション</h2>
+      <p class="sec-sub" data-i18n="game.collect_sub">
+        投稿・判定・修正のたびにキャラがドロップ。レベルアップや修正確定ではレアが確定で手に入ります。
+      </p>
+      <div id="collection">
+        <div class="empty" data-i18n="common.loading">読み込み中…</div>
+      </div>
+
       <div class="quest-heading-row">
         <h2 data-i18n="game.quests">クエスト</h2>
-        <div class="test-buttons">
-          <button class="test-button" id="popper-test" type="button">
-            🎉 Test popper
-          </button>
-          <button class="test-button" id="levelup-test" type="button">
-            🎆 Test level up
-          </button>
-        </div>
       </div>
       <div id="quests">
         <div class="empty" data-i18n="common.loading">読み込み中…</div>
@@ -584,6 +697,15 @@
 
       <div class="card">
         <div id="zukan"></div>
+      </div>
+
+      <h2 data-i18n="game.map_collection_title">マップコレクション</h2>
+      <p class="sec-sub" data-i18n="game.map_collection_sub">
+        自分が直したスポットが地図に灯ります。
+      </p>
+      <div class="card">
+        <div id="my-map"></div>
+        <p class="map-caption" id="map-caption"></p>
       </div>
 
       <h2 data-i18n="game.impact">地域インパクト</h2>
@@ -642,13 +764,6 @@
 
       const $ = (id) => document.getElementById(id);
 
-      const sprites = {
-        egg: "🥚",
-        chick: "🐣",
-        bird: "🐦",
-        guide: "🦉",
-      };
-
       function celebrateButton(button) {
         if (!button) return;
 
@@ -688,14 +803,22 @@
         for (let i = 0; i < 16; i++) {
           const particle = document.createElement("span");
           particle.className = "claim-confetti";
+          particle.style.position = "fixed";
+          particle.style.zIndex = "119";
+          particle.style.width = "7px";
+          particle.style.height = "7px";
+          particle.style.borderRadius = "50%";
+          particle.style.pointerEvents = "none";
           particle.style.left = `${x}px`;
           particle.style.top = `${y}px`;
           particle.style.color = colors[i % colors.length];
+          particle.style.background = "currentColor";
           particle.style.setProperty("--angle", `${i * (360 / 16)}deg`);
           particle.style.setProperty(
             "--distance",
             `${32 + Math.random() * 34}px`,
           );
+          particle.style.animation = "claim-confetti-fire 700ms ease-out forwards";
 
           document.body.appendChild(particle);
 
@@ -802,14 +925,7 @@
         }
       });
 
-      $("popper-test").addEventListener("click", (event) => {
-        celebrateButton(event.currentTarget);
-        launchClaimPopper(event.currentTarget);
-      });
-
-      $("levelup-test").addEventListener("click", () => {
-        showLevelup(8, 9);
-      });
+      let questIcons = {};
 
       async function loadCharacter() {
         const j = await fetch(`/api/game/character?user_id=${userId}`).then(
@@ -817,9 +933,12 @@
         );
         if (!j.ok) return;
 
-        $("sprite").textContent = sprites[j.stage] || "🥚";
         $("level").textContent = `Lv.${j.level}`;
+        $("title").textContent = t(`game.level_title.${j.title_key}.name`);
         $("xp").textContent = `${j.xp_into_level} / ${j.xp_for_next_level} XP`;
+        $("streak").innerHTML = j.streak_count
+          ? `🔥 ${t("game.streak_label", { n: j.streak_count })}`
+          : "";
 
         checkLevelup(j.level);
 
@@ -839,6 +958,9 @@
         );
         if (!j.ok) return;
 
+        questIcons = Object.fromEntries(j.quests.map((q) => [q.id, q.icon]));
+        renderTrophies(j.quests);
+
         $("quests").innerHTML = j.quests
           .map((q) => {
             const title = t(`game.quest.${q.id}.title`);
@@ -852,8 +974,9 @@
 
             return `
               <div class="card quest ${q.claimed ? "claimed" : ""}">
+                <div class="quest-icon">${q.icon}</div>
                 <div class="quest-body">
-                  <div class="qt">${q.claimed ? "🏆 " : ""}${title}</div>
+                  <div class="qt">${title}</div>
                   <div class="qd">${desc}</div>
                   <div class="qr">+${q.reward} XP</div>
                 </div>
@@ -883,10 +1006,54 @@
             }).then((x) => x.json());
 
             if (r.ok) {
-              await Promise.all([loadCharacter(), loadQuests()]);
+              await Promise.all([
+                loadCharacter(),
+                loadQuests(),
+                loadCollection(),
+              ]);
             }
           }),
         );
+      }
+
+      function renderTrophies(quests) {
+        $("trophies").innerHTML = quests
+          .map(
+            (q) =>
+              `<span class="${q.claimed ? "" : "locked"}" title="${t(`game.quest.${q.id}.title`)}">${q.icon}</span>`,
+          )
+          .join("");
+      }
+
+      async function loadCollection() {
+        const j = await fetch(`/api/game/collection?user_id=${userId}`).then(
+          (r) => r.json(),
+        );
+        if (!j.ok) return;
+
+        $("collection").innerHTML = `<div class="dex-grid">${j.species
+          .map((s) => {
+            const locked = s.count <= 0;
+            const name = t(`game.species.${s.name_key}.name`);
+            const stars = "★".repeat(s.rarity);
+            const badge = s.rarity >= 4 ? `<div class="badge">SPECIAL</div>` : "";
+            const displayName = s.rarity >= 4 && locked ? "???" : name;
+            const own = locked
+              ? t("game.dex_locked")
+              : t("game.dex_owned", { n: s.count });
+            return `
+              <div class="dex-card r${s.rarity} ${locked ? "locked" : ""}">
+                ${badge}
+                <div class="art"><img class="mon" src="images/mon-placeholder.svg" alt=""></div>
+                <div class="meta">
+                  <div class="cn">${displayName}</div>
+                  <div class="stars">${stars}</div>
+                  <div class="own">${own}</div>
+                </div>
+              </div>
+            `;
+          })
+          .join("")}</div>`;
       }
 
       async function loadZukan() {
@@ -933,6 +1100,60 @@
         $("zukan-count").textContent = `${j.total} / 12`;
       }
 
+      let leafletPromise = null;
+      function loadLeaflet() {
+        if (leafletPromise) return leafletPromise;
+        leafletPromise = new Promise((resolve, reject) => {
+          const s = document.createElement("script");
+          s.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+          s.onload = resolve;
+          s.onerror = () => reject(new Error(t("common.map_load_error")));
+          document.head.appendChild(s);
+        });
+        return leafletPromise;
+      }
+
+      async function loadMySpots() {
+        const j = await fetch(`/api/game/map-spots?user_id=${userId}`).then(
+          (r) => r.json(),
+        );
+        if (!j.ok) return;
+
+        $("map-caption").innerHTML = t("game.map_area_count", {
+          n: j.area_count,
+        });
+
+        if (!j.spots.length) {
+          $("my-map").innerHTML = `<div class="empty" style="padding:80px 0;text-align:center">${t("game.map_collection_empty")}</div>`;
+          return;
+        }
+
+        try {
+          await loadLeaflet();
+        } catch {
+          return;
+        }
+
+        const map = L.map("my-map", { zoomControl: false, attributionControl: false });
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+        }).addTo(map);
+
+        const bounds = [];
+        for (const s of j.spots) {
+          const color = s.status === "adopted" ? "#1a4d73" : "#2e6da4";
+          L.circleMarker([s.lat, s.lng], {
+            radius: 6,
+            fillColor: color,
+            fillOpacity: 1,
+            color: "#fff",
+            weight: 1.5,
+          }).addTo(map);
+          bounds.push([s.lat, s.lng]);
+        }
+        map.fitBounds(bounds, { padding: [20, 20], maxZoom: 15 });
+      }
+
       async function loadImpact() {
         const j = await fetch(`/api/game/impact?user_id=${userId}`).then((r) =>
           r.json(),
@@ -971,7 +1192,9 @@
       Promise.all([
         loadCharacter(),
         loadQuests(),
+        loadCollection(),
         loadZukan(),
+        loadMySpots(),
         loadImpact(),
       ]).catch(console.error);
     </script>

@@ -12,7 +12,8 @@ import {
   VOTE_THRESHOLD,
 } from "./config";
 
-import { bad } from "./utils";
+import { bad, nextStreakCount } from "./utils";
+import { dropStatement, rollNormalDrop, rollRareDrop } from "./game";
 import type { AppEnv } from "./types";
 
 // =====================================================================
@@ -112,6 +113,18 @@ export async function judgeSubmit(
     .first();
   if (already) return bad("既に判定済みです");
 
+  const judgmentId = crypto.randomUUID();
+  const streakRow = await env.DB.prepare(
+    "SELECT streak_count, streak_at FROM users WHERE id = ?1",
+  )
+    .bind(userId)
+    .first<{ streak_count: number; streak_at: number | null }>();
+  const newStreak = nextStreakCount(
+    streakRow?.streak_count ?? 0,
+    streakRow?.streak_at ?? null,
+    now,
+  );
+
   await env.DB.batch([
     env.DB.prepare(
       "INSERT INTO users (id, created_at) VALUES (?1, ?2) ON CONFLICT(id) DO NOTHING",
@@ -119,15 +132,17 @@ export async function judgeSubmit(
     env.DB.prepare(
       `INSERT INTO judgments (id, post_id, verdict, category, judge_id, weight, created_at)
        VALUES (?1,?2,?3,?4,?5,1.0,?6)`,
-    ).bind(crypto.randomUUID(), postId, verdict, category, userId, now),
+    ).bind(judgmentId, postId, verdict, category, userId, now),
     env.DB.prepare(
       `INSERT INTO point_events (user_id, post_id, kind, points, created_at)
        VALUES (?1,?2,'judgment',?3,?4)`,
     ).bind(userId, postId, POINTS_JUDGMENT, now),
     env.DB.prepare(
-      `UPDATE users SET judged_count = judged_count + 1, points_total = points_total + ?2
+      `UPDATE users SET judged_count = judged_count + 1, points_total = points_total + ?2,
+              streak_count = ?3, streak_at = ?4
         WHERE id = ?1`,
-    ).bind(userId, POINTS_JUDGMENT),
+    ).bind(userId, POINTS_JUDGMENT, newStreak, now),
+    dropStatement(env, userId, rollNormalDrop(), `drop:judge:${judgmentId}`, now),
   ]);
 
   const counts = await env.DB.prepare(
@@ -288,6 +303,15 @@ export async function correctSubmit(
       ).bind(postId, originalText, translatedText),
     );
   }
+  stmts.push(
+    dropStatement(
+      env,
+      userId,
+      rollNormalDrop(),
+      `drop:correction:${correctionId}`,
+      now,
+    ),
+  );
   await env.DB.batch(stmts);
 
   return Response.json({
@@ -386,6 +410,7 @@ export async function correctVoteSubmit(
     .first();
   if (already) return bad("既に投票済みです");
 
+  const voteId = crypto.randomUUID();
   await env.DB.batch([
     env.DB.prepare(
       "INSERT INTO users (id, created_at) VALUES (?1, ?2) ON CONFLICT(id) DO NOTHING",
@@ -393,7 +418,7 @@ export async function correctVoteSubmit(
     env.DB.prepare(
       `INSERT INTO votes (id, correction_id, voter_id, agree, weight, created_at)
        VALUES (?1,?2,?3,?4,1.0,?5)`,
-    ).bind(crypto.randomUUID(), correctionId, userId, agree, now),
+    ).bind(voteId, correctionId, userId, agree, now),
     env.DB.prepare(
       `INSERT INTO point_events (user_id, post_id, kind, points, created_at)
        VALUES (?1,?2,'vote',?3,?4)`,
@@ -401,6 +426,7 @@ export async function correctVoteSubmit(
     env.DB.prepare(
       "UPDATE users SET points_total = points_total + ?2 WHERE id = ?1",
     ).bind(userId, POINTS_VOTE),
+    dropStatement(env, userId, rollNormalDrop(), `drop:vote:${voteId}`, now),
   ]);
 
   const tally = await env.DB.prepare(
@@ -462,6 +488,13 @@ export async function correctVoteSubmit(
         env.DB.prepare(
           "UPDATE users SET points_total = points_total + ?2 WHERE id = ?1",
         ).bind(correction.curator_id, POINTS_CORRECTION_CONFIRM_BONUS),
+        dropStatement(
+          env,
+          String(correction.curator_id),
+          rollRareDrop(),
+          `drop:confirm:${correctionId}`,
+          now,
+        ),
       );
       await env.DB.batch(stmts);
     }

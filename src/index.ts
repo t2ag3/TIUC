@@ -7,8 +7,10 @@ import { authMe, googleAuthCallback, googleAuthStart } from "./auth";
 import {
   gameCharacter,
   gameClaimQuest,
+  gameCollection,
   gameEncyclopedia,
   gameImpact,
+  gameMapSpots,
   gameQuests,
 } from "./game";
 import { serveImage } from "./images";
@@ -71,6 +73,10 @@ export default {
         return await gameEncyclopedia(request, env);
       if (path === "/api/game/impact" && request.method === "GET")
         return await gameImpact(request, env);
+      if (path === "/api/game/collection" && request.method === "GET")
+        return await gameCollection(request, env);
+      if (path === "/api/game/map-spots" && request.method === "GET")
+        return await gameMapSpots(request, env);
 
       // --- 閲覧モード ---
       if (path === "/api/map" && request.method === "GET")
