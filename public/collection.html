@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="ja" class="app-html">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#f7f8f5" />
+  <title data-i18n="collection.page_title">街ことばコレクション - TIUC</title>
+  <link rel="stylesheet" href="tokens.css" />
+  <style>
+    :root {
+      --app-line: #e3e6df;
+      --app-muted: #6b7068;
+      --app-text: #1d211d;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+      line-height: 1.6;
+      color: var(--app-text);
+    }
+    h1 {
+      font-size: 21px;
+      margin: 0 0 5px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .lead {
+      color: var(--app-muted);
+      font-size: 13px;
+      margin: 0 0 18px;
+      line-height: 1.7;
+    }
+    .empty {
+      color: var(--app-muted);
+      font-size: 13px;
+      padding: 12px 0;
+    }
+
+    /* ---- タイル一覧 ---- */
+    .dex-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 480px) {
+      .dex-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    .dex-card {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--app-line);
+      background: #fff;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.15s ease;
+    }
+    .dex-card:hover {
+      transform: translateY(-3px);
+    }
+    .art {
+      position: relative;
+      height: 110px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .mon {
+      width: 56px;
+      height: 56px;
+      image-rendering: pixelated;
+      position: relative;
+      z-index: 2;
+      filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, 0.18));
+    }
+    .r1 .art {
+      background: #e7ece9;
+    }
+    .r2 .art {
+      background: radial-gradient(circle at 50% 42%, #bfe3d3, #7fc4aa);
+    }
+    .r3 .art {
+      background: radial-gradient(
+        circle at 50% 40%,
+        #a9e8ff,
+        #4f9bd6 70%,
+        #2f6ea8
+      );
+    }
+    .r4 .art {
+      background: linear-gradient(
+        135deg,
+        #fff27a,
+        #ffb347 26%,
+        #ff6fd8 52%,
+        #8f7bff 76%,
+        #5ec6ff
+      );
+      background-size: 240% 240%;
+      animation: dex-shine 3.2s ease infinite;
+    }
+    @keyframes dex-shine {
+      0%,
+      100% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+    }
+    .badge {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      z-index: 3;
+      background: #fff;
+      color: #b02a8a;
+      font-size: 8px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 8px;
+      letter-spacing: 0.06em;
+    }
+    .meta {
+      padding: 10px 12px;
+    }
+    .cn {
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .stars {
+      font-size: 11px;
+      letter-spacing: 1px;
+      margin-top: 2px;
+    }
+    .r1 .stars {
+      color: #9aa8a1;
+    }
+    .r2 .stars {
+      color: var(--color-accent, #1a5c3a);
+    }
+    .r3 .stars {
+      color: #2f6ea8;
+    }
+    .r4 .stars {
+      color: #c0397a;
+    }
+    .own {
+      font-size: 10px;
+      color: var(--app-muted);
+      margin-top: 4px;
+    }
+    .dex-card.locked .art {
+      filter: grayscale(1);
+      opacity: 0.4;
+    }
+    .dex-card.locked .mon {
+      filter: grayscale(1);
+    }
+
+    /* ---- 詳細モーダル ---- */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(18, 28, 20, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 10;
+    }
+    .modal-backdrop[hidden] {
+      display: none;
+    }
+    .modal-card {
+      background: #fff;
+      border-radius: 20px;
+      max-width: 380px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 16px 50px rgba(18, 28, 20, 0.16);
+    }
+    .modal-close {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      border: none;
+      background: none;
+      font-size: 22px;
+      cursor: pointer;
+      color: var(--app-muted);
+      line-height: 1;
+      padding: 4px;
+    }
+    .detail-art {
+      width: 110px;
+      height: 110px;
+      margin: 0 auto 14px;
+      border-radius: 20px;
+      display: grid;
+      place-items: center;
+    }
+    .detail-art .mon {
+      width: 68px;
+      height: 68px;
+    }
+    .detail-name {
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .detail-stars {
+      font-size: 15px;
+      letter-spacing: 2px;
+      margin-top: 4px;
+    }
+    .detail-desc {
+      font-size: 13px;
+      color: var(--app-muted);
+      margin: 12px 0;
+      line-height: 1.7;
+      text-align: left;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      padding: 8px 0;
+      border-top: 1px solid var(--app-line);
+      text-align: left;
+    }
+    .detail-row span:first-child {
+      color: var(--app-muted);
+    }
+    .select-btn {
+      width: 100%;
+      margin-top: 14px;
+      padding: 11px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid var(--color-accent, #1a5c3a);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--color-accent, #1a5c3a);
+      cursor: pointer;
+    }
+    .select-btn.selected {
+      background: var(--color-accent, #1a5c3a);
+      color: #fff;
+    }
+    .select-btn:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+  </style>
+  <body class="app-body">
+    <div class="app-shell">
+      <header class="app-topbar">
+        <a
+          href="mypage.html"
+          class="brand"
+          data-i18n-aria-label="index.brand_aria"
+          ><span class="brand-mark">T</span
+          ><span class="brand-copy"
+            ><strong>TIUC</strong
+            ><span data-i18n="collection.back_mypage"
+              >← マイページ</span
+            ></span
+          ></a
+        >
+        <select id="lang-switcher" class="lang-switcher"></select>
+      </header>
+      <h1 data-i18n="game.collect_title">街ことばコレクション</h1>
+      <p class="lead" data-i18n="game.collect_sub">
+        投稿・判定・修正のたびにキャラがドロップ。レベルアップや修正確定ではレアが確定で手に入ります。
+      </p>
+
+      <div id="collection">
+        <div class="empty" data-i18n="common.loading">読み込み中…</div>
+      </div>
+    </div>
+
+    <div id="detail-modal" class="modal-backdrop" hidden>
+      <div class="modal-card">
+        <button
+          type="button"
+          id="detail-close"
+          class="modal-close"
+          data-i18n-aria-label="common.close"
+          aria-label="閉じる"
+        >
+          ×
+        </button>
+        <div id="detail-body"></div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { getUserId, bootstrapAuth } from "./auth.js";
+      import { t, applyI18n, initLangSwitcher } from "./i18n.js";
+
+      applyI18n();
+      initLangSwitcher();
+
+      const $ = (id) => document.getElementById(id);
+      let userId = getUserId();
+      await bootstrapAuth().then((r) => {
+        userId = r.userId;
+      });
+
+      let species = [];
+      let currentDisplaySpeciesId = null;
+
+      const jst = (ts) =>
+        ts
+          ? new Date(ts * 1000).toLocaleDateString("ja-JP", {
+              timeZone: "Asia/Tokyo",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })
+          : "—";
+
+      async function load() {
+        const [collectionRes, charRes] = await Promise.all([
+          fetch(`/api/game/collection?user_id=${userId}`).then((r) =>
+            r.json(),
+          ),
+          fetch(`/api/game/character?user_id=${userId}`).then((r) =>
+            r.json(),
+          ),
+        ]);
+        if (!collectionRes.ok) return;
+        species = collectionRes.species;
+        if (charRes.ok) currentDisplaySpeciesId = charRes.display_species_id;
+        render();
+      }
+
+      function render() {
+        $("collection").innerHTML = `<div class="dex-grid">${species
+          .map((s) => {
+            const locked = s.count <= 0;
+            const name =
+              s.rarity >= 4 && locked
+                ? "???"
+                : t(`game.species.${s.name_key}.name`);
+            const stars = "★".repeat(s.rarity);
+            const badge =
+              s.rarity >= 4 ? `<div class="badge">SPECIAL</div>` : "";
+            const own = locked
+              ? t("game.dex_locked")
+              : t("game.dex_owned", { n: s.count });
+            return `
+              <div class="dex-card r${s.rarity} ${locked ? "locked" : ""}" data-id="${s.id}">
+                ${badge}
+                <div class="art"><img class="mon" src="images/mon-placeholder.svg" alt=""></div>
+                <div class="meta">
+                  <div class="cn">${name}</div>
+                  <div class="stars">${stars}</div>
+                  <div class="own">${own}</div>
+                </div>
+              </div>
+            `;
+          })
+          .join("")}</div>`;
+
+        $("collection")
+          .querySelectorAll(".dex-card")
+          .forEach((card) => {
+            card.addEventListener("click", () => openDetail(card.dataset.id));
+          });
+      }
+
+      function openDetail(id) {
+        const s = species.find((x) => x.id === id);
+        if (!s) return;
+        const locked = s.count <= 0;
+        const name =
+          s.rarity >= 4 && locked
+            ? "???"
+            : t(`game.species.${s.name_key}.name`);
+        const desc = locked
+          ? t("collection.locked_desc")
+          : t(`game.species.${s.name_key}.desc`);
+        const selected = s.id === currentDisplaySpeciesId;
+
+        $("detail-body").innerHTML = `
+          <div class="detail-art r${s.rarity}"><img class="mon" src="images/mon-placeholder.svg" alt=""></div>
+          <div class="detail-name">${name}</div>
+          <div class="detail-stars r${s.rarity}">${"★".repeat(s.rarity)}</div>
+          <p class="detail-desc">${desc}</p>
+          ${
+            !locked
+              ? `<div class="detail-row"><span>${t("collection.owned_count_label")}</span><span>${t("game.dex_owned", { n: s.count })}</span></div>
+                 <div class="detail-row"><span>${t("collection.first_at_label")}</span><span>${jst(s.first_at)}</span></div>`
+              : ""
+          }
+          ${
+            !locked
+              ? `<button type="button" id="select-btn" class="select-btn ${selected ? "selected" : ""}">${selected ? t("mypage.collection_selected") : t("mypage.collection_select")}</button>`
+              : ""
+          }
+        `;
+        $("detail-modal").hidden = false;
+
+        const btn = $("select-btn");
+        if (btn) {
+          btn.addEventListener("click", async () => {
+            btn.disabled = true;
+            const r = await fetch("/api/game/collection/select", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ user_id: userId, species_id: s.id }),
+            }).then((x) => x.json());
+            if (r.ok) {
+              currentDisplaySpeciesId = s.id;
+              openDetail(id);
+            } else {
+              btn.disabled = false;
+            }
+          });
+        }
+      }
+
+      $("detail-close").addEventListener("click", () => {
+        $("detail-modal").hidden = true;
+      });
+      $("detail-modal").addEventListener("click", (e) => {
+        if (e.target === $("detail-modal")) $("detail-modal").hidden = true;
+      });
+
+      load();
+    </script>
+  </body>
+</html>

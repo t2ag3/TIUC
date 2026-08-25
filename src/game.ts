@@ -382,7 +382,7 @@ export async function gameCollection(
   if (!UUID_RE.test(userId)) return bad("ユーザーIDが不正です");
   const rows = await env.DB.prepare(
     `SELECT s.id, s.name_key, s.rarity, s.sort_order,
-            COALESCE(uc.count, 0) AS count
+            COALESCE(uc.count, 0) AS count, uc.first_at
        FROM species s
        LEFT JOIN user_characters uc ON uc.species_id = s.id AND uc.user_id = ?1
       ORDER BY s.sort_order`,
