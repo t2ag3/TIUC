@@ -326,7 +326,6 @@ export default {
   "game.levelup_close": "Awesome!",
   "game.collect_title": "City-words collection",
   "game.collect_sub": "Characters drop with every post, judgment, or correction. Leveling up or a confirmed correction guarantees a rare.",
-  "game.dex_locked": "Not owned",
   "game.dex_owned": "Owned ×{n}",
   "game.species.sparrow.name": "Sparrow",
   "game.species.sparrow.desc": "A friendly bird found in every city. Usually the first partner you meet while hunting for city words.",

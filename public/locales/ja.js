@@ -326,7 +326,6 @@ export default {
   "game.levelup_close": "やった！",
   "game.collect_title": "街ことばコレクション",
   "game.collect_sub": "投稿・判定・修正のたびにキャラがドロップ。レベルアップや修正確定ではレアが確定で手に入ります。",
-  "game.dex_locked": "未所持",
   "game.dex_owned": "所持 ×{n}",
   "game.species.sparrow.name": "スズメ",
   "game.species.sparrow.desc": "どこの街でも見かける、人懐っこい鳥。街ことば探しの相棒として、いちばん最初に出会うことが多い。",

@@ -326,7 +326,6 @@ export default {
   "game.levelup_close": "太棒了！",
   "game.collect_title": "城市语言收藏",
   "game.collect_sub": "每次投稿、判定或修正都会掉落角色。升级或修正被确定时必定获得稀有角色。",
-  "game.dex_locked": "未持有",
   "game.dex_owned": "持有 ×{n}",
   "game.species.sparrow.name": "麻雀",
   "game.species.sparrow.desc": "在任何城市都能见到的亲切鸟儿。通常是你寻找城市语言时最先遇到的伙伴。",

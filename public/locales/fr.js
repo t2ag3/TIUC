@@ -326,7 +326,6 @@ export default {
   "game.levelup_close": "Super !",
   "game.collect_title": "Collection de mots de la ville",
   "game.collect_sub": "Un personnage apparaît à chaque publication, jugement ou correction. Monter de niveau ou faire confirmer une correction garantit un personnage rare.",
-  "game.dex_locked": "Non possédé",
   "game.dex_owned": "Possédé ×{n}",
   "game.species.sparrow.name": "Moineau",
   "game.species.sparrow.desc": "Un oiseau familier que l'on trouve dans toutes les villes. Souvent le premier partenaire rencontré en chassant les mots de la ville.",

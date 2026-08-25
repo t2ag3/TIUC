@@ -42,20 +42,15 @@
       padding: 12px 0;
     }
 
-    /* ---- タイル一覧 ---- */
+    /* ---- タイル一覧（5x20＝最大100体を想定した密なグリッド） ---- */
     .dex-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-    }
-    @media (max-width: 480px) {
-      .dex-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
     }
     .dex-card {
       position: relative;
-      border-radius: 16px;
+      border-radius: 12px;
       overflow: hidden;
       border: 1px solid var(--app-line);
       background: #fff;
@@ -64,31 +59,34 @@
       transition: transform 0.15s ease;
     }
     .dex-card:hover {
-      transform: translateY(-3px);
+      transform: translateY(-2px);
     }
     .art {
       position: relative;
-      height: 110px;
+      height: 72px;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
     }
     .mon {
-      width: 56px;
-      height: 56px;
+      width: 38px;
+      height: 38px;
       image-rendering: pixelated;
       position: relative;
       z-index: 2;
       filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, 0.18));
     }
-    .r1 .art {
+    .r1 .art,
+    .detail-art.r1 {
       background: #e7ece9;
     }
-    .r2 .art {
+    .r2 .art,
+    .detail-art.r2 {
       background: radial-gradient(circle at 50% 42%, #bfe3d3, #7fc4aa);
     }
-    .r3 .art {
+    .r3 .art,
+    .detail-art.r3 {
       background: radial-gradient(
         circle at 50% 40%,
         #a9e8ff,
@@ -96,7 +94,8 @@
         #2f6ea8
       );
     }
-    .r4 .art {
+    .r4 .art,
+    .detail-art.r4 {
       background: linear-gradient(
         135deg,
         #fff27a,
@@ -119,52 +118,44 @@
     }
     .badge {
       position: absolute;
-      top: 6px;
-      left: 6px;
+      top: 4px;
+      left: 4px;
       z-index: 3;
       background: #fff;
       color: #b02a8a;
-      font-size: 8px;
+      font-size: 7px;
       font-weight: 800;
-      padding: 2px 6px;
+      padding: 1px 5px;
       border-radius: 8px;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.04em;
     }
     .meta {
-      padding: 10px 12px;
+      padding: 5px 4px 7px;
+      text-align: center;
     }
     .cn {
       font-weight: 700;
-      font-size: 13px;
-    }
-    .stars {
-      font-size: 11px;
-      letter-spacing: 1px;
-      margin-top: 2px;
-    }
-    .r1 .stars {
-      color: #9aa8a1;
-    }
-    .r2 .stars {
-      color: var(--color-accent, #1a5c3a);
-    }
-    .r3 .stars {
-      color: #2f6ea8;
-    }
-    .r4 .stars {
-      color: #c0397a;
-    }
-    .own {
       font-size: 10px;
-      color: var(--app-muted);
-      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
+    /* 未取得はシルエット＋グレー背景のみ。名前・★・レア度は取得するまで伏せる */
     .dex-card.locked .art {
-      filter: grayscale(1);
-      opacity: 0.4;
+      background: #dfe3de !important;
+      animation: none !important;
     }
     .dex-card.locked .mon {
-      filter: grayscale(1);
+      filter: brightness(0) opacity(0.45);
+    }
+    .dex-card.locked .cn {
+      color: var(--app-muted);
+    }
+    .detail-art.locked {
+      background: #dfe3de;
+    }
+    .detail-art.locked .mon {
+      filter: brightness(0) opacity(0.45);
     }
 
     /* ---- 詳細モーダル ---- */
@@ -352,24 +343,19 @@
         $("collection").innerHTML = `<div class="dex-grid">${species
           .map((s) => {
             const locked = s.count <= 0;
-            const name =
-              s.rarity >= 4 && locked
-                ? "???"
-                : t(`game.species.${s.name_key}.name`);
-            const stars = "★".repeat(s.rarity);
+            // 未取得はレア度も名前も伏せる（背景色でレアが分かってしまうのを防ぐ）
+            const name = locked ? "???" : t(`game.species.${s.name_key}.name`);
             const badge =
-              s.rarity >= 4 ? `<div class="badge">SPECIAL</div>` : "";
-            const own = locked
-              ? t("game.dex_locked")
-              : t("game.dex_owned", { n: s.count });
+              !locked && s.rarity >= 4
+                ? `<div class="badge">SPECIAL</div>`
+                : "";
+            const rarityClass = locked ? "" : `r${s.rarity}`;
             return `
-              <div class="dex-card r${s.rarity} ${locked ? "locked" : ""}" data-id="${s.id}">
+              <div class="dex-card ${rarityClass} ${locked ? "locked" : ""}" data-id="${s.id}">
                 ${badge}
                 <div class="art"><img class="mon" src="images/mon-placeholder.svg" alt=""></div>
                 <div class="meta">
                   <div class="cn">${name}</div>
-                  <div class="stars">${stars}</div>
-                  <div class="own">${own}</div>
                 </div>
               </div>
             `;
@@ -387,19 +373,17 @@
         const s = species.find((x) => x.id === id);
         if (!s) return;
         const locked = s.count <= 0;
-        const name =
-          s.rarity >= 4 && locked
-            ? "???"
-            : t(`game.species.${s.name_key}.name`);
+        const name = locked ? "???" : t(`game.species.${s.name_key}.name`);
         const desc = locked
           ? t("collection.locked_desc")
           : t(`game.species.${s.name_key}.desc`);
         const selected = s.id === currentDisplaySpeciesId;
+        const artClass = locked ? "locked" : `r${s.rarity}`;
 
         $("detail-body").innerHTML = `
-          <div class="detail-art r${s.rarity}"><img class="mon" src="images/mon-placeholder.svg" alt=""></div>
+          <div class="detail-art ${artClass}"><img class="mon" src="images/mon-placeholder.svg" alt=""></div>
           <div class="detail-name">${name}</div>
-          <div class="detail-stars r${s.rarity}">${"★".repeat(s.rarity)}</div>
+          ${locked ? "" : `<div class="detail-stars r${s.rarity}">${"★".repeat(s.rarity)}</div>`}
           <p class="detail-desc">${desc}</p>
           ${
             !locked

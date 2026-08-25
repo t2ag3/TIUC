@@ -326,7 +326,6 @@ export default {
   "game.levelup_close": "좋아요!",
   "game.collect_title": "거리 언어 컬렉션",
   "game.collect_sub": "게시・판정・수정을 할 때마다 캐릭터가 드롭됩니다. 레벨업이나 수정 확정 시에는 레어가 확정으로 나옵니다.",
-  "game.dex_locked": "미보유",
   "game.dex_owned": "보유 ×{n}",
   "game.species.sparrow.name": "참새",
   "game.species.sparrow.desc": "어느 도시에서나 볼 수 있는 친근한 새. 거리 언어를 찾다 보면 가장 먼저 만나는 경우가 많습니다.",

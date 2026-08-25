@@ -326,7 +326,6 @@ export default {
   "game.levelup_close": "¡Genial!",
   "game.collect_title": "Colección de palabras de la ciudad",
   "game.collect_sub": "Aparece un personaje con cada publicación, juicio o corrección. Subir de nivel o confirmar una corrección garantiza uno raro.",
-  "game.dex_locked": "No tienes",
   "game.dex_owned": "Tienes ×{n}",
   "game.species.sparrow.name": "Gorrión",
   "game.species.sparrow.desc": "Un ave amigable que se encuentra en cualquier ciudad. Suele ser el primer compañero que encuentras al buscar palabras de la ciudad.",
