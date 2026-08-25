@@ -3,7 +3,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>相棒とクエスト - TIUC</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="tokens.css" />
   <style>
     :root {
@@ -97,31 +96,6 @@
     .xp {
       font-size: 12px;
       color: var(--muted);
-    }
-
-    .trophies {
-      display: flex;
-      gap: 8px;
-      margin: 16px 0 4px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .trophies span {
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      background: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 17px;
-      border: 1px solid var(--hair);
-    }
-
-    .trophies .locked {
-      filter: grayscale(1);
-      opacity: 0.4;
     }
 
     .streak {
@@ -341,50 +315,20 @@
       font-size: clamp(20px, 6vw, 72px);
     }
 
-    /* ---- COLLECT: 種族収集ガチャ(lp_mock.html準拠のカード/レア度表現) ---- */
-    .dex-grid {
+    /* ---- ヒーロー: 表示設定したキャラの見た目(選んでいなければ卵のプレースホルダー) ---- */
+    .hero-mon-wrap {
+      width: 76px;
+      height: 76px;
+      margin: 0 auto 10px;
+      border-radius: 50%;
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-    }
-    @media (max-width: 560px) {
-      .dex-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-    .dex-grid .dex-card {
-      position: relative;
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid var(--hair);
-      background: #fff;
-    }
-    .dex-grid .art {
-      position: relative;
-      height: 110px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-    .dex-grid .mon {
-      width: 56px;
-      height: 56px;
-      image-rendering: pixelated;
-      position: relative;
-      z-index: 2;
-      filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, 0.18));
-    }
-    .dex-grid .r1 .art {
+      place-items: center;
       background: #e7ece9;
+      box-shadow: 0 6px 16px rgba(9, 128, 79, 0.16);
     }
-    .dex-grid .r2 .art {
-      background: radial-gradient(circle at 50% 42%, #bfe3d3, #7fc4aa);
-    }
-    .dex-grid .r3 .art {
-      background: radial-gradient(circle at 50% 40%, #a9e8ff, #4f9bd6 70%, #2f6ea8);
-    }
-    .dex-grid .r4 .art {
+    .hero-mon-wrap.r2 { background: radial-gradient(circle at 50% 42%, #bfe3d3, #7fc4aa); }
+    .hero-mon-wrap.r3 { background: radial-gradient(circle at 50% 40%, #a9e8ff, #4f9bd6 70%, #2f6ea8); }
+    .hero-mon-wrap.r4 {
       background: linear-gradient(135deg, #fff27a, #ffb347 26%, #ff6fd8 52%, #8f7bff 76%, #5ec6ff);
       background-size: 240% 240%;
       animation: dex-shine 3.2s ease infinite;
@@ -393,63 +337,15 @@
       0%, 100% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
     }
-    .dex-grid .badge {
-      position: absolute;
-      top: 6px;
-      left: 6px;
-      z-index: 3;
-      background: #fff;
-      color: #b02a8a;
-      font-size: 8px;
-      font-weight: 800;
-      padding: 2px 6px;
-      border-radius: 8px;
-      letter-spacing: 0.06em;
+    .hero-mon {
+      width: 48px;
+      height: 48px;
+      image-rendering: pixelated;
+      filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, 0.18));
     }
-    .dex-grid .meta {
-      padding: 10px 12px;
-    }
-    .dex-grid .cn {
-      font-weight: 700;
-      font-size: 13px;
-    }
-    .dex-grid .stars {
-      font-size: 11px;
-      letter-spacing: 1px;
-      margin-top: 2px;
-    }
-    .dex-grid .r1 .stars { color: #9aa8a1; }
-    .dex-grid .r2 .stars { color: var(--brand); }
-    .dex-grid .r3 .stars { color: #2f6ea8; }
-    .dex-grid .r4 .stars { color: #c0397a; }
-    .dex-grid .own {
-      font-size: 10px;
-      color: var(--grey);
-      margin-top: 4px;
-    }
-    .dex-grid .dex-card.locked .art {
-      filter: grayscale(1);
-      opacity: 0.4;
-    }
-    .dex-grid .dex-card.locked .mon {
-      filter: grayscale(1);
-    }
-
-    /* ---- MAP COLLECTION ---- */
-    #my-map {
-      height: 220px;
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      overflow: hidden;
-    }
-    .map-caption {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 8px;
-      text-align: center;
-    }
-    .map-caption b {
-      color: var(--accent);
+    .hero-mon-empty {
+      font-size: 34px;
+      line-height: 1;
     }
 
     .impact {
@@ -642,6 +538,10 @@
 
       <section class="hero">
         <a id="hero-link" href="mypage.html" aria-label="My Page">
+          <div class="hero-mon-wrap" id="hero-mon-wrap">
+            <img class="hero-mon" id="hero-mon" src="images/mon-placeholder.svg" alt="" hidden />
+            <span class="hero-mon-empty" id="hero-mon-empty">🥚</span>
+          </div>
           <div class="char-lv" id="level">Lv.1</div>
           <div class="char-title" id="title"></div>
 
@@ -650,7 +550,6 @@
           </div>
           <div class="xp" id="xp">0 / 2 XP</div>
 
-          <div class="trophies" id="trophies" aria-hidden="true"></div>
           <div class="streak" id="streak"></div>
         </a>
       </section>
@@ -672,14 +571,6 @@
         </a>
       </div>
 
-      <h2 data-i18n="game.collect_title">街ことばコレクション</h2>
-      <p class="sec-sub" data-i18n="game.collect_sub">
-        投稿・判定・修正のたびにキャラがドロップ。レベルアップや修正確定ではレアが確定で手に入ります。
-      </p>
-      <div id="collection">
-        <div class="empty" data-i18n="common.loading">読み込み中…</div>
-      </div>
-
       <div class="quest-heading-row">
         <h2 data-i18n="game.quests">クエスト</h2>
       </div>
@@ -697,15 +588,6 @@
 
       <div class="card">
         <div id="zukan"></div>
-      </div>
-
-      <h2 data-i18n="game.map_collection_title">マップコレクション</h2>
-      <p class="sec-sub" data-i18n="game.map_collection_sub">
-        自分が直したスポットが地図に灯ります。
-      </p>
-      <div class="card">
-        <div id="my-map"></div>
-        <p class="map-caption" id="map-caption"></p>
       </div>
 
       <h2 data-i18n="game.impact">地域インパクト</h2>
@@ -925,8 +807,6 @@
         }
       });
 
-      let questIcons = {};
-
       async function loadCharacter() {
         const j = await fetch(`/api/game/character?user_id=${userId}`).then(
           (r) => r.json(),
@@ -939,6 +819,17 @@
         $("streak").innerHTML = j.streak_count
           ? `🔥 ${t("game.streak_label", { n: j.streak_count })}`
           : "";
+
+        const wrap = $("hero-mon-wrap");
+        wrap.className = "hero-mon-wrap";
+        if (j.display_species_id) {
+          wrap.classList.add(`r${j.display_rarity}`);
+          $("hero-mon").hidden = false;
+          $("hero-mon-empty").hidden = true;
+        } else {
+          $("hero-mon").hidden = true;
+          $("hero-mon-empty").hidden = false;
+        }
 
         checkLevelup(j.level);
 
@@ -957,9 +848,6 @@
           r.json(),
         );
         if (!j.ok) return;
-
-        questIcons = Object.fromEntries(j.quests.map((q) => [q.id, q.icon]));
-        renderTrophies(j.quests);
 
         $("quests").innerHTML = j.quests
           .map((q) => {
@@ -1006,54 +894,10 @@
             }).then((x) => x.json());
 
             if (r.ok) {
-              await Promise.all([
-                loadCharacter(),
-                loadQuests(),
-                loadCollection(),
-              ]);
+              await Promise.all([loadCharacter(), loadQuests()]);
             }
           }),
         );
-      }
-
-      function renderTrophies(quests) {
-        $("trophies").innerHTML = quests
-          .map(
-            (q) =>
-              `<span class="${q.claimed ? "" : "locked"}" title="${t(`game.quest.${q.id}.title`)}">${q.icon}</span>`,
-          )
-          .join("");
-      }
-
-      async function loadCollection() {
-        const j = await fetch(`/api/game/collection?user_id=${userId}`).then(
-          (r) => r.json(),
-        );
-        if (!j.ok) return;
-
-        $("collection").innerHTML = `<div class="dex-grid">${j.species
-          .map((s) => {
-            const locked = s.count <= 0;
-            const name = t(`game.species.${s.name_key}.name`);
-            const stars = "★".repeat(s.rarity);
-            const badge = s.rarity >= 4 ? `<div class="badge">SPECIAL</div>` : "";
-            const displayName = s.rarity >= 4 && locked ? "???" : name;
-            const own = locked
-              ? t("game.dex_locked")
-              : t("game.dex_owned", { n: s.count });
-            return `
-              <div class="dex-card r${s.rarity} ${locked ? "locked" : ""}">
-                ${badge}
-                <div class="art"><img class="mon" src="images/mon-placeholder.svg" alt=""></div>
-                <div class="meta">
-                  <div class="cn">${displayName}</div>
-                  <div class="stars">${stars}</div>
-                  <div class="own">${own}</div>
-                </div>
-              </div>
-            `;
-          })
-          .join("")}</div>`;
       }
 
       async function loadZukan() {
@@ -1100,60 +944,6 @@
         $("zukan-count").textContent = `${j.total} / 12`;
       }
 
-      let leafletPromise = null;
-      function loadLeaflet() {
-        if (leafletPromise) return leafletPromise;
-        leafletPromise = new Promise((resolve, reject) => {
-          const s = document.createElement("script");
-          s.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-          s.onload = resolve;
-          s.onerror = () => reject(new Error(t("common.map_load_error")));
-          document.head.appendChild(s);
-        });
-        return leafletPromise;
-      }
-
-      async function loadMySpots() {
-        const j = await fetch(`/api/game/map-spots?user_id=${userId}`).then(
-          (r) => r.json(),
-        );
-        if (!j.ok) return;
-
-        $("map-caption").innerHTML = t("game.map_area_count", {
-          n: j.area_count,
-        });
-
-        if (!j.spots.length) {
-          $("my-map").innerHTML = `<div class="empty" style="padding:80px 0;text-align:center">${t("game.map_collection_empty")}</div>`;
-          return;
-        }
-
-        try {
-          await loadLeaflet();
-        } catch {
-          return;
-        }
-
-        const map = L.map("my-map", { zoomControl: false, attributionControl: false });
-        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          maxZoom: 19,
-        }).addTo(map);
-
-        const bounds = [];
-        for (const s of j.spots) {
-          const color = s.status === "adopted" ? "#1a4d73" : "#2e6da4";
-          L.circleMarker([s.lat, s.lng], {
-            radius: 6,
-            fillColor: color,
-            fillOpacity: 1,
-            color: "#fff",
-            weight: 1.5,
-          }).addTo(map);
-          bounds.push([s.lat, s.lng]);
-        }
-        map.fitBounds(bounds, { padding: [20, 20], maxZoom: 15 });
-      }
-
       async function loadImpact() {
         const j = await fetch(`/api/game/impact?user_id=${userId}`).then((r) =>
           r.json(),
@@ -1192,9 +982,7 @@
       Promise.all([
         loadCharacter(),
         loadQuests(),
-        loadCollection(),
         loadZukan(),
-        loadMySpots(),
         loadImpact(),
       ]).catch(console.error);
     </script>

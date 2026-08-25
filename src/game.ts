@@ -152,7 +152,7 @@ export async function gameCharacter(
   const level = levelFromXp(xpTotal);
   const base = xpForLevel(level);
   const next = xpForLevel(level + 1);
-  const [recent, streak] = await Promise.all([
+  const [recent, streak, display] = await Promise.all([
     env.DB.prepare(
       "SELECT kind,xp,created_at,note FROM xp_events WHERE user_id=?1 ORDER BY created_at DESC,id DESC LIMIT 20",
     )
@@ -161,6 +161,13 @@ export async function gameCharacter(
     env.DB.prepare("SELECT streak_count AS n FROM users WHERE id=?1")
       .bind(userId)
       .first<{ n: number }>(),
+    env.DB.prepare(
+      `SELECT c.display_species_id, s.rarity AS display_rarity
+         FROM characters c LEFT JOIN species s ON s.id = c.display_species_id
+        WHERE c.user_id = ?1`,
+    )
+      .bind(userId)
+      .first<{ display_species_id: string | null; display_rarity: number | null }>(),
   ]);
   return Response.json({
     ok: true,
@@ -170,6 +177,8 @@ export async function gameCharacter(
     xp_into_level: xpTotal - base,
     xp_for_next_level: next - base,
     streak_count: streak?.n ?? 0,
+    display_species_id: display?.display_species_id ?? null,
+    display_rarity: display?.display_rarity ?? null,
     recent: recent.results,
   });
 }
@@ -381,6 +390,34 @@ export async function gameCollection(
     .bind(userId)
     .all();
   return Response.json({ ok: true, species: rows.results });
+}
+
+// ヒーロー表示用キャラの選択。所持していない種族は選べない(表示だけの詐称を防ぐ)。
+export async function gameSelectDisplayCharacter(
+  request: Request,
+  env: AppEnv,
+): Promise<Response> {
+  const body = await request.json<Record<string, unknown>>();
+  const userId = String(body.user_id || "");
+  const speciesId = String(body.species_id || "");
+  if (!UUID_RE.test(userId)) return bad("ユーザーIDが不正です");
+  if (!speciesId) return bad("species_id が必要です");
+
+  const owned = await env.DB.prepare(
+    "SELECT count FROM user_characters WHERE user_id=?1 AND species_id=?2",
+  )
+    .bind(userId, speciesId)
+    .first<{ count: number }>();
+  if (!owned || owned.count <= 0) return bad("所持していないキャラです");
+
+  await ensureCharacter(env, userId);
+  await env.DB.prepare(
+    "UPDATE characters SET display_species_id=?2, updated_at=?3 WHERE user_id=?1",
+  )
+    .bind(userId, speciesId, Math.floor(Date.now() / 1000))
+    .run();
+
+  return Response.json({ ok: true });
 }
 
 export async function gameMapSpots(

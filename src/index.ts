@@ -12,6 +12,7 @@ import {
   gameImpact,
   gameMapSpots,
   gameQuests,
+  gameSelectDisplayCharacter,
 } from "./game";
 import { serveImage } from "./images";
 import { publicMap } from "./map";
@@ -75,6 +76,8 @@ export default {
         return await gameImpact(request, env);
       if (path === "/api/game/collection" && request.method === "GET")
         return await gameCollection(request, env);
+      if (path === "/api/game/collection/select" && request.method === "POST")
+        return await gameSelectDisplayCharacter(request, env);
       if (path === "/api/game/map-spots" && request.method === "GET")
         return await gameMapSpots(request, env);
 
