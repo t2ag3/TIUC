@@ -549,6 +549,453 @@
         font-size: 11px;
       }
     }
+
+    /* ==== 追加セクション（lp_mock.html 準拠） ==== */
+    .sec {
+      padding: 76px 0;
+    }
+    .sec-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 14px;
+      color: var(--brand);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      font-family: var(--mono-font);
+    }
+    .sec-eyebrow .bar {
+      width: 26px;
+      height: 2px;
+      background: var(--brand);
+    }
+    .sec h2 {
+      margin: 0 0 14px;
+      font-size: clamp(22px, 3.4vw, 32px);
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.01em;
+    }
+    .sec-sub {
+      max-width: 620px;
+      margin: 0 0 40px;
+      color: var(--grey);
+    }
+
+    /* WHY */
+    .prob-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 28px;
+      align-items: center;
+    }
+    .prob-bad {
+      background: var(--brand-light);
+      border: 1px solid var(--hair);
+      border-radius: 16px;
+      padding: 28px;
+    }
+    .prob-bad p {
+      font-size: 18px;
+      line-height: 1.7;
+    }
+    .prob-bad .big {
+      color: var(--brand);
+      font-weight: 800;
+    }
+    .fake-sign {
+      background: #fff;
+      border: 1px solid var(--hair);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .fake-sign .top {
+      background: #b23a48;
+      color: #fff;
+      padding: 10px 16px;
+      font-size: 13px;
+    }
+    .fake-sign .body {
+      padding: 16px;
+    }
+    .fake-sign .ja {
+      font-size: 14px;
+      color: #333;
+    }
+    .fake-sign .en {
+      margin-top: 12px;
+      color: #b23a48;
+      font-family: Georgia, serif;
+      font-size: 17px;
+      font-weight: 700;
+    }
+    .fake-sign .tag {
+      display: inline-block;
+      margin-top: 10px;
+      background: var(--coral-light);
+      color: var(--coral);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .fake-sign .cap {
+      margin-top: 12px;
+      font-size: 11px;
+      color: var(--grey);
+    }
+
+    /* HOW TO PLAY */
+    .sec.actions-sec {
+      background: var(--brand-light2);
+      border-radius: 30px;
+      padding: 64px 40px;
+      margin: 20px 0;
+    }
+    .act-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .act {
+      background: #fff;
+      border: 1px solid var(--hair);
+      border-radius: 16px;
+      padding: 26px 22px;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      transition:
+        transform 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
+    }
+    .act:hover {
+      transform: translateY(-6px);
+      border-color: var(--brand);
+      box-shadow: 0 12px 28px rgba(9, 128, 79, 0.12);
+    }
+    .act .ico {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin-bottom: 16px;
+    }
+    .act.a1 .ico {
+      background: var(--coral-light);
+    }
+    .act.a2 .ico,
+    .act.a3 .ico {
+      background: var(--brand-light);
+    }
+    .act .step {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      color: var(--grey);
+      margin-bottom: 6px;
+      font-family: var(--mono-font);
+    }
+    .act h3 {
+      margin: 0 0 4px;
+      font-size: 19px;
+    }
+    .act .who {
+      font-size: 12px;
+      color: var(--brand);
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .act p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--grey);
+    }
+    .act .xp {
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--brand);
+      font-weight: 700;
+    }
+
+    /* LEVEL UP */
+    .grow-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: center;
+    }
+    .char-card {
+      background: var(--brand-light);
+      border: 1px solid var(--hair);
+      border-radius: 20px;
+      padding: 28px;
+      text-align: center;
+    }
+    .stage-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin: 4px 0 16px;
+    }
+    .stage-row .stage-mon {
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #fff;
+      font-size: 26px;
+      box-shadow: 0 6px 16px rgba(9, 128, 79, 0.16);
+    }
+    .stage-row .stage-arrow {
+      color: var(--brand);
+      font-weight: 800;
+      font-size: 14px;
+    }
+    .stage-labels {
+      display: flex;
+      justify-content: center;
+      gap: 22px;
+      font-size: 11px;
+      color: var(--grey);
+      margin-bottom: 18px;
+    }
+    .xpbar-demo {
+      height: 12px;
+      border-radius: 8px;
+      background: #cfe4da;
+      overflow: hidden;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+    .xpbar-demo > span {
+      display: block;
+      height: 100%;
+      width: 55%;
+      background: linear-gradient(90deg, var(--brand), #4fbfa2);
+    }
+    .rewards {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .reward {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      background: #fff;
+      border: 1px solid var(--hair);
+      border-radius: 14px;
+      padding: 16px 18px;
+    }
+    .reward .b {
+      font-size: 26px;
+    }
+    .reward h4 {
+      margin: 0 0 2px;
+      font-size: 15px;
+    }
+    .reward p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--grey);
+    }
+
+    /* COLLECT */
+    .sec.collect-sec {
+      background: var(--brand-light2);
+      border-radius: 30px;
+      padding: 64px 40px;
+      margin: 20px 0;
+    }
+    .zukan-preview {
+      background: #fff;
+      border: 1px solid var(--hair);
+      border-radius: 20px;
+      padding: 24px;
+    }
+    .zukan-grid {
+      display: grid;
+      grid-template-columns: 88px repeat(4, 1fr);
+      gap: 8px;
+      align-items: center;
+    }
+    .zukan-grid .zh {
+      font-size: 11px;
+      color: var(--grey);
+      text-align: center;
+    }
+    .zukan-grid .zl {
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .zukan-grid .slot {
+      aspect-ratio: 1;
+      border: 1px solid var(--hair);
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      background: #f7f7f5;
+      color: #bbb;
+      font-size: 16px;
+    }
+    .zukan-hint {
+      margin: 18px 0 0;
+      text-align: center;
+      font-size: 13px;
+      color: var(--grey);
+    }
+    .zukan-hint a {
+      color: var(--brand);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    /* IMPACT */
+    .sec.impact-sec {
+      background: var(--brand-light);
+      border-radius: 30px;
+      padding: 64px 40px;
+      margin: 20px 0;
+    }
+    .cycle {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .cyc {
+      background: #fff;
+      border: 1px solid var(--hair);
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .cyc b {
+      color: var(--brand);
+    }
+    .cyc-arrow {
+      align-self: center;
+      color: var(--brand);
+      font-weight: 800;
+    }
+
+    /* FINAL CTA */
+    #final-cta {
+      background: var(--brand);
+      color: #fff;
+      text-align: center;
+      padding: 72px 40px;
+      border-radius: 30px;
+      margin: 0 0 56px;
+    }
+    #final-cta h2 {
+      margin: 0 0 14px;
+      font-size: clamp(24px, 4vw, 36px);
+      font-weight: 800;
+    }
+    #final-cta p {
+      margin: 0 0 28px;
+      color: #e6f4ec;
+    }
+    .game-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff;
+      color: var(--brand);
+      font-weight: 800;
+      font-size: 15px;
+      text-decoration: none;
+      padding: 14px 26px;
+      border-radius: 999px;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+      transition: all 0.18s ease;
+    }
+    .game-btn:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.24);
+      background: #f2fbf7;
+    }
+    .game-btn .arw {
+      transition: transform 0.18s ease;
+    }
+    .game-btn:hover .arw {
+      transform: translateX(4px);
+    }
+
+    /* footer */
+    footer {
+      background: var(--ink);
+      color: #9db8ac;
+      font-size: 12px;
+      padding: 28px 20px;
+      text-align: center;
+      line-height: 1.8;
+      border-radius: 24px 24px 0 0;
+    }
+    footer .credit {
+      margin-top: 6px;
+      opacity: 0.8;
+    }
+
+    /* floating game-on button */
+    #floating-cta {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 50;
+      opacity: 0;
+      transform: translateY(16px);
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+    #floating-cta.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    #floating-cta .game-btn {
+      background: var(--brand);
+      color: #fff;
+      box-shadow: 0 8px 22px rgba(9, 128, 79, 0.4);
+    }
+    #floating-cta .game-btn:hover {
+      background: #0a9159;
+      box-shadow: 0 14px 34px rgba(9, 128, 79, 0.55);
+    }
+
+    @media (max-width: 760px) {
+      .sec {
+        padding: 52px 0;
+      }
+      .prob-grid,
+      .grow-wrap {
+        grid-template-columns: 1fr;
+      }
+      .act-grid {
+        grid-template-columns: 1fr;
+      }
+      .zukan-grid {
+        grid-template-columns: 64px repeat(4, 1fr);
+      }
+      #final-cta {
+        padding: 48px 22px;
+      }
+      .sec.actions-sec,
+      .sec.collect-sec,
+      .sec.impact-sec {
+        border-radius: 22px;
+        padding: 40px 20px;
+      }
+    }
   </style>
   <body>
     <div class="shell">
@@ -622,7 +1069,260 @@
 
           <span style="padding-bottom:1%;" class="buddy-arrow">›</span>
         </a>
+
+        <!-- WHY -->
+        <section class="sec">
+          <p class="sec-eyebrow"><span class="bar"></span>WHY</p>
+          <h2 data-i18n="index.why_title">
+            AI翻訳は、街に"ヘンな外国語"を増やしている。
+          </h2>
+          <p class="sec-sub" data-i18n="index.why_sub">
+            文化や状況に依存する表現は、AIでも読み違えることがあります。しかも一度看板やメニューに刷られた誤訳は、AIが賢くなっても、誰かが気づいて直さない限りそのまま残ります。
+          </p>
+          <div class="prob-grid">
+            <div class="prob-bad">
+              <p data-i18n-html="index.why_bad_text">
+                AIが賢くなっても、<br />すでに街に刷られた誤訳は、<br /><span
+                  class="big"
+                  >誰かが気づいて直さない限り、そのまま。</span
+                >
+              </p>
+            </div>
+            <div class="fake-sign">
+              <div class="top" data-i18n="index.why_sign_notice">
+                おことわり / Notice
+              </div>
+              <div class="body">
+                <div class="ja" data-i18n="index.why_sign_ja">
+                  本日、二の丸庭園の滝は工事に伴い水を流しておりません。
+                </div>
+                <div class="en">TODAY IS UNDER CONSTRUCTION.</div>
+                <span class="tag" data-i18n="index.why_sign_tag"
+                  >主語がすり替わっている…！</span
+                >
+                <p class="cap" data-i18n="index.why_sign_cap">
+                  ← これがTIUCという名前の由来です
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- HOW TO PLAY -->
+        <section class="sec actions-sec">
+          <p class="sec-eyebrow"><span class="bar"></span>HOW TO PLAY</p>
+          <h2 data-i18n="index.actions_title">
+            3つのアクション。できるところから。
+          </h2>
+          <p class="sec-sub" data-i18n="index.actions_sub">
+            語学力がなくても大丈夫。撮るだけでも立派な参加です。得意な人は、直しにまわりましょう。
+          </p>
+          <div class="act-grid">
+            <a class="act a1" href="report.html">
+              <div class="ico">📷</div>
+              <div class="step">ACTION 01</div>
+              <h3 data-i18n="index.act1_title">撮る</h3>
+              <div class="who" data-i18n="index.act1_who">
+                だれでも・語学力不要
+              </div>
+              <p data-i18n="index.act1_desc">
+                街で見かけた外国語のメニューや看板を撮って投稿します。
+              </p>
+              <div class="xp" data-i18n="index.act1_xp">+2pt / 投稿</div>
+            </a>
+            <a class="act a2" href="judge.html">
+              <div class="ico">🔍</div>
+              <div class="step">ACTION 02</div>
+              <h3 data-i18n="index.act2_title">チェックする</h3>
+              <div class="who" data-i18n="index.act2_who">
+                その言語のネイティブ向け
+              </div>
+              <p data-i18n="index.act2_desc">
+                「自然かどうか」をワンタップで判定します。
+              </p>
+              <div class="xp" data-i18n="index.act2_xp">+1pt / 判定</div>
+            </a>
+            <a class="act a3" href="curate.html">
+              <div class="ico">✏️</div>
+              <div class="step">ACTION 03</div>
+              <h3 data-i18n="index.act3_title">直す・案を出す</h3>
+              <div class="who" data-i18n="index.act3_who">
+                両言語がわかる人
+              </div>
+              <p data-i18n="index.act3_desc">
+                正しい訳と「なぜ変か」を提案します。確定すると大きく加点。
+              </p>
+              <div class="xp" data-i18n="index.act3_xp">
+                +3pt(確定で+15pt)
+              </div>
+            </a>
+          </div>
+        </section>
+
+        <!-- LEVEL UP -->
+        <section class="sec">
+          <p class="sec-eyebrow"><span class="bar"></span>LEVEL UP</p>
+          <h2 data-i18n="index.growth_title">
+            続けるほど、相棒が育っていく。
+          </h2>
+          <p class="sec-sub" data-i18n="index.growth_sub">
+            投稿や判定を重ねると経験値が貯まり、街ことばの相棒が成長します。クエストをクリアすると実績も手に入ります。
+          </p>
+          <div class="grow-wrap">
+            <div class="char-card">
+              <div class="stage-row" aria-hidden="true">
+                <span class="stage-mon">🥚</span>
+                <span class="stage-arrow">›</span>
+                <span class="stage-mon">🐣</span>
+                <span class="stage-arrow">›</span>
+                <span class="stage-mon">🐦</span>
+                <span class="stage-arrow">›</span>
+                <span class="stage-mon">🦉</span>
+              </div>
+              <div class="stage-labels" aria-hidden="true">
+                <span data-i18n="index.stage_egg">たまご</span>
+                <span data-i18n="index.stage_chick">ひな</span>
+                <span data-i18n="index.stage_bird">とり</span>
+                <span data-i18n="index.stage_guide">ガイド役</span>
+              </div>
+              <div class="xpbar-demo" aria-hidden="true"><span></span></div>
+            </div>
+            <div class="rewards">
+              <div class="reward">
+                <div class="b">🏆</div>
+                <div>
+                  <h4 data-i18n="index.reward1_title">実績(クエスト)</h4>
+                  <p data-i18n="index.reward1_desc">
+                    「はじめての発見」「違和感ハンター」「街ことば図鑑コンプリート」など、活動に応じたクエストをクリアすると経験値がもらえます。
+                  </p>
+                </div>
+              </div>
+              <div class="reward">
+                <div class="b">📖</div>
+                <div>
+                  <h4 data-i18n="index.reward2_title">街ことば図鑑</h4>
+                  <p data-i18n="index.reward2_desc">
+                    発見した表記の「言語 ×
+                    種類」の組み合わせを集めて図鑑を埋めていきます。
+                  </p>
+                </div>
+              </div>
+              <div class="reward">
+                <div class="b">🗺️</div>
+                <div>
+                  <h4 data-i18n="index.reward3_title">地域インパクト</h4>
+                  <p data-i18n="index.reward3_desc">
+                    自分の参加がどれだけ地域を良くしたか、マイページで確認できます。
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- COLLECT -->
+        <section class="sec collect-sec">
+          <p class="sec-eyebrow"><span class="bar"></span>COLLECT</p>
+          <h2 data-i18n="index.collect_title">
+            見つけるほど、街ことば図鑑が埋まっていく。
+          </h2>
+          <p class="sec-sub" data-i18n="index.collect_sub">
+            言語 ×
+            表記の種類の組み合わせで、全12マス。投稿や判定のたびに、新しいマスが埋まるかもしれません。
+          </p>
+          <div class="zukan-preview">
+            <div class="zukan-grid" aria-hidden="true">
+              <div></div>
+              <div class="zh" data-i18n="game.kind_menu">メニュー</div>
+              <div class="zh" data-i18n="game.kind_sign">看板</div>
+              <div class="zh" data-i18n="game.kind_notice">注意</div>
+              <div class="zh" data-i18n="game.kind_other">その他</div>
+
+              <div class="zl" data-i18n="common.pair_label_en">日→英</div>
+              <div class="slot">?</div>
+              <div class="slot">?</div>
+              <div class="slot">?</div>
+              <div class="slot">?</div>
+
+              <div class="zl" data-i18n="common.pair_label_zh">日→中</div>
+              <div class="slot">?</div>
+              <div class="slot">?</div>
+              <div class="slot">?</div>
+              <div class="slot">?</div>
+
+              <div class="zl" data-i18n="common.pair_label_ko">日→韓</div>
+              <div class="slot">?</div>
+              <div class="slot">?</div>
+              <div class="slot">?</div>
+              <div class="slot">?</div>
+            </div>
+            <p class="zukan-hint">
+              <span data-i18n="index.zukan_hint_text"
+                >はじめると、図鑑の進み具合を</span
+              >
+              <a href="game.html" data-i18n="index.zukan_hint_link"
+                >ゲーム画面で確認できます</a
+              >
+            </p>
+          </div>
+        </section>
+
+        <!-- IMPACT -->
+        <section class="sec impact-sec">
+          <p class="sec-eyebrow"><span class="bar"></span>IMPACT</p>
+          <h2 data-i18n="index.impact_title">
+            あなたの参加が、街から誤訳を減らす。
+          </h2>
+          <p class="sec-sub" data-i18n="index.impact_sub">
+            直された訳はお店に届きます。お店が実際に直すと、街から誤訳が1件減り、参加者みんなの成果になります。
+          </p>
+          <div class="cycle" aria-hidden="true">
+            <div class="cyc">📸 <b data-i18n="index.cyc_find">見つける</b></div>
+            <div class="cyc-arrow">→</div>
+            <div class="cyc">
+              🔍 <b data-i18n="index.cyc_check">チェックする</b>
+            </div>
+            <div class="cyc-arrow">→</div>
+            <div class="cyc">✏️ <b data-i18n="index.cyc_fix">直す</b></div>
+            <div class="cyc-arrow">→</div>
+            <div class="cyc">
+              🏪 <b data-i18n="index.cyc_adopt">お店が直す</b>
+            </div>
+            <div class="cyc-arrow">→</div>
+            <div class="cyc">
+              🗺️ <b data-i18n="index.cyc_map">街で見える化</b>
+            </div>
+          </div>
+        </section>
+
+        <!-- FINAL CTA -->
+        <section id="final-cta">
+          <h2 data-i18n="index.final_title">
+            "工事中"の街を、いっしょにアップデートしよう。
+          </h2>
+          <p data-i18n="index.final_sub">
+            まずは1枚、気になる外国語表記を見つけることから。
+          </p>
+          <a href="report.html" class="game-btn"
+            >📷 <span data-i18n="index.final_cta">見つけに行く</span>
+            <span class="arw">›</span></a
+          >
+        </section>
       </main>
+      <footer>
+        <p data-i18n="index.footer_note">
+          ログイン不要・匿名でも利用できます。投稿された写真は、判定・修正に必要な範囲で取り扱われます。
+        </p>
+        <p class="credit">
+          TIUC — Today is under construction. ／ <span data-i18n="index.footer_credit">東京都知事杯 2026</span>
+        </p>
+      </footer>
+    </div>
+
+    <div id="floating-cta">
+      <a href="game.html" class="game-btn"
+        >🎮 Game On <span class="arw">›</span></a
+      >
     </div>
     <script type="module">
       import { getUserId, bootstrapAuth, googleLoginUrl } from "./auth.js";
@@ -703,6 +1403,12 @@
         setTimeout(() => {
           location.href = buddy.href;
         }, 760);
+      });
+
+      const floatingCta = $("floating-cta");
+      window.addEventListener("scroll", () => {
+        const past = window.scrollY > buddy.offsetTop + buddy.offsetHeight;
+        floatingCta.classList.toggle("show", past);
       });
     </script>
   </body>
