@@ -735,49 +735,59 @@
       padding: 28px;
       text-align: center;
     }
-    .stage-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      margin: 4px 0 16px;
-    }
-    .stage-row .stage-mon {
-      width: 52px;
-      height: 52px;
-      display: grid;
-      place-items: center;
-      border-radius: 50%;
-      background: #fff;
-      font-size: 26px;
-      box-shadow: 0 6px 16px rgba(9, 128, 79, 0.16);
-    }
-    .stage-row .stage-arrow {
-      color: var(--brand);
+    .char-name {
       font-weight: 800;
-      font-size: 14px;
+      font-size: 18px;
+      margin-bottom: 14px;
     }
-    .stage-labels {
-      display: flex;
-      justify-content: center;
-      gap: 22px;
-      font-size: 11px;
-      color: var(--grey);
-      margin-bottom: 18px;
+    .char-lv {
+      font-size: 15px;
+      color: var(--brand);
+      margin-bottom: 14px;
+      font-weight: 600;
     }
-    .xpbar-demo {
+    .xpbar {
       height: 12px;
       border-radius: 8px;
       background: #cfe4da;
       overflow: hidden;
-      max-width: 300px;
-      margin: 0 auto;
     }
-    .xpbar-demo > span {
+    .xpbar > span {
       display: block;
       height: 100%;
-      width: 55%;
+      width: 68%;
       background: linear-gradient(90deg, var(--brand), #4fbfa2);
+    }
+    .xp-label {
+      font-size: 11px;
+      color: var(--grey);
+      margin-top: 6px;
+    }
+    .trophies {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+      justify-content: center;
+    }
+    .trophies span {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      border: 1px solid var(--hair);
+    }
+    .trophies .locked {
+      filter: grayscale(1);
+      opacity: 0.4;
+    }
+    .trophies-caption {
+      font-size: 11px;
+      color: var(--grey);
+      margin-top: 8px;
     }
     .rewards {
       display: flex;
@@ -813,47 +823,196 @@
       padding: 64px 40px;
       margin: 20px 0;
     }
-    .zukan-preview {
-      background: #fff;
-      border: 1px solid var(--hair);
-      border-radius: 20px;
-      padding: 24px;
-    }
-    .zukan-grid {
+    .dex-grid {
       display: grid;
-      grid-template-columns: 88px repeat(4, 1fr);
-      gap: 8px;
-      align-items: center;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 36px;
     }
-    .zukan-grid .zh {
+    .dex-grid .card {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--hair);
+      background: #fff;
+      transition: transform 0.18s ease;
+    }
+    .dex-grid .card:hover {
+      transform: translateY(-5px);
+    }
+    .dex-grid .card .art {
+      position: relative;
+      height: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .dex-grid .mon {
+      width: 64px;
+      height: 64px;
+      image-rendering: pixelated;
+      position: relative;
+      z-index: 2;
+      filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, 0.18));
+    }
+    .dex-grid .r1 .art {
+      background: #e7ece9;
+    }
+    .dex-grid .r2 .art {
+      background: radial-gradient(circle at 50% 42%, #bfe3d3, #7fc4aa);
+    }
+    .dex-grid .r3 .art {
+      background: radial-gradient(
+        circle at 50% 40%,
+        #a9e8ff,
+        #4f9bd6 70%,
+        #2f6ea8
+      );
+    }
+    .dex-grid .r3 .art::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(
+          circle at 30% 30%,
+          rgba(255, 255, 255, 0.7),
+          transparent 12%
+        ),
+        radial-gradient(
+          circle at 70% 60%,
+          rgba(255, 255, 255, 0.6),
+          transparent 10%
+        ),
+        radial-gradient(
+          circle at 50% 20%,
+          rgba(255, 255, 255, 0.5),
+          transparent 8%
+        );
+      z-index: 1;
+    }
+    @keyframes shine {
+      0%,
+      100% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+    }
+    .dex-grid .card .meta {
+      padding: 12px 14px;
+    }
+    .dex-grid .card .cn {
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .dex-grid .stars {
+      font-size: 12px;
+      letter-spacing: 1px;
+      margin-top: 2px;
+    }
+    .dex-grid .r1 .stars {
+      color: #9aa8a1;
+    }
+    .dex-grid .r2 .stars {
+      color: var(--brand);
+    }
+    .dex-grid .r3 .stars {
+      color: #2f6ea8;
+    }
+    .dex-grid .card .own {
       font-size: 11px;
       color: var(--grey);
-      text-align: center;
+      margin-top: 6px;
     }
-    .zukan-grid .zl {
-      font-size: 12px;
-      font-weight: 700;
+    .dex-grid .card.special .art {
+      background: linear-gradient(
+        135deg,
+        #fff27a,
+        #ffb347 26%,
+        #ff6fd8 52%,
+        #8f7bff 76%,
+        #5ec6ff
+      );
+      background-size: 240% 240%;
+      animation: shine 3.2s ease infinite;
     }
-    .zukan-grid .slot {
-      aspect-ratio: 1;
+    .dex-grid .card.special .art::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background:
+        radial-gradient(
+          circle at 25% 30%,
+          rgba(255, 255, 255, 0.95),
+          transparent 9%
+        ),
+        radial-gradient(
+          circle at 68% 22%,
+          rgba(255, 255, 255, 0.85),
+          transparent 7%
+        ),
+        radial-gradient(
+          circle at 82% 65%,
+          rgba(255, 255, 255, 0.9),
+          transparent 8%
+        ),
+        radial-gradient(
+          circle at 40% 78%,
+          rgba(255, 255, 255, 0.8),
+          transparent 6%
+        ),
+        radial-gradient(
+          circle at 55% 45%,
+          rgba(255, 255, 255, 0.7),
+          transparent 5%
+        );
+      animation: twinkle 2.2s ease-in-out infinite;
+    }
+    @keyframes twinkle {
+      0%,
+      100% {
+        opacity: 0.5;
+      }
+      50% {
+        opacity: 1;
+      }
+    }
+    .dex-grid .card.special .badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      z-index: 3;
+      background: #fff;
+      color: #b02a8a;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 8px;
+      letter-spacing: 0.08em;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+    .dex-grid .card.special .stars {
+      color: #c0397a;
+    }
+    .drop-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+    .drop-tags .dt {
+      background: #fff;
       border: 1px solid var(--hair);
-      border-radius: 10px;
-      display: grid;
-      place-items: center;
-      background: #f7f7f5;
-      color: #bbb;
-      font-size: 16px;
-    }
-    .zukan-hint {
-      margin: 18px 0 0;
-      text-align: center;
+      border-radius: 999px;
+      padding: 8px 16px;
       font-size: 13px;
-      color: var(--grey);
     }
-    .zukan-hint a {
+    .drop-tags .dt b {
       color: var(--brand);
-      font-weight: 700;
-      text-decoration: none;
     }
 
     /* IMPACT */
@@ -983,8 +1142,8 @@
       .act-grid {
         grid-template-columns: 1fr;
       }
-      .zukan-grid {
-        grid-template-columns: 64px repeat(4, 1fr);
+      .dex-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
       #final-cta {
         padding: 48px 22px;
@@ -1163,56 +1322,59 @@
         <section class="sec">
           <p class="sec-eyebrow"><span class="bar"></span>LEVEL UP</p>
           <h2 data-i18n="index.growth_title">
-            続けるほど、相棒が育っていく。
+            遊ぶほど上達し、実績が増える。
           </h2>
           <p class="sec-sub" data-i18n="index.growth_sub">
-            投稿や判定を重ねると経験値が貯まり、街ことばの相棒が成長します。クエストをクリアすると実績も手に入ります。
+            判定の精度や採用された修正で、あなたのレベルが上がる。続けた証は実績として残る。
           </p>
           <div class="grow-wrap">
             <div class="char-card">
-              <div class="stage-row" aria-hidden="true">
-                <span class="stage-mon">🥚</span>
-                <span class="stage-arrow">›</span>
-                <span class="stage-mon">🐣</span>
-                <span class="stage-arrow">›</span>
-                <span class="stage-mon">🐦</span>
-                <span class="stage-arrow">›</span>
-                <span class="stage-mon">🦉</span>
+              <div class="char-name" data-i18n="index.growth_your_level">
+                あなたのレベル
               </div>
-              <div class="stage-labels" aria-hidden="true">
-                <span data-i18n="index.stage_egg">たまご</span>
-                <span data-i18n="index.stage_chick">ひな</span>
-                <span data-i18n="index.stage_bird">とり</span>
-                <span data-i18n="index.stage_guide">ガイド役</span>
+              <div class="char-lv" data-i18n="index.growth_sample_level">
+                Lv.7 ことばの見習い
               </div>
-              <div class="xpbar-demo" aria-hidden="true"><span></span></div>
+              <div class="xpbar" aria-hidden="true"><span></span></div>
+              <div class="xp-label" data-i18n="index.growth_xp_label">
+                あと320XPでLv.8「校正の匠」へ
+              </div>
+              <div class="trophies" aria-hidden="true">
+                <span>🏅</span><span>🔥</span><span>🌐</span
+                ><span class="locked">👑</span><span class="locked">⭐</span>
+              </div>
+              <div
+                class="trophies-caption"
+                data-i18n="index.growth_trophies_caption"
+              >
+                獲得した実績(トロフィー)
+              </div>
             </div>
             <div class="rewards">
               <div class="reward">
                 <div class="b">🏆</div>
                 <div>
-                  <h4 data-i18n="index.reward1_title">実績(クエスト)</h4>
+                  <h4 data-i18n="index.reward1_title">実績(トロフィー)</h4>
                   <p data-i18n="index.reward1_desc">
-                    「はじめての発見」「違和感ハンター」「街ことば図鑑コンプリート」など、活動に応じたクエストをクリアすると経験値がもらえます。
-                  </p>
-                </div>
-              </div>
-              <div class="reward">
-                <div class="b">📖</div>
-                <div>
-                  <h4 data-i18n="index.reward2_title">街ことば図鑑</h4>
-                  <p data-i18n="index.reward2_desc">
-                    発見した表記の「言語 ×
-                    種類」の組み合わせを集めて図鑑を埋めていきます。
+                    「誤訳ハンター」「○○語マイスター」など、活動に応じた称号。取ると限定キャラがもらえることも。
                   </p>
                 </div>
               </div>
               <div class="reward">
                 <div class="b">🗺️</div>
                 <div>
-                  <h4 data-i18n="index.reward3_title">地域インパクト</h4>
+                  <h4 data-i18n="index.reward2_title">マップコレクション</h4>
+                  <p data-i18n="index.reward2_desc">
+                    自分が直したスポットが地図に灯る。エリアを制覇していこう。
+                  </p>
+                </div>
+              </div>
+              <div class="reward">
+                <div class="b">🔥</div>
+                <div>
+                  <h4 data-i18n="index.reward3_title">ストリーク</h4>
                   <p data-i18n="index.reward3_desc">
-                    自分の参加がどれだけ地域を良くしたか、マイページで確認できます。
+                    毎日の判定でストリークを伸ばす。続けるほどボーナス経験値。
                   </p>
                 </div>
               </div>
@@ -1224,46 +1386,73 @@
         <section class="sec collect-sec">
           <p class="sec-eyebrow"><span class="bar"></span>COLLECT</p>
           <h2 data-i18n="index.collect_title">
-            見つけるほど、街ことば図鑑が埋まっていく。
+            プレイするほど、キャラが集まる。
           </h2>
           <p class="sec-sub" data-i18n="index.collect_sub">
-            言語 ×
-            表記の種類の組み合わせで、全12マス。投稿や判定のたびに、新しいマスが埋まるかもしれません。
+            投稿や判定のたびにキャラがドロップ。レベルアップや修正の採用では、レアキャラが確定で手に入る。
           </p>
-          <div class="zukan-preview">
-            <div class="zukan-grid" aria-hidden="true">
-              <div></div>
-              <div class="zh" data-i18n="game.kind_menu">メニュー</div>
-              <div class="zh" data-i18n="game.kind_sign">看板</div>
-              <div class="zh" data-i18n="game.kind_notice">注意</div>
-              <div class="zh" data-i18n="game.kind_other">その他</div>
-
-              <div class="zl" data-i18n="common.pair_label_en">日→英</div>
-              <div class="slot">?</div>
-              <div class="slot">?</div>
-              <div class="slot">?</div>
-              <div class="slot">?</div>
-
-              <div class="zl" data-i18n="common.pair_label_zh">日→中</div>
-              <div class="slot">?</div>
-              <div class="slot">?</div>
-              <div class="slot">?</div>
-              <div class="slot">?</div>
-
-              <div class="zl" data-i18n="common.pair_label_ko">日→韓</div>
-              <div class="slot">?</div>
-              <div class="slot">?</div>
-              <div class="slot">?</div>
-              <div class="slot">?</div>
+          <div class="dex-grid" aria-hidden="true">
+            <div class="card r1">
+              <div class="art">
+                <img class="mon" src="images/mon-placeholder.svg" alt="" />
+              </div>
+              <div class="meta">
+                <div class="cn" data-i18n="index.mon1_name">スズメ</div>
+                <div class="stars">★</div>
+                <div class="own" data-i18n="index.mon1_own">所持 ×5</div>
+              </div>
             </div>
-            <p class="zukan-hint">
-              <span data-i18n="index.zukan_hint_text"
-                >はじめると、図鑑の進み具合を</span
-              >
-              <a href="game.html" data-i18n="index.zukan_hint_link"
-                >ゲーム画面で確認できます</a
-              >
-            </p>
+            <div class="card r2">
+              <div class="art">
+                <img class="mon" src="images/mon-placeholder.svg" alt="" />
+              </div>
+              <div class="meta">
+                <div class="cn" data-i18n="index.mon2_name">メジロ</div>
+                <div class="stars">★★</div>
+                <div class="own" data-i18n="index.mon2_own">所持 ×2</div>
+              </div>
+            </div>
+            <div class="card r3">
+              <div class="art">
+                <img class="mon" src="images/mon-placeholder.svg" alt="" />
+              </div>
+              <div class="meta">
+                <div class="cn" data-i18n="index.mon3_name">カワセミ</div>
+                <div class="stars">★★★</div>
+                <div class="own" data-i18n="index.mon3_own">所持 ×1</div>
+              </div>
+            </div>
+            <div class="card special">
+              <div class="badge">SPECIAL</div>
+              <div class="art">
+                <img class="mon" src="images/mon-placeholder.svg" alt="" />
+              </div>
+              <div class="meta">
+                <div class="cn">???</div>
+                <div class="stars">★★★★</div>
+                <div class="own" data-i18n="index.mon_special_own">
+                  街を直すと出会える
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="drop-tags">
+            <div class="dt">
+              <span data-i18n="index.drop1_pre">投稿・判定で</span>
+              <b data-i18n="index.drop1_b">通常ドロップ</b>
+            </div>
+            <div class="dt">
+              <span data-i18n="index.drop2_pre">レベルアップで</span>
+              <b data-i18n="index.drop2_b">レア確定</b>
+            </div>
+            <div class="dt">
+              <span data-i18n="index.drop3_pre">修正が採用されると</span>
+              <b data-i18n="index.drop3_b">レア確定</b>
+            </div>
+            <div class="dt">
+              <span data-i18n="index.drop4_pre">実績・街への貢献で</span>
+              <b data-i18n="index.drop4_b">スペシャル</b>
+            </div>
           </div>
         </section>
 
