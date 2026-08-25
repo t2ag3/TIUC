@@ -294,7 +294,7 @@ export default {
   "mypage.no_issue_ruling": "'문제없음'으로 판정",
   "game.title": "컬렉션과 퀘스트 - TIUC",
   "game.back_top": "← TIUC 소개",
-  "game.mypage_full_hint": "트로피・컬렉션・지역 임팩트는 마이페이지에서 볼 수 있습니다 →",
+  "game.mypage_full_hint": "컬렉션 확인하기",
   "game.action_find": "이미지 업로드",
   "game.action_review": "확인 및 수정",
   "game.action_map": "도시 보기",

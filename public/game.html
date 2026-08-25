@@ -157,17 +157,30 @@
     }
 
     .mypage-link {
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
       margin-top: 10px;
-      padding: 13px 8px;
+      padding: 14px 8px;
       border-radius: 16px;
       text-decoration: none;
-      text-align: center;
-      border: 1px dashed var(--line);
-      background: rgba(255, 255, 255, 0.6);
-      font-size: 12px;
+      border: 0;
+      background: var(--accent);
+      font-size: 14px;
       font-weight: 700;
-      color: var(--muted);
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(26, 92, 58, 0.22);
+      transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+    }
+    .mypage-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 26px rgba(26, 92, 58, 0.3);
+    }
+    .mypage-link span:first-child {
+      font-size: 17px;
     }
 
     /* ---- ヒーロー: 表示設定したキャラの見た目(選んでいなければ卵のプレースホルダー) ---- */
@@ -333,7 +346,7 @@
         <a href="/?home=1" data-i18n="game.back_top">← TIUCについて</a>
         <div style="display: flex; align-items: center; gap: 10px">
           <select id="lang-switcher" class="lang-switcher"></select>
-          <a href="mypage.html" data-i18n="common.mypage_link">マイページ</a>
+          <a href="#" id="logout-link" data-i18n="common.logout">ログアウト</a>
         </div>
       </div>
 
@@ -372,8 +385,9 @@
         </a>
       </div>
 
-      <a class="mypage-link" href="mypage.html" data-i18n="game.mypage_full_hint">
-        トロフィー・コレクション・図鑑・地域インパクトはマイページで見られます →
+      <a class="mypage-link" href="mypage.html">
+        <span>🏆</span>
+        <span data-i18n="game.mypage_full_hint">コレクションを確認</span>
       </a>
     </div>
 
@@ -411,7 +425,7 @@
     </div>
 
     <script type="module">
-      import { getUserId, bootstrapAuth } from "./auth.js";
+      import { getUserId, bootstrapAuth, logout } from "./auth.js";
       import { t, applyI18n, initLangSwitcher } from "./i18n.js";
 
       applyI18n();
@@ -424,6 +438,12 @@
       });
 
       const $ = (id) => document.getElementById(id);
+
+      $("logout-link").addEventListener("click", async (e) => {
+        e.preventDefault();
+        await logout();
+        location.reload();
+      });
 
       function launchLevelupFireworks() {
         const backdrop = $("levelup-backdrop");

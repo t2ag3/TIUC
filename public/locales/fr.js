@@ -294,7 +294,7 @@ export default {
   "mypage.no_issue_ruling": "Jugé « correct comme tel »",
   "game.title": "Collection et quêtes - TIUC",
   "game.back_top": "← À propos de TIUC",
-  "game.mypage_full_hint": "Trophées, collection et impact régional sont sur votre page →",
+  "game.mypage_full_hint": "Voir la collection",
   "game.action_find": "Importer une image",
   "game.action_review": "Jeter un oeil et corriger",
   "game.action_map": "Voir la ville",

@@ -294,7 +294,7 @@ export default {
   "mypage.no_issue_ruling": "Se dictaminó \"sin problemas\"",
   "game.title": "Colección y misiones - TIUC",
   "game.back_top": "← Acerca de TIUC",
-  "game.mypage_full_hint": "Los trofeos, la colección y el impacto regional están en tu página →",
+  "game.mypage_full_hint": "Ver colección",
   "game.action_find": "Subir una imagen",
   "game.action_review": "Mirar y corregir",
   "game.action_map": "Ver la ciudad",

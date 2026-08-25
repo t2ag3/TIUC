@@ -294,7 +294,7 @@ export default {
   "mypage.no_issue_ruling": "裁定为「无需修改」",
   "game.title": "收藏与任务 - TIUC",
   "game.back_top": "← 关于 TIUC",
-  "game.mypage_full_hint": "奖杯・收藏・地区影响力可在个人主页查看 →",
+  "game.mypage_full_hint": "查看收藏",
   "game.action_find": "上传图片",
   "game.action_review": "查看与修正",
   "game.action_map": "查看城市",

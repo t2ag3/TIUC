@@ -294,7 +294,7 @@ export default {
   "mypage.no_issue_ruling": "Ruled \"no issue\"",
   "game.title": "Collection & Quests - TIUC",
   "game.back_top": "← About TIUC",
-  "game.mypage_full_hint": "Trophies, collection, and regional impact are on your page →",
+  "game.mypage_full_hint": "View collection",
   "game.action_find": "Upload an Image",
   "game.action_review": "View & Correct",
   "game.action_map": "View the city",

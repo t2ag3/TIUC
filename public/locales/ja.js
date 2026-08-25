@@ -294,7 +294,7 @@ export default {
   "mypage.no_issue_ruling": "「問題なし」と裁定",
   "game.title": "コレクションとクエスト - TIUC",
   "game.back_top": "← TIUCに戻る",
-  "game.mypage_full_hint": "トロフィー・コレクション・地域インパクトはマイページで見られます →",
+  "game.mypage_full_hint": "コレクションを確認",
   "game.action_find": "画像を投稿",
   "game.action_review": "確認・修正",
   "game.action_map": "街を見る",
