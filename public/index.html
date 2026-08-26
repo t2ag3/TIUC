@@ -692,7 +692,7 @@
     .dex-grid .mon {
       width: 64px;
       height: 64px;
-      image-rendering: pixelated;
+      object-fit: contain;
       position: relative;
       z-index: 2;
       filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, 0.18));
@@ -1238,30 +1238,51 @@
           <div class="dex-grid" aria-hidden="true">
             <div class="card r1">
               <div class="art">
-                <img class="mon" src="images/mon-placeholder.svg" alt="" />
+                <img
+                  class="mon"
+                  src="images/species/axolotl.png"
+                  onerror="this.onerror=null;this.src='images/mon-placeholder.svg'"
+                  alt=""
+                />
               </div>
               <div class="meta">
-                <div class="cn" data-i18n="index.mon1_name">スズメ</div>
+                <div class="cn" data-i18n="game.species.axolotl.name">
+                  ウーパールーパー
+                </div>
                 <div class="stars">★</div>
                 <div class="own" data-i18n="index.mon1_own">所持 ×5</div>
               </div>
             </div>
             <div class="card r2">
               <div class="art">
-                <img class="mon" src="images/mon-placeholder.svg" alt="" />
+                <img
+                  class="mon"
+                  src="images/species/red_panda.png"
+                  onerror="this.onerror=null;this.src='images/mon-placeholder.svg'"
+                  alt=""
+                />
               </div>
               <div class="meta">
-                <div class="cn" data-i18n="index.mon2_name">メジロ</div>
+                <div class="cn" data-i18n="game.species.red_panda.name">
+                  レッサーパンダ
+                </div>
                 <div class="stars">★★</div>
                 <div class="own" data-i18n="index.mon2_own">所持 ×2</div>
               </div>
             </div>
             <div class="card r3">
               <div class="art">
-                <img class="mon" src="images/mon-placeholder.svg" alt="" />
+                <img
+                  class="mon"
+                  src="images/species/long_tailed_tit.png"
+                  onerror="this.onerror=null;this.src='images/mon-placeholder.svg'"
+                  alt=""
+                />
               </div>
               <div class="meta">
-                <div class="cn" data-i18n="index.mon3_name">カワセミ</div>
+                <div class="cn" data-i18n="game.species.long_tailed_tit.name">
+                  シマエナガ
+                </div>
                 <div class="stars">★★★</div>
                 <div class="own" data-i18n="index.mon3_own">所持 ×1</div>
               </div>
@@ -1269,10 +1290,17 @@
             <div class="card special">
               <div class="badge">SPECIAL</div>
               <div class="art">
-                <img class="mon" src="images/mon-placeholder.svg" alt="" />
+                <img
+                  class="mon"
+                  src="images/species/T_rex.png"
+                  onerror="this.onerror=null;this.src='images/mon-placeholder.svg'"
+                  alt=""
+                />
               </div>
               <div class="meta">
-                <div class="cn">???</div>
+                <div class="cn" data-i18n="game.species.T_rex.name">
+                  ティラノサウルス
+                </div>
                 <div class="stars">★★★★</div>
                 <div class="own" data-i18n="index.mon_special_own">
                   街を直すと出会える
