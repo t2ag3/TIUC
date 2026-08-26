@@ -29,34 +29,23 @@ function levelTitleKey(level: number): string {
   return key;
 }
 
-// 通常ドロップ(投稿・判定・修正提案・投票)とレア確定ドロップ(レベルアップ・修正確定)の
-// 抽選テーブル。種族は migrations/0012 で固定4種のみ投入しているため、コード側に直書きする
-// (QUESTS配列と同じくハードコード方針)。
-const NORMAL_DROP_TABLE: Array<{ id: string; weight: number }> = [
-  { id: "sparrow", weight: 65 },
-  { id: "white_eye", weight: 25 },
-  { id: "kingfisher", weight: 10 },
-];
-const RARE_DROP_TABLE: Array<{ id: string; weight: number }> = [
-  { id: "white_eye", weight: 70 },
-  { id: "kingfisher", weight: 30 },
-];
-
-function weightedPick(table: Array<{ id: string; weight: number }>): string {
-  const total = table.reduce((s, t) => s + t.weight, 0);
-  let r = Math.random() * total;
-  for (const t of table) {
-    if (r < t.weight) return t.id;
-    r -= t.weight;
-  }
-  return table[table.length - 1].id;
+// 通常ドロップ(投稿・判定・修正提案・投票)とレア確定ドロップ(レベルアップ・修正確定)の抽選対象。
+// migrations/0015よりロースターがspeciesテーブル駆動(60種+)になったため、
+// 固定4種時代のハードコード配列(重み付け)は廃止し、rarity=1の基本種プールから均等抽選する。
+// レア度2/3は合成(★1→★2→★3)で得る設計のため、rollRareDrop も現状は同じ基本種プールを引く
+// 暫定実装(合成メカニクス自体は別途設計・実装が必要。TODO)。
+async function basePool(env: AppEnv): Promise<string[]> {
+  const rows = await env.DB.prepare("SELECT id FROM species WHERE rarity = 1")
+    .all<{ id: string }>();
+  return rows.results.map((r) => r.id);
 }
 
-export function rollNormalDrop(): string {
-  return weightedPick(NORMAL_DROP_TABLE);
+export async function rollNormalDrop(env: AppEnv): Promise<string> {
+  const pool = await basePool(env);
+  return pool[Math.floor(Math.random() * pool.length)];
 }
-export function rollRareDrop(): string {
-  return weightedPick(RARE_DROP_TABLE);
+export async function rollRareDrop(env: AppEnv): Promise<string> {
+  return rollNormalDrop(env);
 }
 
 // character_drops への1行を返す。source_key はイベント単位で一意にし、リトライでの
@@ -129,7 +118,7 @@ async function ensureCharacter(env: AppEnv, userId: string): Promise<number> {
         dropStatement(
           env,
           userId,
-          rollRareDrop(),
+          await rollRareDrop(env),
           `drop:levelup:${userId}:${lv}`,
           now,
         ),
@@ -398,7 +387,7 @@ export async function gameClaimQuest(
     );
   } else if (questId === "streak_7" || questId === "streak_14") {
     stmts.push(
-      dropStatement(env, userId, rollRareDrop(), `drop:quest:${userId}:${questId}`, now),
+      dropStatement(env, userId, await rollRareDrop(env), `drop:quest:${userId}:${questId}`, now),
     );
   }
   await env.DB.batch(stmts);

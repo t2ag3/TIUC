@@ -403,6 +403,38 @@ posts.status:
     UI言語が変わっても内容自体は変えない）。注釈の`index.hero_note_cap`（「← 二条城の実物。何がヘンか、
     わかる？」）は他の注釈と同様に6言語分翻訳した。
   - lp_mock本体に合わせ、`.hero-note`は`max-width:720px`で非表示（モバイルでは看板を出さない）。
+- **（2026-08-27改定）キャラ図鑑を100種類まで拡張する第一弾として60種を追加した
+  （`migrations/0015_species_roster_60.sql`、ユーザー提供のCSVがベース）**。
+  - 新方針が明らかになった：基本種はすべて`rarity=1`（★1）で入手し、**合成**（★1→★2→★3、未実装）で
+    ランクを上げる。★4は合成では到達できない個別の特別キャラ専用の枠（`mystery`が最初の例で、以後も
+    同じ枠に追加していく想定）。そのため旧来の「種族ごとに固定レア度を割り当てる」設計
+    （sparrow=★1・white_eye=★2・kingfisher=★3）は廃止。
+  - ユーザーからの回答「ユーザーいないから破壊的操作してOK」（2026-08-27）を受け、本番の
+    `character_drops`/`user_characters`のうち該当データ（テストユーザー2名分、計6件のみ）を削除して
+    実施。`white_eye`は新リストの`white_eye_bird`に統合されるためid自体を削除、`kingfisher`はidを
+    維持したままレア度だけ1に更新（所持記録は無傷）。`sparrow`・`mystery`は変更なし。
+  - `src/game.ts`の`NORMAL_DROP_TABLE`/`RARE_DROP_TABLE`（固定4種時代の重み付けハードコード配列）を
+    廃止し、`rarity=1`の`species`テーブルを都度クエリして均等抽選する方式に変更（`rollNormalDrop`/
+    `rollRareDrop`が`env`を取るasync関数になったため、`posts.ts`/`review.ts`の呼び出し箇所5箇所に
+    `await`を追加）。**`rollRareDrop`は合成メカニクス未実装のため、現状`rollNormalDrop`と同じ
+    基本種プールを引く暫定実装**（合成が実装されたらここを差し替える。TODO）。
+  - 画像は全種`mon-placeholder.svg`共用のまま（実イラストは未着手。ユーザーが順次用意する予定）。
+    `collection.html`/`game.html`は`species`テーブルを汎用的に描画しているため、ロースターが
+    4種→61種に増えてもフロント側の追加改修は不要だった。
+  - i18n：`game.species.<id>.name`/`.desc`を6言語×59種ぶん追加（`sparrow`は変更なしなので追加対象外）。
+  - 名前・説明・画像ファイル名は当面ユーザー提供のCSV（`id,sort_order,rarity,name_ja,desc_ja,
+    image_filename`形式）で受け渡す運用。実イラスト画像は`public/images/species/`に置く想定
+    （R2は使わない。投稿写真と違いアクセス制御不要な静的アセットのため）。
+  - 同日中にユーザーが実際に5種分のイラスト（`long_tailed_tit`/`Pallas_cat`/`axolotl`/`red_panda`/
+    `T_rex`）を`public/images/species/`に用意したため、表示側も実装した：
+    `collection.html`（タイル・詳細モーダル）と`game.html`（ヒーローの選択中キャラ表示）で、
+    `images/species/${id}.png`を試みて404なら`onerror`で`mon-placeholder.svg`にフォールバックする方式。
+    画像ファイル名は**`{id}.png`（数字プレフィックス無し）に統一**した
+    （ユーザーが最初に置いた5枚は`{sort_order}_{id}.png`形式だったためリネーム済み。
+    表示順は`sort_order`カラムが担うのでファイル名に含める必要が無く、並び替え時に
+    ファイル名を変更しなくて済むメリットもある。今後の画像追加もこの命名で）。
+    実イラストは正方形とは限らないため`.mon`に`object-fit:contain`を追加し、
+    `image-rendering:pixelated`（プレースホルダー専用の見た目）は外した。
 
 **動いているもの**
 

@@ -143,7 +143,7 @@ export async function judgeSubmit(
               streak_count = ?3, streak_at = ?4, streak_best = ?5
         WHERE id = ?1`,
     ).bind(userId, POINTS_JUDGMENT, newStreak, now, newBest),
-    dropStatement(env, userId, rollNormalDrop(), `drop:judge:${judgmentId}`, now),
+    dropStatement(env, userId, await rollNormalDrop(env), `drop:judge:${judgmentId}`, now),
   ]);
 
   const counts = await env.DB.prepare(
@@ -308,7 +308,7 @@ export async function correctSubmit(
     dropStatement(
       env,
       userId,
-      rollNormalDrop(),
+      await rollNormalDrop(env),
       `drop:correction:${correctionId}`,
       now,
     ),
@@ -427,7 +427,7 @@ export async function correctVoteSubmit(
     env.DB.prepare(
       "UPDATE users SET points_total = points_total + ?2 WHERE id = ?1",
     ).bind(userId, POINTS_VOTE),
-    dropStatement(env, userId, rollNormalDrop(), `drop:vote:${voteId}`, now),
+    dropStatement(env, userId, await rollNormalDrop(env), `drop:vote:${voteId}`, now),
   ]);
 
   const tally = await env.DB.prepare(
@@ -492,7 +492,7 @@ export async function correctVoteSubmit(
         dropStatement(
           env,
           String(correction.curator_id),
-          rollRareDrop(),
+          await rollRareDrop(env),
           `drop:confirm:${correctionId}`,
           now,
         ),

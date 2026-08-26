@@ -72,7 +72,7 @@
     .mon {
       width: 38px;
       height: 38px;
-      image-rendering: pixelated;
+      object-fit: contain;
       position: relative;
       z-index: 2;
       filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, 0.18));
@@ -353,7 +353,7 @@
             return `
               <div class="dex-card ${rarityClass} ${locked ? "locked" : ""}" data-id="${s.id}">
                 ${badge}
-                <div class="art"><img class="mon" src="images/mon-placeholder.svg" alt=""></div>
+                <div class="art"><img class="mon" src="images/species/${s.id}.png" onerror="this.onerror=null;this.src='images/mon-placeholder.svg'" alt=""></div>
                 <div class="meta">
                   <div class="cn">${name}</div>
                 </div>
@@ -381,7 +381,7 @@
         const artClass = locked ? "locked" : `r${s.rarity}`;
 
         $("detail-body").innerHTML = `
-          <div class="detail-art ${artClass}"><img class="mon" src="images/mon-placeholder.svg" alt=""></div>
+          <div class="detail-art ${artClass}"><img class="mon" src="images/species/${s.id}.png" onerror="this.onerror=null;this.src='images/mon-placeholder.svg'" alt=""></div>
           <div class="detail-name">${name}</div>
           ${locked ? "" : `<div class="detail-stars r${s.rarity}">${"★".repeat(s.rarity)}</div>`}
           <p class="detail-desc">${desc}</p>

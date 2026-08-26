@@ -208,7 +208,7 @@
     .hero-mon {
       width: 48px;
       height: 48px;
-      image-rendering: pixelated;
+      object-fit: contain;
       filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, 0.18));
     }
     .hero-mon-empty {
@@ -559,6 +559,11 @@
         wrap.className = "hero-mon-wrap";
         if (j.display_species_id) {
           wrap.classList.add(`r${j.display_rarity}`);
+          $("hero-mon").src = `images/species/${j.display_species_id}.png`;
+          $("hero-mon").onerror = function () {
+            this.onerror = null;
+            this.src = "images/mon-placeholder.svg";
+          };
           $("hero-mon").hidden = false;
           $("hero-mon-empty").hidden = true;
         } else {

@@ -202,7 +202,7 @@ export async function createPost(
               streak_count = ?3, streak_at = ?4, streak_best = ?5
         WHERE id = ?1`,
     ).bind(userId, points, newStreak, now, newBest),
-    dropStatement(env, userId, rollNormalDrop(), `drop:post:${id}`, now),
+    dropStatement(env, userId, await rollNormalDrop(env), `drop:post:${id}`, now),
   ]);
 
   return Response.json({ ok: true, id, mesh3: mesh.mesh3, points });
