@@ -148,22 +148,30 @@
     #hero {
       position: relative;
       overflow: hidden;
-      min-height: 440px;
-      border-radius: 28px;
-      padding: clamp(34px, 6vw, 68px) clamp(22px, 5vw, 60px);
+      width: 100vw;
+      margin-left: calc(50% - 50vw);
+      margin-right: calc(50% - 50vw);
+      padding: clamp(48px, 8vw, 64px) 0 clamp(70px, 10vw, 92px);
       background: var(--brand);
-      box-shadow: var(--shadow-lg);
     }
     #hero::before {
       content: "";
       position: absolute;
       inset: 0;
       background: radial-gradient(
-        circle at 82% 24%,
-        rgba(255, 255, 255, 0.14),
+        circle at 82% 30%,
+        rgba(255, 255, 255, 0.12),
         transparent 42%
       );
       pointer-events: none;
+    }
+
+    .hero-wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 20px;
     }
 
     .hero-content {
@@ -171,6 +179,32 @@
       z-index: 3;
       width: min(62%, 620px);
       min-width: 0;
+    }
+
+    .hero-cta {
+      position: relative;
+      z-index: 1;
+      margin-top: 36px;
+    }
+
+    .cue {
+      position: absolute;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      color: #bfe6d5;
+      font-size: 12px;
+      text-align: center;
+      animation: bob 1.8s ease-in-out infinite;
+    }
+    @keyframes bob {
+      0%,
+      100% {
+        transform: translateX(-50%) translateY(0);
+      }
+      50% {
+        transform: translateX(-50%) translateY(6px);
+      }
     }
 
     .hero-art {
@@ -291,199 +325,21 @@
       position: relative;
       z-index: 1;
       display: flex;
-      gap: 10px;
+      gap: 40px;
       flex-wrap: wrap;
-      margin-top: 30px;
-    }
-    #stats-row .stat {
-      min-width: 132px;
-      padding: 13px 16px;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.1);
+      margin-top: 38px;
     }
     #stats-row .n {
-      font-size: 23px;
+      font-size: 34px;
       font-weight: 800;
       color: #fff;
     }
     #stats-row .label {
       margin-top: 2px;
       color: #bfe6d5;
-      font-size: 11px;
+      font-size: 12px;
+      letter-spacing: 0.06em;
     }
-    #buddy {
-      position: relative;
-      isolation: isolate;
-      overflow: hidden;
-      margin-top: 14px;
-      min-height: 130px;
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      padding: 24px 28px;
-      border: 1px solid var(--brand-dark);
-      border-radius: 24px;
-      background: linear-gradient(135deg, var(--brand-dark), var(--brand));
-      color: #fff;
-      text-decoration: none;
-      box-shadow:
-        0 1px 2px rgba(18, 28, 20, 0.05),
-        0 14px 34px rgba(8, 100, 60, 0.22);
-      transition:
-        transform 0.18s ease,
-        box-shadow 0.18s ease;
-    }
-
-    #buddy:hover {
-      transform: translateY(-3px) scale(1.01);
-      box-shadow:
-        0 1px 2px rgba(18, 28, 20, 0.05),
-        0 20px 42px rgba(8, 100, 60, 0.3);
-    }
-
-    .buddy-icon {
-      position: relative;
-      z-index: 2;
-      flex: 0 0 auto;
-      width: 58px;
-      height: 58px;
-      display: grid;
-      place-items: center;
-      border-radius: 50%;
-      background: #fff;
-      font-size: 30px;
-      line-height: 1;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-    }
-
-    .buddy-copy {
-      position: relative;
-      z-index: 2;
-      flex: 1;
-      min-width: 0;
-    }
-
-    .buddy-game {
-      color: #fff;
-      font-size: clamp(24px, 4vw, 34px);
-      font-weight: 850;
-      line-height: 1.05;
-      letter-spacing: -0.025em;
-    }
-
-    .buddy-subtitle {
-      margin-top: 7px;
-      color: rgba(255, 255, 255, 0.88);
-      font-size: 13px;
-      line-height: 1.45;
-    }
-
-    .buddy-arrow {
-      position: relative;
-      z-index: 2;
-      flex: 0 0 auto;
-      width: 48px;
-      height: 48px;
-      display: grid;
-      place-items: center;
-      border-radius: 50%;
-      background: #fff;
-      color: var(--brand-dark);
-      font-size: 30px;
-      line-height: 1;
-    }
-
-    .buddy-decoration {
-      position: absolute;
-      z-index: 0;
-      inset: 0;
-      pointer-events: none;
-      opacity: 0.22;
-    }
-
-    .map-route {
-      position: absolute;
-      right: 7%;
-      bottom: 17%;
-      width: 38%;
-      height: 42%;
-      border-bottom: 3px solid rgba(255, 255, 255, 0.75);
-      border-radius: 0 0 55% 45%;
-      transform: rotate(-7deg);
-    }
-
-    .map-pin {
-      position: absolute;
-      width: 16px;
-      height: 16px;
-      border: 4px solid rgba(255, 255, 255, 0.8);
-      border-radius: 50% 50% 50% 0;
-      transform: rotate(-45deg);
-    }
-
-    .map-pin::after {
-      content: "";
-      position: absolute;
-      width: 4px;
-      height: 4px;
-      left: 2px;
-      top: 2px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.8);
-    }
-
-    .pin-one {
-      right: 9%;
-      top: 19%;
-    }
-
-    .pin-two {
-      right: 25%;
-      bottom: 20%;
-      transform: rotate(-45deg) scale(0.75);
-    }
-
-    .pin-three {
-      right: 38%;
-      top: 26%;
-      transform: rotate(-45deg) scale(0.6);
-    }
-
-    .firework {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 9px;
-      height: 9px;
-      pointer-events: none;
-      border-radius: 50%;
-      background: currentColor;
-      z-index: 6;
-      opacity: 0;
-      animation: firework-burst 800ms ease-out forwards;
-    }
-
-    @keyframes firework-burst {
-      0% {
-        opacity: 0;
-        transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0)
-          scale(0);
-      }
-
-      10% {
-        opacity: 1;
-        transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0)
-          scale(1.15);
-      }
-
-      100% {
-        opacity: 0;
-        transform: translate(-50%, -50%) rotate(var(--angle))
-          translateX(var(--distance)) scale(0.25);
-      }
-    }
-
     @media (max-width: 760px) {
       .shell {
         padding: 0 14px;
@@ -497,9 +353,11 @@
         padding-top: 16px;
       }
       #hero {
-        min-height: 0;
-        border-radius: 22px;
-        padding: 30px 20px 24px;
+        padding: 30px 0 44px;
+      }
+
+      .hero-wrap {
+        padding: 0 14px;
       }
 
       .hero-content {
@@ -522,31 +380,12 @@
         display: none;
       }
 
-      #stats-row .stat {
-        flex: 1;
-        min-width: 0;
-        padding: 12px;
-      }
-      #buddy {
-        min-height: 105px;
-        gap: 12px;
-        padding: 18px;
+      #stats-row {
+        gap: 24px;
       }
 
-      .buddy-icon {
-        width: 48px;
-        height: 48px;
-        font-size: 25px;
-      }
-
-      .buddy-arrow {
-        width: 42px;
-        height: 42px;
-        font-size: 26px;
-      }
-
-      .buddy-subtitle {
-        font-size: 11px;
+      .cue {
+        display: none;
       }
     }
 
@@ -1173,61 +1012,58 @@
       </header>
       <main>
         <section id="hero">
-          <div class="hero-content">
-            <p class="eyebrow">CIVIC TRANSLATION PROJECT</p>
-            <h1 data-i18n-html="index.hero_title">
-              街の外国語を、<br /><span class="accent"
-                >みんなで少しずつ良くする。</span
-              >
-            </h1>
-            <p class="hero-lead" data-i18n="index.hero_lead">
-              気になった外国語表記を撮る。自然かどうかを確かめる。より良い表現を提案する。小さな参加を積み重ねて、街のことばをアップデートします。
-            </p>
-            <div id="stats-row">
-              <div class="stat">
-                <div class="n" id="stat-posts">—</div>
-                <div class="label" data-i18n="index.stat_posts_label">
-                  集まった投稿
+          <div class="hero-wrap">
+            <div class="hero-content">
+              <p class="eyebrow">CIVIC TRANSLATION PROJECT</p>
+              <h1 data-i18n-html="index.hero_title">
+                街の外国語を、<br /><span class="accent"
+                  >みんなで少しずつ良くする。</span
+                >
+              </h1>
+              <p class="hero-lead" data-i18n="index.hero_lead">
+                気になった外国語表記を撮る。自然かどうかを確かめる。より良い表現を提案する。小さな参加を積み重ねて、街のことばをアップデートします。
+              </p>
+              <div id="stats-row">
+                <div class="stat">
+                  <div class="n" id="stat-posts">—</div>
+                  <div class="label" data-i18n="index.stat_posts_label">
+                    集まった投稿
+                  </div>
+                </div>
+                <div class="stat">
+                  <div class="n" id="stat-fixed">—</div>
+                  <div class="label" data-i18n="index.stat_fixed_label">
+                    確定した修正
+                  </div>
+                </div>
+                <div class="stat">
+                  <div class="n" id="stat-adopted">—</div>
+                  <div class="label" data-i18n="index.stat_adopted_label">
+                    街で直った数
+                  </div>
                 </div>
               </div>
-              <div class="stat">
-                <div class="n" id="stat-fixed">—</div>
-                <div class="label" data-i18n="index.stat_fixed_label">
-                  確定した修正
-                </div>
+              <div class="hero-cta">
+                <a id="hero-game-btn" href="game.html" class="game-btn"
+                  >🎮 Game On <span class="arw">›</span></a
+                >
               </div>
             </div>
-          </div>
 
-          <div class="hero-art">
-            <div class="hero-sign">
-              <div class="hero-sign-board">
-                <img src="images/title-image.png" alt="" aria-hidden="true" />
+            <div class="hero-art">
+              <div class="hero-sign">
+                <div class="hero-sign-board">
+                  <img src="images/title-image.png" alt="" aria-hidden="true" />
+                </div>
+                <div class="hero-sign-legs" aria-hidden="true"></div>
+                <div class="hero-sign-ground" aria-hidden="true"></div>
               </div>
-              <div class="hero-sign-legs" aria-hidden="true"></div>
-              <div class="hero-sign-ground" aria-hidden="true"></div>
             </div>
           </div>
+          <p class="cue" data-i18n="index.hero_scroll_cue">
+            スクロールで、あそび方 ↓
+          </p>
         </section>
-        <a id="buddy" href="game.html">
-          <div class="buddy-decoration" aria-hidden="true">
-            <span class="map-pin pin-one"></span>
-            <span class="map-pin pin-two"></span>
-            <span class="map-pin pin-three"></span>
-            <span class="map-route"></span>
-          </div>
-
-          <div style="padding-bottom:1%;" class="buddy-icon" aria-hidden="true">🎮</div>
-
-          <div class="buddy-copy">
-            <div class="buddy-game">Game on</div>
-            <div class="buddy-subtitle">
-              Start finding and fixing mistranslations!
-            </div>
-          </div>
-
-          <span style="padding-bottom:1%;" class="buddy-arrow">›</span>
-        </a>
 
         <!-- WHY -->
         <section class="sec">
@@ -1538,65 +1374,15 @@
           if (j.ok) {
             $("stat-posts").textContent = j.total;
             $("stat-fixed").textContent = j.confirmed ?? 0;
+            $("stat-adopted").textContent = j.adopted ?? 0;
           }
         })
         .catch(() => {});
 
-      const buddy = $("buddy");
-
-      function launchBuddyFireworks() {
-        const colors = [
-          "#ffffff",
-          "#ffd34e",
-          "#8ee0ad",
-          "#82c7ff",
-          "#ff9770",
-        ];
-
-        const particleCount = 28;
-
-        for (let i = 0; i < particleCount; i++) {
-          const particle = document.createElement("span");
-          particle.className = "firework";
-          particle.style.color = colors[i % colors.length];
-          particle.style.setProperty(
-            "--angle",
-            `${i * (360 / particleCount)}deg`,
-          );
-          particle.style.setProperty(
-            "--distance",
-            `${140 + Math.random() * 100}px`,
-          );
-
-          buddy.appendChild(particle);
-          particle.addEventListener("animationend", () => particle.remove());
-        }
-      }
-
-      buddy.addEventListener("click", (event) => {
-        if (
-          event.defaultPrevented ||
-          event.button !== 0 ||
-          event.metaKey ||
-          event.ctrlKey ||
-          event.shiftKey ||
-          event.altKey
-        ) {
-          return;
-        }
-
-        event.preventDefault();
-
-        launchBuddyFireworks();
-
-        setTimeout(() => {
-          location.href = buddy.href;
-        }, 760);
-      });
-
+      const hero = $("hero");
       const floatingCta = $("floating-cta");
       window.addEventListener("scroll", () => {
-        const past = window.scrollY > buddy.offsetTop + buddy.offsetHeight;
+        const past = window.scrollY > hero.offsetTop + hero.offsetHeight;
         floatingCta.classList.toggle("show", past);
       });
     </script>

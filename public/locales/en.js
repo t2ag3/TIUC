@@ -36,6 +36,8 @@ export default {
   "index.hero_lead": "Snap a photo of a foreign-language sign that catches your eye. Check whether it sounds natural. Suggest a better phrasing. Small contributions add up to update the language of the city.",
   "index.stat_posts_label": "Submissions collected",
   "index.stat_fixed_label": "Confirmed corrections",
+  "index.stat_adopted_label": "Fixed in the city",
+  "index.hero_scroll_cue": "Scroll to see how it works ↓",
   "index.section_participate_title": "Get involved",
   "index.section_participate_sub": "Start with just one thing you can do.",
   "index.mode_report_title": "Find",

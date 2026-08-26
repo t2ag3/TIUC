@@ -36,6 +36,8 @@ export default {
   "index.hero_lead": "눈에 띈 외국어 표기를 촬영하세요. 자연스러운지 확인하세요. 더 나은 표현을 제안하세요. 작은 참여가 쌓여 거리의 언어를 업데이트합니다.",
   "index.stat_posts_label": "수집된 게시물",
   "index.stat_fixed_label": "확정된 수정",
+  "index.stat_adopted_label": "거리에서 실제로 고쳐진 수",
+  "index.hero_scroll_cue": "스크롤해서 즐기는 방법 보기 ↓",
   "index.section_participate_title": "참여하기",
   "index.section_participate_sub": "할 수 있는 것부터 하나만이라도.",
   "index.mode_report_title": "찾기",

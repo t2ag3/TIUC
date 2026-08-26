@@ -36,6 +36,8 @@ export default {
   "index.hero_lead": "Photographiez une traduction qui attire votre attention. Vérifiez si elle sonne naturel. Proposez une meilleure formulation. De petites contributions qui, mises bout à bout, font évoluer la langue de la ville.",
   "index.stat_posts_label": "Contributions reçus",
   "index.stat_fixed_label": "Corrections confirmées",
+  "index.stat_adopted_label": "Corrections appliquées en ville",
+  "index.hero_scroll_cue": "Faites défiler pour voir comment jouer ↓",
   "index.section_participate_title": "Participer",
   "index.section_participate_sub": "Commencez par une seule contribution, poursuivez avec encore plein d'autres.",
   "index.mode_report_title": "Repérer",

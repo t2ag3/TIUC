@@ -36,6 +36,8 @@ export default {
   "index.hero_lead": "拍下您在意的标识，分享更好的想法。每一次发现，都在修订这座城市的语言。",
   "index.stat_posts_label": "收到的投稿",
   "index.stat_fixed_label": "已确认的修改",
+  "index.stat_adopted_label": "街头实际修正数",
+  "index.hero_scroll_cue": "向下滚动，了解玩法 ↓",
   "index.section_participate_title": "参与",
   "index.section_participate_sub": "从力所能及的一件事开始。",
   "index.mode_report_title": "发现",

@@ -110,7 +110,8 @@ export default {
           `SELECT COUNT(*) AS total,
 					        SUM(status = 'pending_judgment') AS pending,
 					        SUM(status = 'needs_fix') AS needs_fix,
-					        SUM(status = 'confirmed') AS confirmed
+					        SUM(status = 'confirmed') AS confirmed,
+					        SUM(status = 'adopted') AS adopted
 					   FROM posts`,
         ).first();
         return Response.json({ ok: true, ...r });

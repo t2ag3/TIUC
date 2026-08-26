@@ -361,6 +361,30 @@ posts.status:
   - `mypage.html`の見出し下に`#streak-line`（🔥 N日連続）を新設。`/api/user/mypage`（`src/user.ts`の
     `mypage()`）のレスポンスにも`streak_best`を追加済み（現状フロント表示は`streak_count`のみ使用、
     `streak_best`は将来の「自己ベスト」表示用に温存）。
+- **（2026-08-26改定）`index.html`の`<section id="hero">`をDownloadsに残っていた`lp_mock.html`の
+  `<header class="hero">`と見た目が一致するよう作り直した（ユーザー指示、2026-08-26。`lp_mock.html`は
+  リポジトリには無く`~/Downloads/lp_mock.html`にのみ存在）**。
+  - フルブリード（`width:100vw`＋負のマージンで`.shell`の1080px制約を突き抜けさせる）の緑帯に変更。
+    従来は角丸・box-shadow付きの「浮いたカード」型ヒーローだった。
+  - 統計を3つに増やし（`集まった投稿`/`確定した修正`/新設の`街で直った数`）、枠なしのプレーンな見た目に変更
+    （従来は半透明の縁取りカードだった）。3つ目の`adopted`件数用に`/api/health`のSQLに
+    `SUM(status='adopted')`を追加。`status='adopted'`への遷移経路自体はまだ無い（次の作業1）ため、
+    採用フロー実装まではこの数値は基本0のまま。
+  - ヒーロー内に「🎮 Game On ›」ボタン（既存の`.game-btn`をそのまま流用）を新設し、末尾に
+    スクロール誘導文言（bobアニメーション）を追加。
+  - ヒーロー直下にあった独立の`<a id="buddy">`ブロック（マップピン装飾・クリック時の花火パーティクル演出・
+    「Start finding and fixing mistranslations!」という副題）は削除し、上記のヒーロー内蔵CTAに一本化した
+    （lp_mockのヒーローCTAは装飾のないプレーンな`.game-btn`1つのみのため、2つのGame On導線が縦に並ぶ
+    見た目の重複を避けた）。花火パーティクル演出はこの整理で失われている＝要望があれば新CTAへの
+    再実装を検討。floating-cta（下部固定のGame Onボタン）の表示トリガーは、削除した`#buddy`の位置基準
+    から`#hero`セクション自体の位置基準に付け替えた。
+  - lp_mockの`.hero-note`（「本日は工事中です。/ Today is under construction. / ← 二条城の実物」という
+    プレースホルダーのミニ看板）はそのままでは移植していない。理由：index.htmlはこの日名前由来ネタを
+    既にWHYセクション側（`index.why_sign_ja`/`index.why_sign_cap`＝「← これがTIUCという名前の由来です」）
+    に持たせ済みで、ヒーロー側は本物のブランドロゴ画像（`images/title-image.png`、当日作成）に
+    差し替え済みだった。lp_mockのプレースホルダーへ巻き戻すと実ブランド資産を捨てることになるため、
+    「見た目を一致させる」対象を外枠（フルブリード・統計・CTA・スクロール誘導）に絞り、ロゴ画像自体は
+    現状のまま維持している。
 
 **動いているもの**
 

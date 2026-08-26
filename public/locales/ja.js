@@ -36,6 +36,8 @@ export default {
   "index.hero_lead": "気になった外国語表記を撮る。自然かどうかを確かめる。より良い表現を提案する。小さな参加を積み重ねて、街のことばをアップデートします。",
   "index.stat_posts_label": "集まった投稿",
   "index.stat_fixed_label": "確定した修正",
+  "index.stat_adopted_label": "街で直った数",
+  "index.hero_scroll_cue": "スクロールで、あそび方 ↓",
   "index.section_participate_title": "参加する",
   "index.section_participate_sub": "できることから、1つだけでも。",
   "index.mode_report_title": "見つける",

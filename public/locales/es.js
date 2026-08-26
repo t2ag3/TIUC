@@ -36,6 +36,8 @@ export default {
   "index.hero_lead": "Fotografía un texto en japonés que te llame la atención. Comprueba si suena natural. Propón una expresión mejor. Pequeñas contribuciones que, sumadas, van actualizando el lenguaje de la ciudad.",
   "index.stat_posts_label": "Publicaciones recibidas",
   "index.stat_fixed_label": "Correcciones confirmadas",
+  "index.stat_adopted_label": "Correcciones aplicadas en la ciudad",
+  "index.hero_scroll_cue": "Desplázate para ver cómo jugar ↓",
   "index.section_participate_title": "Participar",
   "index.section_participate_sub": "Empieza por una sola cosa que puedas hacer.",
   "index.mode_report_title": "Detectar",
