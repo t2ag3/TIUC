@@ -29,38 +29,62 @@ function levelTitleKey(level: number): string {
   return key;
 }
 
-// 通常ドロップ(投稿・判定・修正提案・投票)とレア確定ドロップ(レベルアップ・修正確定)の抽選対象。
-// migrations/0015よりロースターがspeciesテーブル駆動(60種+)になったため、
-// 固定4種時代のハードコード配列(重み付け)は廃止し、rarity=1の基本種プールから均等抽選する。
-// レア度2/3は合成(★1→★2→★3)で得る設計のため、rollRareDrop も現状は同じ基本種プールを引く
-// 暫定実装(合成メカニクス自体は別途設計・実装が必要。TODO)。
-async function basePool(env: AppEnv): Promise<string[]> {
-  const rows = await env.DB.prepare("SELECT id FROM species WHERE rarity = 1")
-    .all<{ id: string }>();
-  return rows.results.map((r) => r.id);
+// ドロップするレア度ティアの抽選テーブル。合計100になるよう厳密指定(ユーザー指示、2026-08-27)。
+// ★1〜3は共通の基本種プール(species.rarity=1、60種)から、★4は専用の特別枠プール
+// (species.rarity=4、mystery等)から種族を選ぶ。実際のレア度は種族固定ではなく、
+// このドロップ時のティア抽選と合成(migrations/0016)で決まる。
+const TIER_WEIGHTS: Array<{ tier: number; weight: number }> = [
+  { tier: 1, weight: 80 },
+  { tier: 2, weight: 15 },
+  { tier: 3, weight: 4.5 },
+  { tier: 4, weight: 0.5 },
+];
+
+export type Drop = { speciesId: string; rarity: number };
+
+function weightedPickTier(table: Array<{ tier: number; weight: number }>): number {
+  const total = table.reduce((s, t) => s + t.weight, 0);
+  let r = Math.random() * total;
+  for (const t of table) {
+    if (r < t.weight) return t.tier;
+    r -= t.weight;
+  }
+  return table[table.length - 1].tier;
 }
 
-export async function rollNormalDrop(env: AppEnv): Promise<string> {
-  const pool = await basePool(env);
+async function pickSpeciesForTier(env: AppEnv, tier: number): Promise<string> {
+  const rows = await env.DB.prepare("SELECT id FROM species WHERE rarity = ?1")
+    .bind(tier === 4 ? 4 : 1)
+    .all<{ id: string }>();
+  const pool = rows.results.map((r) => r.id);
   return pool[Math.floor(Math.random() * pool.length)];
 }
-export async function rollRareDrop(env: AppEnv): Promise<string> {
-  return rollNormalDrop(env);
+
+export async function rollNormalDrop(env: AppEnv): Promise<Drop> {
+  const tier = weightedPickTier(TIER_WEIGHTS);
+  return { speciesId: await pickSpeciesForTier(env, tier), rarity: tier };
+}
+
+// レベルアップ・修正確定などの「確定で少し良い」ボーナス枠。★1を除外して再抽選する。
+export async function rollRareDrop(env: AppEnv): Promise<Drop> {
+  const tier = weightedPickTier(TIER_WEIGHTS.filter((t) => t.tier > 1));
+  return { speciesId: await pickSpeciesForTier(env, tier), rarity: tier };
 }
 
 // character_drops への1行を返す。source_key はイベント単位で一意にし、リトライでの
-// 二重ドロップを防ぐ(所持数の加算は migrations/0012 のトリガー任せ、ここではpushしない)。
+// 二重ドロップを防ぐ(所持数の加算は migrations/0016 のトリガー任せ、ここではpushしない)。
 export function dropStatement(
   env: AppEnv,
   userId: string,
   speciesId: string,
+  rarity: number,
   sourceKey: string,
   now: number,
 ) {
   return env.DB.prepare(
-    `INSERT INTO character_drops (user_id, species_id, source_key, created_at)
-     VALUES (?1,?2,?3,?4) ON CONFLICT(source_key) DO NOTHING`,
-  ).bind(userId, speciesId, sourceKey, now);
+    `INSERT INTO character_drops (user_id, species_id, rarity, source_key, created_at)
+     VALUES (?1,?2,?3,?4,?5) ON CONFLICT(source_key) DO NOTHING`,
+  ).bind(userId, speciesId, rarity, sourceKey, now);
 }
 
 async function ensureCharacter(env: AppEnv, userId: string): Promise<number> {
@@ -114,11 +138,13 @@ async function ensureCharacter(env: AppEnv, userId: string): Promise<number> {
   // source_key がレベル単位で一意なので、複数エンドポイントから呼ばれても二重発行されない。
   if (currentLevel > lastLevel) {
     for (let lv = lastLevel + 1; lv <= currentLevel; lv++) {
+      const drop = await rollRareDrop(env);
       stmts.push(
         dropStatement(
           env,
           userId,
-          await rollRareDrop(env),
+          drop.speciesId,
+          drop.rarity,
           `drop:levelup:${userId}:${lv}`,
           now,
         ),
@@ -151,8 +177,11 @@ export async function gameCharacter(
       .bind(userId)
       .first<{ n: number }>(),
     env.DB.prepare(
-      `SELECT c.display_species_id, s.rarity AS display_rarity
-         FROM characters c LEFT JOIN species s ON s.id = c.display_species_id
+      `SELECT c.display_species_id,
+              (SELECT MAX(uc.rarity) FROM user_characters uc
+                WHERE uc.user_id = c.user_id AND uc.species_id = c.display_species_id AND uc.count > 0
+              ) AS display_rarity
+         FROM characters c
         WHERE c.user_id = ?1`,
     )
       .bind(userId)
@@ -383,11 +412,12 @@ export async function gameClaimQuest(
   // 7日・14日ストリークはレア確定ドロップで途中の山場を作る。
   if (questId === "zukan_12" || questId === "streak_30") {
     stmts.push(
-      dropStatement(env, userId, "mystery", `drop:quest:${userId}:${questId}`, now),
+      dropStatement(env, userId, "mystery", 4, `drop:quest:${userId}:${questId}`, now),
     );
   } else if (questId === "streak_7" || questId === "streak_14") {
+    const drop = await rollRareDrop(env);
     stmts.push(
-      dropStatement(env, userId, await rollRareDrop(env), `drop:quest:${userId}:${questId}`, now),
+      dropStatement(env, userId, drop.speciesId, drop.rarity, `drop:quest:${userId}:${questId}`, now),
     );
   }
   await env.DB.batch(stmts);
@@ -413,22 +443,98 @@ export async function gameEncyclopedia(
   });
 }
 
+// 合成に必要な同ティア枚数。1→2は2枚、2→3は3枚(ユーザー指示、2026-08-27)。★4への合成経路は無い。
+const SYNTHESIS_REQUIREMENTS: Record<number, number> = { 1: 2, 2: 3 };
+
 export async function gameCollection(
   request: Request,
   env: AppEnv,
 ): Promise<Response> {
   const userId = String(new URL(request.url).searchParams.get("user_id") || "");
   if (!UUID_RE.test(userId)) return bad("ユーザーIDが不正です");
-  const rows = await env.DB.prepare(
-    `SELECT s.id, s.name_key, s.rarity, s.sort_order,
-            COALESCE(uc.count, 0) AS count, uc.first_at
-       FROM species s
-       LEFT JOIN user_characters uc ON uc.species_id = s.id AND uc.user_id = ?1
-      ORDER BY s.sort_order`,
+
+  const [speciesRows, ownedRows] = await Promise.all([
+    env.DB.prepare(
+      "SELECT id, name_key, rarity, sort_order FROM species ORDER BY sort_order",
+    ).all<{ id: string; name_key: string; rarity: number; sort_order: number }>(),
+    env.DB.prepare(
+      "SELECT species_id, rarity, count, first_at FROM user_characters WHERE user_id = ?1 AND count > 0",
+    )
+      .bind(userId)
+      .all<{ species_id: string; rarity: number; count: number; first_at: number }>(),
+  ]);
+
+  type Agg = {
+    total: number;
+    maxRarity: number;
+    firstAt: number;
+    tiers: Record<number, number>;
+  };
+  const bySpecies = new Map<string, Agg>();
+  for (const row of ownedRows.results) {
+    const cur = bySpecies.get(row.species_id) ?? {
+      total: 0,
+      maxRarity: 0,
+      firstAt: row.first_at,
+      tiers: {},
+    };
+    cur.total += row.count;
+    cur.maxRarity = Math.max(cur.maxRarity, row.rarity);
+    cur.firstAt = Math.min(cur.firstAt, row.first_at);
+    cur.tiers[row.rarity] = row.count;
+    bySpecies.set(row.species_id, cur);
+  }
+
+  // rarity は表示用(未所持なら種族の基本レア度、所持していれば合成込みの最高到達ティア)。
+  const species = speciesRows.results.map((s) => {
+    const owned = bySpecies.get(s.id);
+    return {
+      id: s.id,
+      name_key: s.name_key,
+      rarity: owned ? owned.maxRarity : s.rarity,
+      sort_order: s.sort_order,
+      count: owned?.total ?? 0,
+      first_at: owned?.firstAt ?? null,
+      tiers: owned?.tiers ?? {},
+    };
+  });
+
+  return Response.json({ ok: true, species });
+}
+
+export async function gameSynthesize(
+  request: Request,
+  env: AppEnv,
+): Promise<Response> {
+  const body = await request.json<Record<string, unknown>>();
+  const userId = String(body.user_id || "");
+  const speciesId = String(body.species_id || "");
+  const fromRarity = Number(body.from_rarity);
+  if (!UUID_RE.test(userId)) return bad("ユーザーIDが不正です");
+  if (!speciesId) return bad("species_id が必要です");
+  const required = SYNTHESIS_REQUIREMENTS[fromRarity];
+  if (!required) return bad("このレア度は合成できません");
+
+  const row = await env.DB.prepare(
+    "SELECT count FROM user_characters WHERE user_id=?1 AND species_id=?2 AND rarity=?3",
   )
-    .bind(userId)
-    .all();
-  return Response.json({ ok: true, species: rows.results });
+    .bind(userId, speciesId, fromRarity)
+    .first<{ count: number }>();
+  if (!row || row.count < required) return bad("合成に必要な数が足りません");
+
+  const now = Math.floor(Date.now() / 1000);
+  await env.DB.batch([
+    env.DB.prepare(
+      "UPDATE user_characters SET count = count - ?4 WHERE user_id=?1 AND species_id=?2 AND rarity=?3",
+    ).bind(userId, speciesId, fromRarity, required),
+    env.DB.prepare(
+      `INSERT INTO user_characters (user_id, species_id, rarity, count, first_at)
+       VALUES (?1,?2,?3,1,?4)
+       ON CONFLICT(user_id, species_id, rarity) DO UPDATE SET count = count + 1`,
+    ).bind(userId, speciesId, fromRarity + 1, now),
+  ]);
+
+  return Response.json({ ok: true, new_rarity: fromRarity + 1 });
 }
 
 // ヒーロー表示用キャラの選択。所持していない種族は選べない(表示だけの詐称を防ぐ)。
@@ -443,11 +549,11 @@ export async function gameSelectDisplayCharacter(
   if (!speciesId) return bad("species_id が必要です");
 
   const owned = await env.DB.prepare(
-    "SELECT count FROM user_characters WHERE user_id=?1 AND species_id=?2",
+    "SELECT SUM(count) AS n FROM user_characters WHERE user_id=?1 AND species_id=?2",
   )
     .bind(userId, speciesId)
-    .first<{ count: number }>();
-  if (!owned || owned.count <= 0) return bad("所持していないキャラです");
+    .first<{ n: number | null }>();
+  if (!owned || (owned.n ?? 0) <= 0) return bad("所持していないキャラです");
 
   await ensureCharacter(env, userId);
   await env.DB.prepare(

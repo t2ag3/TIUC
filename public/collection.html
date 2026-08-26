@@ -255,6 +255,36 @@
       opacity: 0.6;
       cursor: default;
     }
+    .tier-breakdown {
+      margin-top: 4px;
+    }
+    .tier-heading {
+      margin: 10px 0 0;
+      font-size: 11px;
+      color: var(--app-muted);
+      text-align: left;
+    }
+    .synth-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .synth-btn {
+      width: 100%;
+      padding: 11px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid var(--brand, #09804f);
+      border-radius: 999px;
+      background: var(--brand, #09804f);
+      color: #fff;
+      cursor: pointer;
+    }
+    .synth-btn:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
   </style>
   <body class="app-body">
     <div class="app-shell">
@@ -313,6 +343,8 @@
 
       let species = [];
       let currentDisplaySpeciesId = null;
+      // 合成に必要な同ティア枚数(from_rarity -> 必要数)。サーバ側(SYNTHESIS_REQUIREMENTS)と対応。
+      const SYNTH_REQ = { 1: 2, 2: 3 };
 
       const jst = (ts) =>
         ts
@@ -380,6 +412,33 @@
         const selected = s.id === currentDisplaySpeciesId;
         const artClass = locked ? "locked" : `r${s.rarity}`;
 
+        const tierRows = !locked
+          ? [1, 2, 3, 4]
+              .filter((tier) => (s.tiers[tier] || 0) > 0)
+              .map(
+                (tier) => `
+                  <div class="detail-row">
+                    <span>${"★".repeat(tier)}</span>
+                    <span>${t("game.dex_owned", { n: s.tiers[tier] })}</span>
+                  </div>
+                `,
+              )
+              .join("")
+          : "";
+
+        const synthButtons = !locked
+          ? [1, 2]
+              .filter((tier) => (s.tiers[tier] || 0) >= SYNTH_REQ[tier])
+              .map(
+                (tier) => `
+                  <button type="button" class="synth-btn" data-from="${tier}">
+                    ${t("collection.synthesize_btn", { n: SYNTH_REQ[tier], from: "★".repeat(tier), to: "★".repeat(tier + 1) })}
+                  </button>
+                `,
+              )
+              .join("")
+          : "";
+
         $("detail-body").innerHTML = `
           <div class="detail-art ${artClass}"><img class="mon" src="images/species/${s.id}.png" onerror="this.onerror=null;this.src='images/mon-placeholder.svg'" alt=""></div>
           <div class="detail-name">${name}</div>
@@ -392,12 +451,42 @@
               : ""
           }
           ${
+            tierRows
+              ? `<div class="tier-breakdown"><p class="tier-heading">${t("collection.tiers_label")}</p>${tierRows}</div>`
+              : ""
+          }
+          ${synthButtons ? `<div class="synth-list">${synthButtons}</div>` : ""}
+          ${
             !locked
               ? `<button type="button" id="select-btn" class="select-btn ${selected ? "selected" : ""}">${selected ? t("mypage.collection_selected") : t("mypage.collection_select")}</button>`
               : ""
           }
         `;
         $("detail-modal").hidden = false;
+
+        $("detail-body")
+          .querySelectorAll(".synth-btn")
+          .forEach((sbtn) => {
+            sbtn.addEventListener("click", async () => {
+              sbtn.disabled = true;
+              const fromRarity = Number(sbtn.dataset.from);
+              const r = await fetch("/api/game/synthesize", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({
+                  user_id: userId,
+                  species_id: s.id,
+                  from_rarity: fromRarity,
+                }),
+              }).then((x) => x.json());
+              if (r.ok) {
+                await load();
+                openDetail(id);
+              } else {
+                sbtn.disabled = false;
+              }
+            });
+          });
 
         const btn = $("select-btn");
         if (btn) {

@@ -473,4 +473,6 @@ export default {
   "collection.locked_desc": "Aún no obtenido. Sigue publicando, juzgando y corrigiendo — quizás lo encuentres.",
   "collection.owned_count_label": "Cantidad",
   "collection.first_at_label": "Primera obtención",
+  "collection.tiers_label": "Detalle por rango",
+  "collection.synthesize_btn": "Combinar {n} × {from} en {to}",
 };

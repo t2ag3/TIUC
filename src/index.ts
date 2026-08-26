@@ -13,6 +13,7 @@ import {
   gameMapSpots,
   gameQuests,
   gameSelectDisplayCharacter,
+  gameSynthesize,
 } from "./game";
 import { serveImage } from "./images";
 import { publicMap } from "./map";
@@ -78,6 +79,8 @@ export default {
         return await gameCollection(request, env);
       if (path === "/api/game/collection/select" && request.method === "POST")
         return await gameSelectDisplayCharacter(request, env);
+      if (path === "/api/game/synthesize" && request.method === "POST")
+        return await gameSynthesize(request, env);
       if (path === "/api/game/map-spots" && request.method === "GET")
         return await gameMapSpots(request, env);
 

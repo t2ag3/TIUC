@@ -473,4 +473,6 @@ export default {
   "collection.locked_desc": "まだ手に入れていません。投稿・判定・修正を続けると出会えるかも。",
   "collection.owned_count_label": "所持数",
   "collection.first_at_label": "はじめてゲットした日",
+  "collection.tiers_label": "所持内訳",
+  "collection.synthesize_btn": "{from}を{n}体使って{to}に合成",
 };

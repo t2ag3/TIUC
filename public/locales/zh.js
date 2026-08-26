@@ -473,4 +473,6 @@ export default {
   "collection.locked_desc": "还没有获得。继续投稿・判定・修正，也许就能遇见它。",
   "collection.owned_count_label": "持有数",
   "collection.first_at_label": "首次获得日期",
+  "collection.tiers_label": "持有明细",
+  "collection.synthesize_btn": "使用{n}个{from}合成{to}",
 };

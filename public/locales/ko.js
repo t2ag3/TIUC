@@ -473,4 +473,6 @@ export default {
   "collection.locked_desc": "아직 획득하지 못했습니다. 게시・판정・수정을 계속하면 만날 수 있을지도.",
   "collection.owned_count_label": "보유 수",
   "collection.first_at_label": "처음 획득한 날",
+  "collection.tiers_label": "등급별 보유 현황",
+  "collection.synthesize_btn": "{from} {n}개로 {to} 합성하기",
 };

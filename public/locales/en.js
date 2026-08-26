@@ -473,4 +473,6 @@ export default {
   "collection.locked_desc": "Not obtained yet. Keep posting, judging, and correcting — you might meet it.",
   "collection.owned_count_label": "Owned",
   "collection.first_at_label": "First obtained",
+  "collection.tiers_label": "Owned by rank",
+  "collection.synthesize_btn": "Combine {n} × {from} into {to}",
 };

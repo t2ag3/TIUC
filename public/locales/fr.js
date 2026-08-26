@@ -473,4 +473,6 @@ export default {
   "collection.locked_desc": "Pas encore obtenu. Continuez à publier, juger et corriger — vous pourriez le rencontrer.",
   "collection.owned_count_label": "Possédé",
   "collection.first_at_label": "Première obtention",
+  "collection.tiers_label": "Détail par rang",
+  "collection.synthesize_btn": "Combiner {n} × {from} en {to}",
 };

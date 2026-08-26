@@ -125,6 +125,7 @@ export async function judgeSubmit(
     now,
   );
   const newBest = Math.max(streakRow?.streak_best ?? 0, newStreak);
+  const drop = await rollNormalDrop(env);
 
   await env.DB.batch([
     env.DB.prepare(
@@ -143,7 +144,7 @@ export async function judgeSubmit(
               streak_count = ?3, streak_at = ?4, streak_best = ?5
         WHERE id = ?1`,
     ).bind(userId, POINTS_JUDGMENT, newStreak, now, newBest),
-    dropStatement(env, userId, await rollNormalDrop(env), `drop:judge:${judgmentId}`, now),
+    dropStatement(env, userId, drop.speciesId, drop.rarity, `drop:judge:${judgmentId}`, now),
   ]);
 
   const counts = await env.DB.prepare(
@@ -304,11 +305,13 @@ export async function correctSubmit(
       ).bind(postId, originalText, translatedText),
     );
   }
+  const correctionDrop = await rollNormalDrop(env);
   stmts.push(
     dropStatement(
       env,
       userId,
-      await rollNormalDrop(env),
+      correctionDrop.speciesId,
+      correctionDrop.rarity,
       `drop:correction:${correctionId}`,
       now,
     ),
@@ -412,6 +415,7 @@ export async function correctVoteSubmit(
   if (already) return bad("既に投票済みです");
 
   const voteId = crypto.randomUUID();
+  const voteDrop = await rollNormalDrop(env);
   await env.DB.batch([
     env.DB.prepare(
       "INSERT INTO users (id, created_at) VALUES (?1, ?2) ON CONFLICT(id) DO NOTHING",
@@ -427,7 +431,7 @@ export async function correctVoteSubmit(
     env.DB.prepare(
       "UPDATE users SET points_total = points_total + ?2 WHERE id = ?1",
     ).bind(userId, POINTS_VOTE),
-    dropStatement(env, userId, await rollNormalDrop(env), `drop:vote:${voteId}`, now),
+    dropStatement(env, userId, voteDrop.speciesId, voteDrop.rarity, `drop:vote:${voteId}`, now),
   ]);
 
   const tally = await env.DB.prepare(
@@ -476,6 +480,7 @@ export async function correctVoteSubmit(
           ).bind(correction.post_id),
         );
       }
+      const confirmDrop = await rollRareDrop(env);
       stmts.push(
         env.DB.prepare(
           `INSERT INTO point_events (user_id, post_id, kind, points, created_at)
@@ -492,7 +497,8 @@ export async function correctVoteSubmit(
         dropStatement(
           env,
           String(correction.curator_id),
-          await rollRareDrop(env),
+          confirmDrop.speciesId,
+          confirmDrop.rarity,
           `drop:confirm:${correctionId}`,
           now,
         ),
