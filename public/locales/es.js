@@ -38,6 +38,8 @@ export default {
   "index.stat_fixed_label": "Correcciones confirmadas",
   "index.stat_adopted_label": "Correcciones aplicadas en la ciudad",
   "index.hero_scroll_cue": "Desplázate para ver cómo jugar ↓",
+  "index.hero_note_ja": "本日は工事中です。",
+  "index.hero_note_cap": "← El cartel real, en el castillo de Nijo. ¿Ves qué está mal?",
   "index.section_participate_title": "Participar",
   "index.section_participate_sub": "Empieza por una sola cosa que puedas hacer.",
   "index.mode_report_title": "Detectar",

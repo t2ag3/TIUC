@@ -38,6 +38,8 @@ export default {
   "index.stat_fixed_label": "Corrections confirmées",
   "index.stat_adopted_label": "Corrections appliquées en ville",
   "index.hero_scroll_cue": "Faites défiler pour voir comment jouer ↓",
+  "index.hero_note_ja": "本日は工事中です。",
+  "index.hero_note_cap": "← Le vrai panneau, au château de Nijo. Vous voyez ce qui cloche ?",
   "index.section_participate_title": "Participer",
   "index.section_participate_sub": "Commencez par une seule contribution, poursuivez avec encore plein d'autres.",
   "index.mode_report_title": "Repérer",

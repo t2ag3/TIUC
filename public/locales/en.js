@@ -38,6 +38,8 @@ export default {
   "index.stat_fixed_label": "Confirmed corrections",
   "index.stat_adopted_label": "Fixed in the city",
   "index.hero_scroll_cue": "Scroll to see how it works ↓",
+  "index.hero_note_ja": "本日は工事中です。",
+  "index.hero_note_cap": "← The real thing, from Nijo Castle. Can you spot what's off?",
   "index.section_participate_title": "Get involved",
   "index.section_participate_sub": "Start with just one thing you can do.",
   "index.mode_report_title": "Find",

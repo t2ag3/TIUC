@@ -207,73 +207,87 @@
       }
     }
 
-    .hero-art {
+    .hero-note {
       position: absolute;
-      z-index: 2;
-      right: clamp(16px, 4vw, 44px);
-      bottom: clamp(10px, 3vw, 30px);
-      width: min(30%, 300px);
-      pointer-events: none;
-    }
-
-    .hero-sign {
-      position: relative;
+      right: 20px;
+      bottom: 34px;
       transform: rotate(-3deg);
-      filter: drop-shadow(0 16px 28px rgba(0, 0, 0, 0.35));
+      width: 250px;
+      filter: drop-shadow(0 14px 26px rgba(0, 0, 0, 0.4));
     }
 
-    .hero-sign-board {
+    .hero-note .board {
+      background: #fff;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 4px solid var(--ink);
       position: relative;
       z-index: 2;
-      background: #fff;
-      border: 4px solid var(--ink);
-      border-radius: 8px;
-      padding: 6px;
-      overflow: hidden;
     }
 
-    .hero-sign-board img {
-      display: block;
-      width: 100%;
-      height: auto;
-      border-radius: 3px;
+    .hero-note .bd {
+      padding: 16px 16px 16px;
+      color: var(--ink);
     }
 
-    .hero-sign-legs {
+    .hero-note .ja-line {
+      font-size: 13px;
+      color: var(--ink);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .hero-note .sign {
+      font-family: Georgia, serif;
+      font-weight: 700;
+      font-size: 17px;
+      line-height: 1.3;
+      color: #b23a48;
+    }
+
+    .hero-note .cap {
+      font-size: 11px;
+      color: var(--brand);
+      margin-top: 8px;
+      font-weight: 600;
+    }
+
+    .hero-note .legs {
       position: relative;
-      height: 34px;
+      height: 44px;
       margin-top: -2px;
     }
-    .hero-sign-legs::before,
-    .hero-sign-legs::after {
+    .hero-note .legs::before,
+    .hero-note .legs::after {
       content: "";
       position: absolute;
       top: 0;
-      width: 9px;
-      height: 34px;
+      width: 11px;
+      height: 44px;
       background: linear-gradient(90deg, #8a5a2b, #a86e37 60%, #7a4d24);
       border-radius: 0 0 3px 3px;
     }
-    .hero-sign-legs::before {
-      left: 30%;
+    .hero-note .legs::before {
+      left: 48px;
       transform: rotate(6deg);
     }
-    .hero-sign-legs::after {
-      right: 30%;
+    .hero-note .legs::after {
+      right: 48px;
       transform: rotate(-6deg);
     }
 
-    .hero-sign-ground {
+    .hero-note .ground {
       position: absolute;
       left: 50%;
       bottom: -4px;
       transform: translateX(-50%);
-      width: 78%;
-      height: 9px;
+      width: 150px;
+      height: 10px;
       background: rgba(0, 0, 0, 0.28);
       border-radius: 50%;
       filter: blur(4px);
     }
+
 
     .eyebrow {
       position: relative;
@@ -364,19 +378,7 @@
         width: 100%;
       }
 
-      .hero-art {
-        position: relative;
-        right: auto;
-        bottom: auto;
-        width: min(62%, 240px);
-        margin: 22px auto 0;
-      }
-
-      .hero-sign {
-        transform: none;
-      }
-      .hero-sign-legs,
-      .hero-sign-ground {
+      .hero-note {
         display: none;
       }
 
@@ -1050,14 +1052,20 @@
               </div>
             </div>
 
-            <div class="hero-art">
-              <div class="hero-sign">
-                <div class="hero-sign-board">
-                  <img src="images/title-image.png" alt="" aria-hidden="true" />
+            <div class="hero-note">
+              <div class="board">
+                <div class="bd">
+                  <div class="ja-line" data-i18n="index.hero_note_ja">
+                    本日は工事中です。
+                  </div>
+                  <div class="sign">Today is under construction.</div>
+                  <p class="cap" data-i18n="index.hero_note_cap">
+                    ← 二条城の実物。何がヘンか、わかる？
+                  </p>
                 </div>
-                <div class="hero-sign-legs" aria-hidden="true"></div>
-                <div class="hero-sign-ground" aria-hidden="true"></div>
               </div>
+              <div class="legs" aria-hidden="true"></div>
+              <div class="ground" aria-hidden="true"></div>
             </div>
           </div>
           <p class="cue" data-i18n="index.hero_scroll_cue">

@@ -385,6 +385,24 @@ posts.status:
     差し替え済みだった。lp_mockのプレースホルダーへ巻き戻すと実ブランド資産を捨てることになるため、
     「見た目を一致させる」対象を外枠（フルブリード・統計・CTA・スクロール誘導）に絞り、ロゴ画像自体は
     現状のまま維持している。
+- **（2026-08-26再改定）上記の「ロゴ画像を残す」判断を、ユーザー指示により撤回し、`hero-art`を
+  lp_mockの`.hero-note`（ミニ看板）にそのまま差し替えた（ユーザー指示、2026-08-26）**。
+  - 前回のCLAUDE.mdの記述は誤認だった：WHYセクションの`.fake-sign`（「本日、二の丸庭園の滝は工事に伴い
+    水を流しておりません。」→「TODAY IS UNDER CONSTRUCTION」）と、ヒーローの`.hero-note`
+    （「本日は工事中です。」→「Today is under construction.」）はlp_mock内でも**別々の実在する2つの例**
+    であり、WHYセクション側に既にあるからヒーロー側は不要、という前回の判断は誤りだった。実際には
+    ヒーロー側の小ネタはindex.htmlにまだ一切実装されていなかった。
+  - `images/title-image.png`（ブランドロゴ）はヒーローから削除。ファイル自体は削除せず`public/images/`に
+    残してある（他所での再利用に備えて）が、現状どのHTMLからも参照されていない。
+  - `.hero-sign`/`.hero-sign-board`/`.hero-sign-legs`/`.hero-sign-ground`（画像用に組んでいたCSS）は
+    `.hero-note`/`.board`/`.bd`/`.ja-line`/`.sign`/`.cap`/`.legs`/`.ground`（lp_mockのクラス名そのまま、
+    値もlp_mockの数値をそのまま採用）に置き換えた。
+  - 看板の日本語原文（`index.hero_note_ja`＝「本日は工事中です。」）と英訳（`.sign`＝
+    "Today is under construction."、i18n化していない）は、WHYセクションの`why_sign_ja`/`.fake-sign .en`と
+    同じ方針で言語切り替えの対象外にしている（「実在する看板とその誤訳」という実演コンテンツなので、
+    UI言語が変わっても内容自体は変えない）。注釈の`index.hero_note_cap`（「← 二条城の実物。何がヘンか、
+    わかる？」）は他の注釈と同様に6言語分翻訳した。
+  - lp_mock本体に合わせ、`.hero-note`は`max-width:720px`で非表示（モバイルでは看板を出さない）。
 
 **動いているもの**
 

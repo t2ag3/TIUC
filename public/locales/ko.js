@@ -38,6 +38,8 @@ export default {
   "index.stat_fixed_label": "확정된 수정",
   "index.stat_adopted_label": "거리에서 실제로 고쳐진 수",
   "index.hero_scroll_cue": "스크롤해서 즐기는 방법 보기 ↓",
+  "index.hero_note_ja": "本日は工事中です。",
+  "index.hero_note_cap": "← 니조성의 실제 표지판. 뭐가 이상한지 보이나요?",
   "index.section_participate_title": "참여하기",
   "index.section_participate_sub": "할 수 있는 것부터 하나만이라도.",
   "index.mode_report_title": "찾기",

@@ -38,6 +38,8 @@ export default {
   "index.stat_fixed_label": "確定した修正",
   "index.stat_adopted_label": "街で直った数",
   "index.hero_scroll_cue": "スクロールで、あそび方 ↓",
+  "index.hero_note_ja": "本日は工事中です。",
+  "index.hero_note_cap": "← 二条城の実物。何がヘンか、わかる？",
   "index.section_participate_title": "参加する",
   "index.section_participate_sub": "できることから、1つだけでも。",
   "index.mode_report_title": "見つける",
