@@ -13,6 +13,7 @@ import {
 
 import { bad, nextStreakCount, sha256Short } from "./utils";
 import { dropStatement, rollNormalDrop } from "./game";
+import { analyzeSignPhoto } from "./moderation";
 import type { AppEnv } from "./types";
 
 // =====================================================================
@@ -57,6 +58,14 @@ export async function createPost(
     String(form.get("situation") || "")
       .trim()
       .slice(0, 500) || null;
+  const whatItSays =
+    String(form.get("what_it_says") || "")
+      .trim()
+      .slice(0, 500) || null;
+  const whatsWeird =
+    String(form.get("whats_weird") || "")
+      .trim()
+      .slice(0, 500) || null;
 
   // 可変投稿フロー(2026-08-22改定): 見つけた外国語表記の写真(src)は必須、
   // 日本語原文の写真(tgt)は任意(1枚に両方写っていてもよい)
@@ -95,6 +104,16 @@ export async function createPost(
     return bad(
       "短時間の投稿が多すぎます。しばらく待ってから再度お試しください",
       429,
+    );
+  }
+
+  // AIによる不適切写真の足切り(多重防御。事前チェックAPIをスキップして直接
+  // ここを叩かれても弾けるようにする。R2/D1への書き込みより前に判定する)
+  const srcBytes = new Uint8Array(await srcFull.arrayBuffer());
+  const analysis = await analyzeSignPhoto(env, srcBytes);
+  if (analysis.inappropriate) {
+    return bad(
+      "写真がうまく認識できませんでした。表記がはっきり写った別の写真を選び直してください",
     );
   }
 
@@ -165,10 +184,11 @@ export async function createPost(
          id, submitter_id, created_at, observed_at, lat, lng,
          loc_source, loc_accuracy_m, loc_conflict,
          mesh3, mesh4, mesh5, lang_pair, place_kind, flagged, situation,
+         what_it_says, whats_weird,
          src_image_key, src_thumb_key, tgt_image_key, tgt_thumb_key, image_bytes,
          status, review_priority, turnstile_ok, client_hash
        ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,
-                 ?17,?18,?19,?20,?21,'pending_judgment',?22,0,?23)`,
+                 ?17,?18,?19,?20,?21,?22,?23,'pending_judgment',?24,0,?25)`,
     ).bind(
       id,
       userId,
@@ -186,6 +206,8 @@ export async function createPost(
       placeKind,
       flagged,
       situation,
+      whatItSays,
+      whatsWeird,
       srcImageKey,
       srcThumbKey,
       tgtImageKey,
@@ -207,6 +229,29 @@ export async function createPost(
   ]);
 
   return Response.json({ ok: true, id, mesh3: mesh.mesh3, points });
+}
+
+// 撮影直後のAI事前チェック。不適切な写真の足切りと、言語・表記種別のデフォルト値
+// 提案のため、本送信より前に呼ばれる(サムネイル程度の解像度で十分)。
+// ここでの判定はDBに保存しない(あくまで一時的な提案。最終確定はcreatePost)。
+export async function analyzePostPhoto(
+  request: Request,
+  env: AppEnv,
+): Promise<Response> {
+  const userId = String(
+    new URL(request.url).searchParams.get("user_id") || "",
+  );
+  if (!UUID_RE.test(userId)) return bad("ユーザーIDが不正です");
+  const bytes = new Uint8Array(await request.arrayBuffer());
+  if (bytes.length === 0) return bad("写真がありません");
+
+  const result = await analyzeSignPhoto(env, bytes);
+  return Response.json({
+    ok: true,
+    inappropriate: result.inappropriate,
+    lang_pair_guess: result.langPairGuess,
+    place_kind_guess: result.placeKindGuess,
+  });
 }
 
 // 近隣の既存投稿チェック(重複抑制の一次確認)。認証不要・読み取りのみ [流用]

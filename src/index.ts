@@ -17,7 +17,13 @@ import {
 } from "./game";
 import { serveImage } from "./images";
 import { publicMap } from "./map";
-import { createPost, deletePost, nearbyCheck, togglePostLike } from "./posts";
+import {
+  analyzePostPhoto,
+  createPost,
+  deletePost,
+  nearbyCheck,
+  togglePostLike,
+} from "./posts";
 import {
   correctNext,
   correctSubmit,
@@ -41,6 +47,8 @@ export default {
       // --- ①撮影投稿 ---
       if (path === "/api/posts" && request.method === "POST")
         return await createPost(request, env);
+      if (path === "/api/posts/analyze" && request.method === "POST")
+        return await analyzePostPhoto(request, env);
       if (path === "/api/posts/delete" && request.method === "POST")
         return await deletePost(request, env);
       if (path === "/api/nearby" && request.method === "GET")

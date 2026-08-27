@@ -35,8 +35,10 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      flex: 0 0 auto;
-      min-width: max-content;
+      flex: 0 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
       white-space: nowrap;
       font-size: 12px;
       border: 1px solid var(--app-line);
@@ -81,6 +83,40 @@
 
     .step[hidden] {
       display: none;
+    }
+    #mode-gate {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 0 0 20px;
+    }
+    .mode-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      width: 100%;
+      padding: 16px;
+      text-align: left;
+      border: 1px solid var(--app-line);
+      border-radius: 16px;
+      background: #fff;
+      cursor: pointer;
+      transition:
+        border-color 0.15s ease,
+        background 0.15s ease;
+    }
+    .mode-btn:hover {
+      border-color: var(--color-accent, #1a5c3a);
+      background: var(--color-accent-soft, #eef5f0);
+    }
+    .mode-btn-title {
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .mode-btn-desc {
+      font-size: 12px;
+      color: var(--app-muted);
     }
     .step-nav {
       display: flex;
@@ -216,17 +252,6 @@
       gap: 8px;
       font-size: 13px;
       margin-top: 8px;
-    }
-    .flag-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      border: 1px solid var(--app-line);
-      border-radius: var(--radius-sm);
-      padding: 10px;
-      margin-top: 8px;
-      background: #fff;
     }
     #submit {
       width: 100%;
@@ -416,12 +441,42 @@
         <a href="mypage.html" data-i18n="common.mypage_link">マイページ</a>
       </p>
 
-      <div id="progress-bar">
+      <div id="mode-gate">
+        <p class="lead" style="margin: 0 0 12px" data-i18n="report.mode_gate_title">
+          どちらを撮りますか？
+        </p>
+        <button
+          type="button"
+          id="mode-weird-btn"
+          class="mode-btn"
+        >
+          <span class="mode-btn-title" data-i18n="report.mode_weird_btn"
+            >ヘンな訳文を撮影</span
+          >
+          <span class="mode-btn-desc" data-i18n="report.mode_weird_desc"
+            >「これ、訳が変かも？」と思った表記を見つけたとき</span
+          >
+        </button>
+        <button
+          type="button"
+          id="mode-sign-btn"
+          class="mode-btn"
+        >
+          <span class="mode-btn-title" data-i18n="report.mode_sign_btn"
+            >外国語の写っている掲示物を撮影</span
+          >
+          <span class="mode-btn-desc" data-i18n="report.mode_sign_desc"
+            >とくに違和感はないけれど、外国語表記を見つけたとき</span
+          >
+        </button>
+      </div>
+
+      <div id="progress-bar" hidden>
         <div id="progress-fill" style="width: 25%"></div>
       </div>
-      <p id="step-label">Step 1 / 4</p>
+      <p id="step-label" hidden>Step 1 / 4</p>
 
-      <div class="step" data-step="1">
+      <div class="step" data-step="1" hidden>
         <fieldset>
           <legend data-i18n="report.step1_legend">
             1. 見つけた外国語の表記を撮影
@@ -454,6 +509,7 @@
               未選択
             </p>
             <div id="preview-src"></div>
+            <p class="status" id="ai-status" hidden></p>
           </div>
           <div id="tgt-question" class="toggle-row" hidden>
             <input type="checkbox" id="has-tgt" />
@@ -570,12 +626,28 @@
             </option>
             <option value="other" data-i18n="report.place_other">その他</option>
           </select>
-          <div class="flag-row">
-            <input type="checkbox" id="flagged" />
-            <label for="flagged" data-i18n="report.flag_label"
-              >これ、訳が変かも?と思った(任意)</label
-            >
-          </div>
+        </fieldset>
+        <fieldset id="what-it-says-wrap" hidden>
+          <legend data-i18n="report.what_it_says_legend">
+            4. なんて書いてある？
+          </legend>
+          <textarea
+            id="what-it-says"
+            rows="2"
+            maxlength="500"
+            data-i18n-placeholder="report.what_it_says_placeholder"
+            placeholder="書いてある内容を覚えている範囲で"
+          ></textarea>
+        </fieldset>
+        <fieldset id="whats-weird-wrap" hidden>
+          <legend data-i18n="report.whats_weird_legend">5. 何がヘン？</legend>
+          <textarea
+            id="whats-weird"
+            rows="2"
+            maxlength="500"
+            data-i18n-placeholder="report.whats_weird_placeholder"
+            placeholder="どこがどう変だと思ったか"
+          ></textarea>
         </fieldset>
         <div class="step-nav">
           <button
@@ -600,7 +672,7 @@
 
       <div class="step" data-step="3" hidden>
         <fieldset>
-          <legend data-i18n="report.step4_legend">4. 位置情報</legend>
+          <legend data-i18n="report.step_location_legend">6. 位置情報</legend>
           <p
             class="status"
             id="loc-status"
@@ -654,7 +726,7 @@
 
       <div class="step" data-step="4" hidden>
         <fieldset>
-          <legend data-i18n="report.step5_legend">5. メモ(任意)</legend>
+          <legend data-i18n="report.step_memo_legend">7. メモ(任意)</legend>
           <textarea
             id="situation"
             rows="2"
@@ -722,6 +794,7 @@
 
         const $ = (id) => document.getElementById(id);
         const state = {
+          flowMode: null, // "weird" | "sign"
           srcFull: null,
           srcThumb: null,
           tgtFull: null,
@@ -729,6 +802,9 @@
           exif: null,
           geo: null,
           point: null,
+          langGuess: null,
+          placeGuess: null,
+          aiChecking: false,
         };
 
         async function loadPointsBadge() {
@@ -745,6 +821,9 @@
 
         const TOTAL_STEPS = 4;
         function showStep(n) {
+          $("mode-gate").hidden = true;
+          $("progress-bar").hidden = false;
+          $("step-label").hidden = false;
           document.querySelectorAll(".step").forEach((el) => {
             el.hidden = Number(el.dataset.step) !== n;
           });
@@ -755,6 +834,18 @@
           $("progress-fill").style.width = `${(n / TOTAL_STEPS) * 100}%`;
           window.scrollTo({ top: 0, behavior: "smooth" });
         }
+
+        function chooseMode(mode) {
+          state.flowMode = mode;
+          $("what-it-says-wrap").hidden = mode !== "weird";
+          $("whats-weird-wrap").hidden = mode !== "weird";
+          showStep(1);
+        }
+        $("mode-weird-btn").addEventListener("click", () =>
+          chooseMode("weird"),
+        );
+        $("mode-sign-btn").addEventListener("click", () => chooseMode("sign"));
+
         document.querySelectorAll(".next-btn").forEach((btn) => {
           btn.addEventListener("click", () =>
             showStep(Number(btn.dataset.next)),
@@ -840,6 +931,49 @@
           refresh();
         });
 
+        async function analyzePhoto(thumbBlob) {
+          state.aiChecking = true;
+          state.langGuess = null;
+          state.placeGuess = null;
+          $("ai-status").textContent = t("report.ai_checking");
+          $("ai-status").hidden = false;
+          refresh();
+          try {
+            await authReady;
+            const res = await fetch(
+              `/api/posts/analyze?user_id=${userId}`,
+              { method: "POST", body: thumbBlob },
+            );
+            const j = await res.json();
+            if (j.ok && j.inappropriate) {
+              state.srcFull = null;
+              state.srcThumb = null;
+              $("file-src").value = "";
+              $("preview-src").innerHTML = "";
+              $("src-status").innerHTML =
+                `<span class="warn">${t("report.ai_rejected")}</span>`;
+              return;
+            }
+            if (j.ok) {
+              state.langGuess = j.lang_pair_guess;
+              state.placeGuess = j.place_kind_guess;
+              if (state.langGuess) {
+                const radio = document.querySelector(
+                  `input[name="lang_choice"][value="${state.langGuess}"]`,
+                );
+                if (radio) radio.checked = true;
+              }
+              if (state.placeGuess) $("place-kind").value = state.placeGuess;
+            }
+          } catch {
+            /* AIチェックに失敗しても投稿フロー自体は止めない(fail-open) */
+          } finally {
+            state.aiChecking = false;
+            $("ai-status").hidden = true;
+            refresh();
+          }
+        }
+
         $("file-src").addEventListener("change", async (ev) => {
           const file = ev.target.files[0];
           if (!file) return;
@@ -856,12 +990,12 @@
               `<img class="preview" src="${URL.createObjectURL(full.blob)}" alt="">`;
             $("tgt-question").hidden = false;
             refresh();
+            await Promise.all([analyzePhoto(thumb.blob), locate()]);
           } catch (e) {
             $("src-status").innerHTML =
               `<span class="warn">${t("report.image_process_error", { msg: e.message })}</span>`;
             return;
           }
-          await locate();
           refresh();
         });
 
@@ -1047,7 +1181,7 @@
             tgtOk
           );
           document.querySelector('.step[data-step="1"] .next-btn').disabled =
-            !state.srcFull;
+            !state.srcFull || state.aiChecking;
           document.querySelector('.step[data-step="2"] .next-btn').disabled =
             !lang;
           document.querySelector('.step[data-step="3"] .next-btn').disabled =
@@ -1068,7 +1202,9 @@
           fd.append("user_id", userId);
           fd.append("lang_pair", langPair);
           fd.append("place_kind", $("place-kind").value);
-          fd.append("flagged", $("flagged").checked ? "1" : "0");
+          fd.append("flagged", state.flowMode === "weird" ? "1" : "0");
+          fd.append("what_it_says", $("what-it-says").value);
+          fd.append("whats_weird", $("whats-weird").value);
           fd.append("lat", String(state.point.lat));
           fd.append("lng", String(state.point.lng));
           fd.append("loc_source", state.point.src);
@@ -1115,7 +1251,6 @@
           if (e.target === $("done-modal")) $("done-modal").hidden = true;
         });
 
-        showStep(1);
         authReady.then(() => {
           loadPointsBadge();
         });
