@@ -9,12 +9,8 @@ export const LANG_PAIRS = new Set([
   "ja-hi",
 ]);
 
-// 言語ペアとして許可する形式。
-// 「その他」の言語を追加してもconfigへの追記を必須にしない。
-export const LANG_PAIR_RE = /^ja-[a-z]{2,3}$/;
-
 export function isValidLangPair(value: string): boolean {
-  return LANG_PAIR_RE.test(value) && value !== "ja-ja";
+  return LANG_PAIRS.has(value);
 }
 
 // 現時点では既存レビューUIが直接対応している3言語。

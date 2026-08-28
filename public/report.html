@@ -85,38 +85,66 @@
       display: none;
     }
     #mode-gate {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
       margin: 0 0 20px;
     }
-    .mode-btn {
+    #mode-gate .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    #mode-gate .tile {
+      grid-column: span 1;
+      aspect-ratio: 1 / 1;
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
-      gap: 4px;
-      width: 100%;
-      padding: 16px;
-      text-align: left;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      text-align: center;
       border: 1px solid var(--app-line);
-      border-radius: 16px;
-      background: #fff;
+      border-radius: 22px;
+      color: inherit;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.86);
+      box-shadow:
+        0 1px 2px rgba(18, 28, 20, 0.04),
+        0 10px 30px rgba(18, 28, 20, 0.05);
       cursor: pointer;
       transition:
-        border-color 0.15s ease,
-        background 0.15s ease;
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
     }
-    .mode-btn:hover {
-      border-color: var(--color-accent, #1a5c3a);
-      background: var(--color-accent-soft, #eef5f0);
+    #mode-gate .tile:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 34px rgba(18, 28, 20, 0.09);
     }
-    .mode-btn-title {
+    #mode-gate .tile .tile-icon {
+      font-size: 34px;
+      line-height: 1;
+    }
+    #mode-gate .tile .tile-title {
       font-size: 15px;
-      font-weight: 700;
+      font-weight: 800;
     }
-    .mode-btn-desc {
-      font-size: 12px;
+    #mode-gate .tile .tile-desc {
+      font-size: 11px;
       color: var(--app-muted);
+    }
+    #mode-gate .tile.primary {
+      background: #1d603e;
+      border-color: #1d603e;
+      color: #fff;
+    }
+    #mode-gate .tile.primary .tile-desc {
+      color: #cfe3d8;
+    }
+    #mode-gate .tile.map-accent {
+      background: #214f69;
+      border-color: #214f69;
+      color: #fff;
+    }
+    #mode-gate .tile.map-accent .tile-desc {
+      color: #cfe0ea;
     }
     .step-nav {
       display: flex;
@@ -445,30 +473,26 @@
         <p class="lead" style="margin: 0 0 12px" data-i18n="report.mode_gate_title">
           どちらを撮りますか？
         </p>
-        <button
-          type="button"
-          id="mode-weird-btn"
-          class="mode-btn"
-        >
-          <span class="mode-btn-title" data-i18n="report.mode_weird_btn"
-            >ヘンな訳文を撮影</span
-          >
-          <span class="mode-btn-desc" data-i18n="report.mode_weird_desc"
-            >「これ、訳が変かも？」と思った表記を見つけたとき</span
-          >
-        </button>
-        <button
-          type="button"
-          id="mode-sign-btn"
-          class="mode-btn"
-        >
-          <span class="mode-btn-title" data-i18n="report.mode_sign_btn"
-            >外国語の写っている掲示物を撮影</span
-          >
-          <span class="mode-btn-desc" data-i18n="report.mode_sign_desc"
-            >とくに違和感はないけれど、外国語表記を見つけたとき</span
-          >
-        </button>
+        <div class="grid">
+          <button type="button" id="mode-weird-btn" class="tile primary">
+            <span class="tile-icon">🤔</span>
+            <span class="tile-title" data-i18n="report.mode_weird_btn"
+              >ヘンな訳文を撮影</span
+            >
+            <span class="tile-desc" data-i18n="report.mode_weird_desc"
+              >「これ、訳が変かも？」と思った表記を見つけたとき</span
+            >
+          </button>
+          <button type="button" id="mode-sign-btn" class="tile map-accent">
+            <span class="tile-icon">🈂️</span>
+            <span class="tile-title" data-i18n="report.mode_sign_btn"
+              >外国語の写っている掲示物を撮影</span
+            >
+            <span class="tile-desc" data-i18n="report.mode_sign_desc"
+              >とくに違和感はないけれど、外国語表記を見つけたとき</span
+            >
+          </button>
+        </div>
       </div>
 
       <div id="progress-bar" hidden>
@@ -593,21 +617,6 @@
             <option value="ja-fr">Français</option>
             <option value="ja-es">Español</option>
             <option value="ja-hi">हिन्दी</option>
-            <option value="ja-de">Deutsch</option>
-            <option value="ja-it">Italiano</option>
-            <option value="ja-pt">Português</option>
-            <option value="ja-ru">Русский</option>
-            <option value="ja-ar">العربية</option>
-            <option value="ja-th">ไทย</option>
-            <option value="ja-vi">Tiếng Việt</option>
-            <option value="ja-id">Bahasa Indonesia</option>
-            <option value="ja-tl">Filipino / Tagalog</option>
-            <option value="ja-ne">नेपाली</option>
-            <option value="ja-bn">বাংলা</option>
-            <option value="ja-tr">Türkçe</option>
-            <option value="ja-nl">Nederlands</option>
-            <option value="ja-pl">Polski</option>
-            <option value="ja-uk">Українська</option>
             </select>
           </div>
         </fieldset>
@@ -840,6 +849,7 @@
           $("what-it-says-wrap").hidden = mode !== "weird";
           $("whats-weird-wrap").hidden = mode !== "weird";
           showStep(1);
+          $("camera-btn-src").click();
         }
         $("mode-weird-btn").addEventListener("click", () =>
           chooseMode("weird"),
