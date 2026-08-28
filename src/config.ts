@@ -28,6 +28,14 @@ export const PLACE_KINDS = new Set(["menu", "sign", "notice", "other"]);
 export const POST_PLACE_KINDS = new Set([...PLACE_KINDS, "unknown"]);
 export const LOC_SOURCES = new Set(["exif", "geolocation", "manual"]);
 export const MAP_LEVELS = new Set(["mesh3", "mesh4", "mesh5"]);
+// 公開マップのステータスフィルタで選べる値(auto_rejectedは常に除外・選択不可)。
+export const MAP_POST_STATUSES = new Set([
+  "pending_judgment",
+  "needs_fix",
+  "looks_ok",
+  "confirmed",
+  "adopted",
+]);
 export const SUBMODES = new Set(["quality", "judgment", "correction"]);
 export const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;

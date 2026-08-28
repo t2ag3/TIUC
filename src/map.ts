@@ -1,6 +1,6 @@
 import { meshBounds } from "../public/mesh.js";
 
-import { LANG_PAIRS, MAP_LEVELS } from "./config";
+import { LANG_PAIRS, MAP_LEVELS, MAP_POST_STATUSES } from "./config";
 
 import { bad } from "./utils";
 import type { AppEnv } from "./types";
@@ -41,6 +41,23 @@ export async function publicMap(
   // いいね数・修正案への賛成票数での絞り込み(任意。0件なら未指定と同じ)
   const minLikes = Math.max(0, Number(sp.get("min_likes")) || 0);
   const minAgree = Math.max(0, Number(sp.get("min_agree")) || 0);
+
+  // ステータス絞り込み(カードリスト化に伴い新設。デフォルトはauto_rejected以外全部)
+  const statuses = String(
+    sp.get("status") || [...MAP_POST_STATUSES].join(","),
+  )
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => MAP_POST_STATUSES.has(s));
+  if (!statuses.length) return bad("status の指定が不正です");
+  const statusSqlOffset = 5 + langPairs.length;
+  const statusSql = statuses
+    .map((_, i) => `?${statusSqlOffset + i}`)
+    .join(",");
+
+  // カードリスト用のページネーション(新しい順。既定30件・上限100件)
+  const limit = Math.min(100, Math.max(1, Number(sp.get("limit")) || 30));
+  const offset = Math.max(0, Number(sp.get("offset")) || 0);
 
   const cache = (caches as CacheStorage & { default: Cache }).default;
   const url = new URL(request.url);
@@ -90,16 +107,19 @@ export async function publicMap(
                WHERE c2.post_id = posts.id AND c2.status = 'confirmed' LIMIT 1) AS explanation
         FROM posts
        WHERE status <> 'auto_rejected'
+         AND status IN (${statusSql})
          AND lat BETWEEN ?1 AND ?2 AND lng BETWEEN ?3 AND ?4
          AND lang_pair IN (${langSql})
     )
     ${havingSql}
-    LIMIT 500`;
+    ORDER BY event_at DESC
+    LIMIT ${limit + 1} OFFSET ${offset}`;
 
-  const bind = [minLat, maxLat, minLng, maxLng, ...langPairs];
+  const meshBind = [minLat, maxLat, minLng, maxLng, ...langPairs];
+  const pinBind = [...meshBind, ...statuses];
   const [meshRows, pinRows] = await Promise.all([
     env.DB.prepare(meshSql)
-      .bind(...bind)
+      .bind(...meshBind)
       .all<{
         mesh: string;
         post_count: number;
@@ -108,7 +128,7 @@ export async function publicMap(
         last_post_at: number | null;
       }>(),
     env.DB.prepare(pinSql)
-      .bind(...bind)
+      .bind(...pinBind)
       .all<{
         id: string;
         lat: number;
@@ -154,7 +174,9 @@ export async function publicMap(
       },
     });
   }
-  for (const row of pinRows.results) {
+  const hasMore = pinRows.results.length > limit;
+  const pins = hasMore ? pinRows.results.slice(0, limit) : pinRows.results;
+  for (const row of pins) {
     const isConfirmed = row.status === "confirmed" || row.status === "adopted";
     features.push({
       type: "Feature",
@@ -178,7 +200,11 @@ export async function publicMap(
     });
   }
 
-  const body = JSON.stringify({ type: "FeatureCollection", features });
+  const body = JSON.stringify({
+    type: "FeatureCollection",
+    features,
+    has_more: hasMore,
+  });
   const response = new Response(body, {
     headers: {
       "content-type": "application/geo+json",
