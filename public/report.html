@@ -964,6 +964,9 @@
               $("preview-src").innerHTML = "";
               $("src-status").innerHTML =
                 `<span class="warn">${t("report.ai_rejected")}</span>`;
+              // 次へ導線を止めていない間に先へ進んでいた場合は、Step1へ引き戻して
+              // 却下理由を必ず目に入るようにする
+              showStep(1);
               return;
             }
             if (j.ok) {
@@ -1193,7 +1196,7 @@
             tgtOk
           );
           document.querySelector('.step[data-step="1"] .next-btn').disabled =
-            !state.srcFull || state.aiChecking;
+            !state.srcFull;
           document.querySelector('.step[data-step="2"] .next-btn').disabled =
             !lang;
           document.querySelector('.step[data-step="3"] .next-btn').disabled =
