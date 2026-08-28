@@ -116,6 +116,10 @@
       font-size: 14px;
       line-height: 1;
     }
+    .icon-btn svg.glyph {
+      display: block;
+      flex: none;
+    }
 
     #place-row {
       display: flex;
@@ -292,6 +296,14 @@
       font-size: 11px;
       color: var(--app-muted);
       margin-top: 5px;
+    }
+    .post-card-loc {
+      font-size: 11px;
+      color: var(--app-muted);
+      margin-top: 2px;
+    }
+    .post-card-loc:empty {
+      display: none;
     }
     .list-empty {
       text-align: center;
@@ -481,8 +493,23 @@
           </button>
         </div>
         <button type="button" id="search-toggle" class="icon-btn">
-          <span class="glyph">⚙️</span
-          ><span data-i18n="map.lang_filter_btn">言語</span>
+          <svg
+            class="glyph"
+            width="13"
+            height="13"
+            viewBox="0 0 16 16"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M1.5 2h13l-4.8 6v5.2L7.3 15V8L1.5 2Z"
+              stroke="currentColor"
+              stroke-width="1.4"
+              stroke-linejoin="round"
+              fill="none"
+            />
+          </svg>
+          <span data-i18n="map.filter_btn">フィルタ</span>
         </button>
         <button type="button" id="legend-toggle" class="icon-btn">
           <span class="glyph">🗂</span
@@ -772,6 +799,43 @@
         if (e.target === $("detail-overlay")) closeDetail();
       });
 
+      // カードの「〇〇県〇〇区」表示。posts自体には住所を持たせず(rule1: 座標は1つだけ)、
+      // 表示時にGSIの逆ジオコーダ+市区町村コード表(muni-codes.json、geolonia/japanese-addresses
+      // 由来)で都度その場粒度に変換する。近傍の投稿はキャッシュを共有し、重複した外部呼び出しをしない。
+      let muniTablePromise = null;
+      function loadMuniTable() {
+        if (!muniTablePromise) {
+          muniTablePromise = fetch("muni-codes.json").then((r) => r.json());
+        }
+        return muniTablePromise;
+      }
+      const locCache = new Map();
+      function resolveLocation(lat, lng) {
+        const key = `${lat.toFixed(3)},${lng.toFixed(3)}`;
+        if (!locCache.has(key)) {
+          locCache.set(
+            key,
+            (async () => {
+              try {
+                const [table, res] = await Promise.all([
+                  loadMuniTable(),
+                  fetch(
+                    `https://mreversegeocoder.gsi.go.jp/reverse-geocoder/LonLatToAddress?lat=${lat}&lon=${lng}`,
+                  ),
+                ]);
+                const j = await res.json();
+                const muniCd = j?.results?.muniCd;
+                const entry = muniCd && table[muniCd];
+                return entry ? entry.join("") : "";
+              } catch {
+                return "";
+              }
+            })(),
+          );
+        }
+        return locCache.get(key);
+      }
+
       function cardHtml(feature) {
         const p = feature.properties;
         const style = displayStatus(p);
@@ -790,6 +854,7 @@
                 <span class="post-card-status" style="background:${style.color || PIN_DEFAULT_COLOR}">${escapeHtml(style.label || p.status)}</span>
               </div>
               <div class="post-card-text">${escapeHtml(p.original_text || t("map.not_entered"))}</div>
+              <div class="post-card-loc" id="loc-${p.id}"></div>
               <div class="post-card-date">${jst(p.event_at)}</div>
             </div>
           </div>
@@ -800,6 +865,12 @@
       function addCard(feature) {
         featuresById.set(feature.properties.id, feature);
         $("list-items").insertAdjacentHTML("beforeend", cardHtml(feature));
+        const [lng, lat] = feature.geometry.coordinates;
+        resolveLocation(lat, lng).then((label) => {
+          if (!label) return;
+          const el = document.getElementById(`loc-${feature.properties.id}`);
+          if (el) el.textContent = label;
+        });
       }
 
       $("list-items").addEventListener("click", (e) => {
