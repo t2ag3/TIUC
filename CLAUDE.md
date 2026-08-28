@@ -331,6 +331,26 @@ posts.status:
   `$("camera-btn-src").click()`を呼ぶだけ。`bindPhotoButtons()`によるクリックリスナーは
   モジュール読み込み時点で既に張られているため、実行順序の問題は無い）。②モード選択ボタンを、
   menu.htmlの`.grid`/`.tile`と全く同じ意匠（正方形2列タイル、primary/map-accentの配色）に統一。
+- **`map.html`を地図無しの純カードリストに作り替え**：直前の作業（list+map hybrid化、コミット`73425f5`）を
+  さらに一歩進め、ユーザー指示（2026-08-29）でLeaflet地図そのものを撤去した。Leaflet CDN読み込み・
+  `#map`/`#map-wrap`・ピン描画・パン検出（「この範囲を検索」ボタン）は全部削除。地図が無いので地域絞り込みは
+  「地名検索」だけが担う：検索欄が空のときは`NATIONAL_BBOX`（`posts`の`lat`/`lng` CHECK制約と同じ日本全国の
+  範囲）を対象にし、地名を検索するとGSI APIの結果点を中心に±0.05度のbboxへ切り替える。カードタップ時は
+  以前Leafletポップアップに出していた内容（状態・言語・原文/訳文・日付・確定時の解説・いいねボタン・
+  未確定時の判定/修正へのCTA・Googleマップ導線）を、新設の詳細モーダル（`#detail-overlay`/`#detail-modal`）に
+  そのまま移設した。`mypage.html`からの`map.html`への導線・`game.html`「街を見る」からの遷移（クエリ無し）は
+  従来通り機能する（このファイルの変更範囲外）。
+- **審査中ステータスの表示だけ先取りする暫定リーン表示（rule12・DBスキーマ非変更）**：
+  `posts.status`・`judgeSubmit`の閾値遷移ロジック（`JUDGMENT_THRESHOLD=2`）は一切変更していない。
+  `src/map.ts`の`/api/map`ピンクエリに`unnatural_count`/`natural_count`（該当投稿の`judgments`集計、
+  `pending_judgment`のときのみ意味を持つ）を追加しただけ。`map.html`の`displayStatus()`が、
+  `status==='pending_judgment'`かつ票が1件以上入っていて多数決に差がある場合だけ「違和感あり/なし(暫定)」の
+  色・ラベルに置き換える（新規i18nキー`map.status_leaning_unnatural`/`status_leaning_natural`、
+  凡例に説明文`map.legend_leaning_hint`を追加）。まだ票が無い、または同数の場合は従来通り「審査中」。
+  `wrangler dev`＋curlで、`judgments`に1件unnatural票を仮投入した投稿の`/api/map`レスポンスに
+  `unnatural_count:1`が乗ること、`posts.status`が`pending_judgment`のまま変化しないことを確認済み
+  （テストデータは確認後削除・本番未投入）。フロントの表示分岐自体は本セッションではブラウザ操作ツールが
+  使えず実クリック確認はできていない（他のUI変更と同様、次回ブラウザで触れる際に確認すること）。
 
 **（2026-08-25改定）ゲーム層（`game.html`）の再設計**：2026-08-22時点では「クビアカ由来のキャラ育成ゲームは
 翻訳ドメインと無関係のため削除」としていたが、その後の作業でLP（`index.html`）が`lp_mock.html`のデザインを
@@ -583,7 +603,8 @@ posts.status:
 - ③正誤・修正・解説：`curate.html` + `/api/correct/next|submit`, `/api/correct/vote/next|submit`。
   「修正が必要/実は問題なし」の2択、原文・訳文の書き起こし（OCR代わりに人力）、投票2票で確定。
   確定した修正訳は`gold_items`に自動昇格する（rule8の「正解の自己増殖」を実装済み）。
-- 閲覧モード：`map.html`（メッシュ集計 + 投稿直後から全ステータスのピン表示。ステータス別に色分け。2026-08-22改定のrule1参照）、
+- 閲覧モード：`map.html`（地図無しの純カードリスト。投稿直後から全ステータスをステータス別バッジ付きで
+  カード表示・タップで詳細モーダル。地域絞り込みは地名検索のみ。2026-08-22改定のrule1参照）、
   `mypage.html`（貢献履歴・ポイント台帳・自己削除）。
 - 画像配信の認可：投稿者本人 / ②のキュー経由（judge_id・サムネイルのみ） / ③のキュー経由（curator_id・フル解像度）
   に限定。認証なし直リンクは401（rule1）。

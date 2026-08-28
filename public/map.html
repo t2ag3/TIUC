@@ -4,10 +4,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#f7f8f5" />
   <title data-i18n="map.title">マップ - TIUC</title>
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
   <link rel="stylesheet" href="tokens.css" />
   <style>
     :root {
@@ -21,7 +17,7 @@
     html,
     body {
       margin: 0;
-      height: 100%;
+      min-height: 100%;
       font-family:
         system-ui,
         -apple-system,
@@ -29,36 +25,16 @@
         "Segoe UI",
         sans-serif;
       color: var(--app-text);
-    }
-    body {
-      display: flex;
-      flex-direction: column;
-    }
-
-    #map-wrap {
-      position: relative;
-      flex: none;
-      height: 42vh;
-      min-height: 260px;
-    }
-    #map {
-      position: absolute;
-      inset: 0;
+      background: #f7f8f5;
     }
 
     #topbar {
-      position: absolute;
+      position: sticky;
       z-index: 2;
-      top: 10px;
-      left: 10px;
-      right: 10px;
-      background: rgba(255, 255, 255, 0.92);
+      top: 0;
+      background: rgba(247, 248, 245, 0.94);
       backdrop-filter: blur(6px);
-      border: 1px solid var(--app-line);
-      border-radius: 18px;
-      box-shadow:
-        0 1px 2px rgba(18, 28, 20, 0.04),
-        0 10px 30px rgba(18, 28, 20, 0.08);
+      border-bottom: 1px solid var(--app-line);
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -167,18 +143,10 @@
       cursor: pointer;
     }
     #place-msg {
-      position: absolute;
-      z-index: 1000;
-      top: 112px;
-      left: 20px;
-      right: 20px;
       margin: 0;
+      padding: 0 2px;
       font-size: 11px;
       color: #a33;
-      background: #fff;
-      border-radius: 10px;
-      padding: 6px 10px;
-      box-shadow: 0 4px 12px rgba(18, 28, 20, 0.1);
     }
     #place-msg:empty {
       display: none;
@@ -187,10 +155,10 @@
     .dropdown {
       position: absolute;
       z-index: 1000;
-      top: 112px;
+      top: 92px;
       right: 10px;
       width: min(300px, calc(100vw - 20px));
-      max-height: calc(100vh - 140px);
+      max-height: calc(100vh - 120px);
       overflow-y: auto;
       background: #fff;
       border: 1px solid var(--app-line);
@@ -212,6 +180,12 @@
     .dropdown h2:first-child {
       margin-top: 0;
     }
+    .dropdown p.hint {
+      font-size: 11px;
+      color: var(--app-muted);
+      margin: 0 0 8px;
+      line-height: 1.6;
+    }
     #search .lang label,
     #search .status label {
       display: flex;
@@ -228,113 +202,8 @@
       border-radius: 10px;
     }
 
-    #search-area-btn {
-      position: absolute;
-      z-index: 900;
-      bottom: 14px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #1d211d;
-      color: #fff;
-      border: none;
-      border-radius: 999px;
-      padding: 9px 16px;
-      font-size: 13px;
-      font-weight: 700;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-      cursor: pointer;
-    }
-
-    .popup-photo {
-      width: 100%;
-      max-height: 160px;
-      object-fit: cover;
-      border-radius: 12px;
-      margin-bottom: 8px;
-      display: block;
-    }
-    .popup-explanation {
-      margin: 8px 0 0;
-      color: #555;
-    }
-    .popup-like-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .popup-like-btn {
-      border: 1px solid var(--app-line);
-      background: #f5f6f3;
-      border-radius: 999px;
-      padding: 6px 13px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s ease;
-    }
-    .popup-like-btn.liked {
-      background: #fde8e8;
-      border-color: #e2a3a3;
-    }
-    .popup-cta {
-      display: block;
-      margin-top: 8px;
-      padding: 9px 10px;
-      text-align: center;
-      border-radius: 10px;
-      background: var(--color-accent, #1a5c3a);
-      color: #fff;
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    #legend .swatches {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      margin-bottom: 4px;
-    }
-    #legend .sw {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-    }
-    #legend .sw i.dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      display: inline-block;
-      border: 1.5px solid #fff;
-      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
-    }
-
-    .leaflet-popup-content {
-      font-size: 13px;
-      margin: 10px 12px;
-    }
-    .leaflet-popup-content table {
-      border-collapse: collapse;
-    }
-    .leaflet-popup-content td {
-      padding: 2px 6px 2px 0;
-      vertical-align: top;
-    }
-    .leaflet-popup-content td:first-child {
-      color: var(--app-muted);
-      white-space: nowrap;
-    }
-    .leaflet-popup-content-wrapper {
-      border-radius: 16px;
-    }
-
     /* ---- カードリスト ---- */
     #list {
-      flex: 1 1 auto;
-      overflow-y: auto;
-      background: #f7f8f5;
       padding: 12px 12px 32px;
     }
     .post-card {
@@ -447,46 +316,178 @@
       border-color: #b9c3ba;
       background: #f6f8f5;
     }
+
+    #legend .swatches {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      margin-bottom: 4px;
+    }
+    #legend .sw {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+    #legend .sw i.dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      border: 1.5px solid #fff;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+    }
+
+    /* ---- 詳細モーダル ---- */
+    .detail-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: rgba(18, 28, 20, 0.45);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0;
+    }
+    .detail-overlay[hidden] {
+      display: none;
+    }
+    .detail-modal {
+      position: relative;
+      width: 100%;
+      max-width: 460px;
+      max-height: 88vh;
+      overflow-y: auto;
+      background: #fff;
+      border-radius: 22px 22px 0 0;
+      padding: 20px 18px 24px;
+      box-shadow: 0 -10px 40px rgba(18, 28, 20, 0.2);
+    }
+    @media (min-width: 520px) {
+      .detail-overlay {
+        align-items: center;
+        padding: 16px;
+      }
+      .detail-modal {
+        border-radius: 22px;
+      }
+    }
+    .detail-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1px solid var(--app-line);
+      background: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .popup-photo {
+      width: 100%;
+      max-height: 220px;
+      object-fit: cover;
+      border-radius: 14px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .popup-explanation {
+      margin: 8px 0 0;
+      color: #555;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .popup-like-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .popup-like-btn {
+      border: 1px solid var(--app-line);
+      background: #f5f6f3;
+      border-radius: 999px;
+      padding: 6px 13px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .popup-like-btn.liked {
+      background: #fde8e8;
+      border-color: #e2a3a3;
+    }
+    .popup-cta {
+      display: block;
+      margin-top: 10px;
+      padding: 10px 10px;
+      text-align: center;
+      border-radius: 10px;
+      background: var(--color-accent, #1a5c3a);
+      color: #fff;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .detail-table {
+      border-collapse: collapse;
+      font-size: 13px;
+      width: 100%;
+    }
+    .detail-table td {
+      padding: 4px 8px 4px 0;
+      vertical-align: top;
+    }
+    .detail-table td:first-child {
+      color: var(--app-muted);
+      white-space: nowrap;
+    }
+    .detail-goto {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 12px;
+    }
+
     [hidden] {
       display: none !important;
     }
   </style>
   <body>
-    <div id="map-wrap">
-      <div id="map"></div>
-
-      <div id="topbar">
-        <div id="topbar-row1">
-          <a class="brand" href="/"><span class="brand-mark">T</span></a>
-          <h1 data-i18n="map.h1">TIUC マップ</h1>
-          <span id="status-msg"></span>
-          <select
-            id="lang-switcher"
-            class="lang-switcher"
-            style="height: 28px"
-          ></select>
-        </div>
-        <div id="topbar-row2">
-          <div id="place-row">
-            <input
-              type="text"
-              id="place-q"
-              data-i18n-placeholder="map.place_placeholder"
-              placeholder="地名・住所で検索(例: 新宿区)"
-            />
-            <button type="button" id="place-go" data-i18n="map.search_btn">
-              検索
-            </button>
-          </div>
-          <button type="button" id="search-toggle" class="icon-btn">
-            <span class="glyph">⚙️</span
-            ><span data-i18n="map.lang_filter_btn">言語</span>
-          </button>
-          <button type="button" id="legend-toggle" class="icon-btn">
-            <span class="glyph">🗂</span
-            ><span data-i18n="map.legend_btn">凡例</span>
+    <div id="topbar">
+      <div id="topbar-row1">
+        <a class="brand" href="/"><span class="brand-mark">T</span></a>
+        <h1 data-i18n="map.h1">TIUC マップ</h1>
+        <span id="status-msg"></span>
+        <select
+          id="lang-switcher"
+          class="lang-switcher"
+          style="height: 28px"
+        ></select>
+      </div>
+      <div id="topbar-row2">
+        <div id="place-row">
+          <input
+            type="text"
+            id="place-q"
+            data-i18n-placeholder="map.place_placeholder"
+            placeholder="地名・住所で検索(例: 新宿区)"
+          />
+          <button type="button" id="place-go" data-i18n="map.search_btn">
+            検索
           </button>
         </div>
+        <button type="button" id="search-toggle" class="icon-btn">
+          <span class="glyph">⚙️</span
+          ><span data-i18n="map.lang_filter_btn">言語</span>
+        </button>
+        <button type="button" id="legend-toggle" class="icon-btn">
+          <span class="glyph">🗂</span
+          ><span data-i18n="map.legend_btn">凡例</span>
+        </button>
       </div>
       <p id="place-msg"></p>
 
@@ -518,21 +519,35 @@
       <div id="legend" class="dropdown">
         <h2 data-i18n="map.legend_pin_header">状態の色分け</h2>
         <div class="swatches" id="pin-legend"></div>
+        <p class="hint" data-i18n="map.legend_leaning_hint">
+          「審査中」の投稿は、違和感チェックの票が入り始めると
+          「違和感あり/なし(暫定)」の表示に自動で変わります。
+        </p>
       </div>
-
-      <button type="button" id="search-area-btn" hidden>
-        <span data-i18n="map.search_area_btn">この範囲を検索</span>
-      </button>
     </div>
 
     <div id="list">
       <div id="list-items"></div>
       <p id="list-empty" class="list-empty" hidden data-i18n="map.list_empty">
-        この範囲には投稿がありません。パンや検索でエリアを変えてみてください。
+        該当する投稿がありません。フィルタや検索条件を変えてみてください。
       </p>
       <button type="button" id="load-more" class="load-more-btn" hidden>
         <span data-i18n="map.load_more_btn">もっと見る</span>
       </button>
+    </div>
+
+    <div id="detail-overlay" class="detail-overlay" hidden>
+      <div id="detail-modal" class="detail-modal">
+        <button
+          type="button"
+          id="detail-close"
+          class="detail-close"
+          aria-label="close"
+        >
+          ✕
+        </button>
+        <div id="detail-body"></div>
+      </div>
     </div>
 
     <script type="module">
@@ -544,6 +559,10 @@
 
       const $ = (id) => document.getElementById(id);
       const userId = getUserId();
+
+      // 地図が無いため、地域絞り込みは「地名検索」でだけ行う。
+      // 未検索時は日本全国(postsのlat/lng CHECK制約と同じ範囲)を対象にする。
+      const NATIONAL_BBOX = { west: 122, south: 20, east: 154, north: 46 };
 
       const LANG_LABEL = {
         "ja-en": t("common.pair_label_en"),
@@ -578,7 +597,7 @@
       const googleMapsUrl = (lat, lng) =>
         `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 
-      // ステータス別の色・ラベル。ピン・カードバッジ・凡例・フィルタで単一の情報源にする。
+      // ステータス別の色・ラベル。カードバッジ・凡例・フィルタ・詳細で単一の情報源にする。
       const STATUS_STYLE = {
         pending_judgment: {
           color: "#c9a227",
@@ -590,6 +609,21 @@
         adopted: { color: "#1a4d73", label: t("map.status_adopted") },
       };
       const PIN_DEFAULT_COLOR = "#8a8478";
+
+      // 表示専用の暫定リーン(rule12改定)。posts.statusはpending_judgmentのまま変えず、
+      // 違和感チェックの票が1件以上入っていればカード表示だけ先取りして見せる。
+      function displayStatus(p) {
+        if (
+          p.status === "pending_judgment" &&
+          (p.natural_count > 0 || p.unnatural_count > 0) &&
+          p.natural_count !== p.unnatural_count
+        ) {
+          return p.unnatural_count > p.natural_count
+            ? { color: "#c9a227", label: t("map.status_leaning_unnatural") }
+            : { color: "#8a8478", label: t("map.status_leaning_natural") };
+        }
+        return STATUS_STYLE[p.status] || {};
+      }
 
       for (const [k, s] of Object.entries(STATUS_STYLE)) {
         $("pin-legend").insertAdjacentHTML(
@@ -607,19 +641,6 @@
           "beforeend",
           `<label><input type="checkbox" value="${k}" checked>${label}</label>`,
         );
-      }
-
-      let leafletPromise = null;
-      function loadLeaflet() {
-        if (leafletPromise) return leafletPromise;
-        leafletPromise = new Promise((resolve, reject) => {
-          const s = document.createElement("script");
-          s.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-          s.onload = resolve;
-          s.onerror = () => reject(new Error(t("common.map_load_error")));
-          document.head.appendChild(s);
-        });
-        return leafletPromise;
       }
 
       function setStatus(text) {
@@ -662,29 +683,15 @@
         );
       }
 
-      async function main() {
-        await loadLeaflet();
+      const REVIEWABLE = new Set(["ja-en", "ja-zh", "ja-ko"]);
 
-        const map = L.map("map", { zoomControl: false }).setView(
-          [35.681, 139.767],
-          10,
-        );
-        L.control.zoom({ position: "topright" }).addTo(map);
-        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          maxZoom: 19,
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
-        }).addTo(map);
-
-        const dataLayer = L.layerGroup().addTo(map);
-        const layersById = new Map();
-
-        function confirmedPinHtml(p, latlng) {
-          const photo = p.src_thumb_key
-            ? `<img class="popup-photo" src="/img/${p.src_thumb_key}" alt="${escapeHtml(t("common.alt_translated"))}">`
-            : "";
-          return `${photo}<table>
-        <tr><td>${t("map.row_status")}</td><td>${escapeHtml((STATUS_STYLE[p.status] || {}).label || p.status)}</td></tr>
+      function confirmedDetailHtml(p, coords) {
+        const photo = p.src_thumb_key
+          ? `<img class="popup-photo" src="/img/${p.src_thumb_key}" alt="${escapeHtml(t("common.alt_translated"))}">`
+          : "";
+        const style = displayStatus(p);
+        return `${photo}<table class="detail-table">
+        <tr><td>${t("map.row_status")}</td><td>${escapeHtml(style.label || p.status)}</td></tr>
         <tr><td>${t("map.row_lang")}</td><td>${LANG_LABEL[p.lang_pair] || p.lang_pair}</td></tr>
         <tr><td>${t("map.row_original")}</td><td>${escapeHtml(p.original_text || t("map.not_entered"))}</td></tr>
         <tr><td>${t("map.label_confirmed_translation")}</td><td>${escapeHtml(p.translated_text || t("map.not_entered"))}</td></tr>
@@ -695,264 +702,233 @@
         <button type="button" class="popup-like-btn" id="like-btn-${p.id}">👍 ${t("map.like_btn")}</button>
         <span id="like-count-${p.id}">${p.like_count}</span>
       </div>
-      <p style="margin:8px 0 0"><a href="${googleMapsUrl(latlng.lat, latlng.lng)}"
+      <p class="detail-goto"><a href="${googleMapsUrl(coords[1], coords[0])}"
         target="_blank" rel="noopener">${t("map.goto_link")}</a></p>`;
-        }
+      }
 
-        const REVIEWABLE = new Set(["ja-en", "ja-zh", "ja-ko"]);
-        function pendingPinHtml(p, latlng) {
-          let cta = "";
-          if (REVIEWABLE.has(p.lang_pair)) {
-            if (p.status === "pending_judgment") {
-              cta = `<a class="popup-cta" href="judge.html?lang_pair=${encodeURIComponent(p.lang_pair)}">${t("map.goto_judge_cta")}</a>`;
-            } else if (p.status === "needs_fix") {
-              cta = `<a class="popup-cta" href="curate.html?lang_pair=${encodeURIComponent(p.lang_pair)}">${t("map.goto_curate_cta")}</a>`;
-            }
+      function pendingDetailHtml(p, coords) {
+        let cta = "";
+        if (REVIEWABLE.has(p.lang_pair)) {
+          if (p.status === "pending_judgment") {
+            cta = `<a class="popup-cta" href="judge.html?lang_pair=${encodeURIComponent(p.lang_pair)}">${t("map.goto_judge_cta")}</a>`;
+          } else if (p.status === "needs_fix") {
+            cta = `<a class="popup-cta" href="curate.html?lang_pair=${encodeURIComponent(p.lang_pair)}">${t("map.goto_curate_cta")}</a>`;
           }
-          return `<table>
-        <tr><td>${t("map.row_status")}</td><td>${escapeHtml((STATUS_STYLE[p.status] || {}).label || p.status)}</td></tr>
+        }
+        const style = displayStatus(p);
+        return `<table class="detail-table">
+        <tr><td>${t("map.row_status")}</td><td>${escapeHtml(style.label || p.status)}</td></tr>
         <tr><td>${t("map.row_lang")}</td><td>${LANG_LABEL[p.lang_pair] || p.lang_pair}</td></tr>
         <tr><td>${t("map.row_original")}</td><td>${escapeHtml(p.original_text || t("map.not_entered"))}</td></tr>
         <tr><td>${t("map.label_unconfirmed_translation")}</td><td>${escapeHtml(p.translated_text || t("map.not_entered"))}</td></tr>
         <tr><td>${t("map.row_date")}</td><td>${jst(p.event_at)}</td></tr>
       </table>
       ${cta}
-      <p style="margin:8px 0 0"><a href="${googleMapsUrl(latlng.lat, latlng.lng)}"
+      <p class="detail-goto"><a href="${googleMapsUrl(coords[1], coords[0])}"
         target="_blank" rel="noopener">${t("map.goto_link")}</a></p>`;
-        }
-
-        function wireLikeButton(popup, p) {
-          const btn = document.getElementById(`like-btn-${p.id}`);
-          if (!btn) return;
-          btn.addEventListener("click", async () => {
-            btn.disabled = true;
-            try {
-              const res = await fetch("/api/posts/like", {
-                method: "POST",
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify({ user_id: userId, post_id: p.id }),
-              });
-              const j = await res.json();
-              if (!j.ok) throw new Error(j.error);
-              p.like_count = j.count;
-              btn.classList.toggle("liked", j.liked);
-              const countEl = document.getElementById(`like-count-${p.id}`);
-              if (countEl) countEl.textContent = j.count;
-            } catch {
-              /* 失敗しても地図の閲覧自体は継続できる */
-            } finally {
-              btn.disabled = false;
-            }
-          });
-        }
-
-        function openPinPopup(p, latlng) {
-          const isConfirmed = p.status === "confirmed" || p.status === "adopted";
-          const popup = L.popup({ maxWidth: 280 })
-            .setLatLng(latlng)
-            .setContent(
-              isConfirmed ? confirmedPinHtml(p, latlng) : pendingPinHtml(p, latlng),
-            )
-            .openOn(map);
-          if (isConfirmed) wireLikeButton(popup, p);
-        }
-
-        function addPinToMap(feature) {
-          const p = feature.properties;
-          const latlng = L.latLng(
-            feature.geometry.coordinates[1],
-            feature.geometry.coordinates[0],
-          );
-          const layer = L.circleMarker(latlng, {
-            radius: 7,
-            fillColor: (STATUS_STYLE[p.status] || {}).color || PIN_DEFAULT_COLOR,
-            fillOpacity: 1,
-            color: "#fff",
-            weight: 1.5,
-          });
-          layer.on("click", (e) => openPinPopup(p, e.latlng));
-          layer.addTo(dataLayer);
-          layersById.set(p.id, layer);
-        }
-
-        function cardHtml(feature) {
-          const p = feature.properties;
-          const style = STATUS_STYLE[p.status] || {};
-          const langLabel = LANG_LABEL[p.lang_pair] || p.lang_pair;
-          const thumb = p.src_thumb_key
-            ? `<img src="/img/${p.src_thumb_key}" alt="">`
-            : `<span class="ph-icon">📍</span>`;
-          return `
-            <div class="post-card" data-id="${p.id}">
-              <div class="post-card-thumb">
-                ${thumb}
-              </div>
-              <div class="post-card-body">
-                <div class="post-card-badges">
-                  <span class="post-card-lang">${escapeHtml(langLabel)}</span>
-                  <span class="post-card-status" style="background:${style.color || PIN_DEFAULT_COLOR}">${escapeHtml(style.label || p.status)}</span>
-                </div>
-                <div class="post-card-text">${escapeHtml(p.original_text || t("map.not_entered"))}</div>
-                <div class="post-card-date">${jst(p.event_at)}</div>
-              </div>
-            </div>
-          `;
-        }
-
-        function addCard(feature) {
-          $("list-items").insertAdjacentHTML("beforeend", cardHtml(feature));
-        }
-
-        $("list-items").addEventListener("click", (e) => {
-          const card = e.target.closest(".post-card");
-          if (!card) return;
-          const layer = layersById.get(card.dataset.id);
-          if (!layer) return;
-          map.setView(layer.getLatLng(), Math.max(map.getZoom(), 15), {
-            animate: false,
-          });
-          layer.fire("click", { latlng: layer.getLatLng() });
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        });
-
-        function checkedValues(containerId) {
-          return [
-            ...document.querySelectorAll(`#${containerId} input:checked`),
-          ].map((el) => el.value);
-        }
-
-        let lastQueryBbox = null;
-        let offset = 0;
-        let lastSearchedCenter = null;
-        let lastSearchedZoom = null;
-        let controller = null;
-
-        async function runQuery(reset) {
-          if (controller) controller.abort();
-          controller = new AbortController();
-
-          if (reset) {
-            lastQueryBbox = map.getBounds();
-            offset = 0;
-          }
-          if (!lastQueryBbox) return;
-
-          const langs = checkedValues("lang-filters");
-          const statuses = checkedValues("status-filters");
-          const minLikes = Math.max(0, Number($("min-likes").value) || 0);
-          const minAgree = Math.max(0, Number($("min-agree").value) || 0);
-          const b = lastQueryBbox;
-          const params = new URLSearchParams({
-            bbox: [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()].join(
-              ",",
-            ),
-            level: "mesh3",
-            lang_pair: langs.join(","),
-            status: statuses.join(","),
-            min_likes: String(minLikes),
-            min_agree: String(minAgree),
-            limit: "30",
-            offset: String(offset),
-          });
-
-          setStatus(t("common.loading"));
-          try {
-            const res = await fetch(`/api/map?${params}`, {
-              signal: controller.signal,
-            });
-            const geojson = await res.json();
-            if (!res.ok)
-              throw new Error(geojson.error || t("common.fetch_error"));
-
-            const pins = geojson.features.filter(
-              (f) => f.properties.kind === "pin",
-            );
-
-            if (reset) {
-              dataLayer.clearLayers();
-              layersById.clear();
-              $("list-items").innerHTML = "";
-            }
-            for (const f of pins) {
-              addPinToMap(f);
-              addCard(f);
-            }
-            offset += pins.length;
-            $("load-more").hidden = !geojson.has_more;
-            if (reset) {
-              $("list-empty").hidden = pins.length > 0;
-              lastSearchedCenter = map.getCenter();
-              lastSearchedZoom = map.getZoom();
-              $("search-area-btn").hidden = true;
-            }
-            setStatus("");
-          } catch (e) {
-            if (e.name === "AbortError") return;
-            setStatus(e.message);
-          }
-        }
-
-        let debounceTimer = null;
-        function scheduleRefresh() {
-          clearTimeout(debounceTimer);
-          debounceTimer = setTimeout(() => runQuery(true), 300);
-        }
-        document
-          .querySelectorAll("#lang-filters input, #status-filters input")
-          .forEach((el) => el.addEventListener("change", scheduleRefresh));
-        $("min-likes").addEventListener("input", scheduleRefresh);
-        $("min-agree").addEventListener("input", scheduleRefresh);
-
-        // 地図のパン/ズームでは自動再検索しない(地図情報はフィルタとして使う)。
-        // 最後に検索した位置から動いたら「この範囲を検索」ボタンだけ出す。
-        const MOVE_THRESHOLD_M = 400;
-        map.on("moveend", () => {
-          if (!lastSearchedCenter) return;
-          const moved =
-            map.getZoom() !== lastSearchedZoom ||
-            map.getCenter().distanceTo(lastSearchedCenter) > MOVE_THRESHOLD_M;
-          $("search-area-btn").hidden = !moved;
-        });
-        $("search-area-btn").addEventListener("click", () => runQuery(true));
-
-        $("load-more").addEventListener("click", () => runQuery(false));
-
-        async function searchPlace() {
-          const q = $("place-q").value.trim();
-          const msg = $("place-msg");
-          msg.textContent = "";
-          if (!q) return;
-          msg.textContent = t("map.searching");
-          try {
-            const res = await fetch(
-              `https://msearch.gsi.go.jp/address-search/AddressSearch?q=${encodeURIComponent(q)}`,
-            );
-            if (!res.ok) throw new Error(t("map.search_failed"));
-            const results = await res.json();
-            if (!results.length) {
-              msg.textContent = t("map.not_found");
-              return;
-            }
-            const [lng, lat] = results[0].geometry.coordinates;
-            map.once("moveend", () => runQuery(true));
-            map.flyTo([lat, lng], Math.max(map.getZoom(), 14));
-            msg.textContent = "";
-          } catch (e) {
-            msg.textContent = e.message;
-          }
-        }
-        $("place-go").addEventListener("click", searchPlace);
-        $("place-q").addEventListener("keydown", (e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            searchPlace();
-          }
-        });
-
-        runQuery(true);
       }
 
-      main().catch((e) => setStatus(e.message));
+      function wireLikeButton(p) {
+        const btn = document.getElementById(`like-btn-${p.id}`);
+        if (!btn) return;
+        btn.addEventListener("click", async () => {
+          btn.disabled = true;
+          try {
+            const res = await fetch("/api/posts/like", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ user_id: userId, post_id: p.id }),
+            });
+            const j = await res.json();
+            if (!j.ok) throw new Error(j.error);
+            p.like_count = j.count;
+            btn.classList.toggle("liked", j.liked);
+            const countEl = document.getElementById(`like-count-${p.id}`);
+            if (countEl) countEl.textContent = j.count;
+          } catch {
+            /* 失敗しても閲覧自体は継続できる */
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      }
+
+      function openDetail(feature) {
+        const p = feature.properties;
+        const coords = feature.geometry.coordinates;
+        const isConfirmed = p.status === "confirmed" || p.status === "adopted";
+        $("detail-body").innerHTML = isConfirmed
+          ? confirmedDetailHtml(p, coords)
+          : pendingDetailHtml(p, coords);
+        if (isConfirmed) wireLikeButton(p);
+        $("detail-overlay").hidden = false;
+      }
+      function closeDetail() {
+        $("detail-overlay").hidden = true;
+        $("detail-body").innerHTML = "";
+      }
+      $("detail-close").addEventListener("click", closeDetail);
+      $("detail-overlay").addEventListener("click", (e) => {
+        if (e.target === $("detail-overlay")) closeDetail();
+      });
+
+      function cardHtml(feature) {
+        const p = feature.properties;
+        const style = displayStatus(p);
+        const langLabel = LANG_LABEL[p.lang_pair] || p.lang_pair;
+        const thumb = p.src_thumb_key
+          ? `<img src="/img/${p.src_thumb_key}" alt="">`
+          : `<span class="ph-icon">📍</span>`;
+        return `
+          <div class="post-card" data-id="${p.id}">
+            <div class="post-card-thumb">
+              ${thumb}
+            </div>
+            <div class="post-card-body">
+              <div class="post-card-badges">
+                <span class="post-card-lang">${escapeHtml(langLabel)}</span>
+                <span class="post-card-status" style="background:${style.color || PIN_DEFAULT_COLOR}">${escapeHtml(style.label || p.status)}</span>
+              </div>
+              <div class="post-card-text">${escapeHtml(p.original_text || t("map.not_entered"))}</div>
+              <div class="post-card-date">${jst(p.event_at)}</div>
+            </div>
+          </div>
+        `;
+      }
+
+      const featuresById = new Map();
+      function addCard(feature) {
+        featuresById.set(feature.properties.id, feature);
+        $("list-items").insertAdjacentHTML("beforeend", cardHtml(feature));
+      }
+
+      $("list-items").addEventListener("click", (e) => {
+        const card = e.target.closest(".post-card");
+        if (!card) return;
+        const feature = featuresById.get(card.dataset.id);
+        if (feature) openDetail(feature);
+      });
+
+      function checkedValues(containerId) {
+        return [
+          ...document.querySelectorAll(`#${containerId} input:checked`),
+        ].map((el) => el.value);
+      }
+
+      let currentBbox = NATIONAL_BBOX;
+      let offset = 0;
+      let controller = null;
+
+      async function runQuery(reset) {
+        if (controller) controller.abort();
+        controller = new AbortController();
+
+        if (reset) offset = 0;
+
+        const langs = checkedValues("lang-filters");
+        const statuses = checkedValues("status-filters");
+        const minLikes = Math.max(0, Number($("min-likes").value) || 0);
+        const minAgree = Math.max(0, Number($("min-agree").value) || 0);
+        const b = currentBbox;
+        const params = new URLSearchParams({
+          bbox: [b.west, b.south, b.east, b.north].join(","),
+          level: "mesh3",
+          lang_pair: langs.join(","),
+          status: statuses.join(","),
+          min_likes: String(minLikes),
+          min_agree: String(minAgree),
+          limit: "30",
+          offset: String(offset),
+        });
+
+        setStatus(t("common.loading"));
+        try {
+          const res = await fetch(`/api/map?${params}`, {
+            signal: controller.signal,
+          });
+          const geojson = await res.json();
+          if (!res.ok)
+            throw new Error(geojson.error || t("common.fetch_error"));
+
+          const pins = geojson.features.filter(
+            (f) => f.properties.kind === "pin",
+          );
+
+          if (reset) {
+            $("list-items").innerHTML = "";
+            featuresById.clear();
+          }
+          for (const f of pins) addCard(f);
+          offset += pins.length;
+          $("load-more").hidden = !geojson.has_more;
+          if (reset) {
+            $("list-empty").hidden = pins.length > 0;
+          }
+          setStatus("");
+        } catch (e) {
+          if (e.name === "AbortError") return;
+          setStatus(e.message);
+        }
+      }
+
+      let debounceTimer = null;
+      function scheduleRefresh() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => runQuery(true), 300);
+      }
+      document
+        .querySelectorAll("#lang-filters input, #status-filters input")
+        .forEach((el) => el.addEventListener("change", scheduleRefresh));
+      $("min-likes").addEventListener("input", scheduleRefresh);
+      $("min-agree").addEventListener("input", scheduleRefresh);
+
+      $("load-more").addEventListener("click", () => runQuery(false));
+
+      // 地図が無いので「地名検索」は、その地点周辺のbboxに絞り込む役割を持つ。
+      // 検索欄を空にして再検索すると全国表示に戻る。
+      const PLACE_RADIUS_DEG = 0.05;
+      async function searchPlace() {
+        const q = $("place-q").value.trim();
+        const msg = $("place-msg");
+        msg.textContent = "";
+        if (!q) {
+          currentBbox = NATIONAL_BBOX;
+          runQuery(true);
+          return;
+        }
+        msg.textContent = t("map.searching");
+        try {
+          const res = await fetch(
+            `https://msearch.gsi.go.jp/address-search/AddressSearch?q=${encodeURIComponent(q)}`,
+          );
+          if (!res.ok) throw new Error(t("map.search_failed"));
+          const results = await res.json();
+          if (!results.length) {
+            msg.textContent = t("map.not_found");
+            return;
+          }
+          const [lng, lat] = results[0].geometry.coordinates;
+          currentBbox = {
+            west: lng - PLACE_RADIUS_DEG,
+            east: lng + PLACE_RADIUS_DEG,
+            south: lat - PLACE_RADIUS_DEG,
+            north: lat + PLACE_RADIUS_DEG,
+          };
+          msg.textContent = "";
+          runQuery(true);
+        } catch (e) {
+          msg.textContent = e.message;
+        }
+      }
+      $("place-go").addEventListener("click", searchPlace);
+      $("place-q").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          searchPlace();
+        }
+      });
+
+      runQuery(true);
     </script>
   </body>
 </html>

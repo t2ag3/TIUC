@@ -104,7 +104,12 @@ export async function publicMap(
                )
              ), 0) AS agree_count,
              (SELECT c2.explanation FROM corrections c2
-               WHERE c2.post_id = posts.id AND c2.status = 'confirmed' LIMIT 1) AS explanation
+               WHERE c2.post_id = posts.id AND c2.status = 'confirmed' LIMIT 1) AS explanation,
+             -- 表示専用の暫定リーン(rule1は変更しない。posts.statusはpending_judgmentのまま)。
+             -- 違和感チェックが正式な2票閾値に届く前でも、1票以上入っていれば
+             -- カード上は「違和感あり/なし(暫定)」を見せてフィード全体の情報量を上げる。
+             (SELECT COUNT(*) FILTER (WHERE verdict = 'unnatural') FROM judgments j WHERE j.post_id = posts.id) AS unnatural_count,
+             (SELECT COUNT(*) FILTER (WHERE verdict = 'natural') FROM judgments j WHERE j.post_id = posts.id) AS natural_count
         FROM posts
        WHERE status <> 'auto_rejected'
          AND status IN (${statusSql})
@@ -143,6 +148,8 @@ export async function publicMap(
         like_count: number;
         agree_count: number;
         explanation: string | null;
+        unnatural_count: number;
+        natural_count: number;
       }>(),
   ]);
 
@@ -195,6 +202,9 @@ export async function publicMap(
         event_at: row.event_at,
         like_count: row.like_count,
         agree_count: row.agree_count,
+        // pending_judgment のみ意味を持つ(表示専用の暫定リーン計算用)
+        unnatural_count: row.status === "pending_judgment" ? row.unnatural_count : 0,
+        natural_count: row.status === "pending_judgment" ? row.natural_count : 0,
       },
       geometry: { type: "Point", coordinates: [row.lng, row.lat] },
     });
