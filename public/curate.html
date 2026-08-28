@@ -537,6 +537,7 @@
       <script type="module">
         import { getUserId, bootstrapAuth } from "./auth.js";
         import { t, applyI18n, initLangSwitcher } from "./i18n.js";
+        import { showGachaReveal } from "./gacha-reveal.js";
 
         applyI18n();
         initLangSwitcher();
@@ -779,6 +780,7 @@
             const j = await res.json();
             if (!j.ok) throw new Error(j.error);
             showToast(t("curate.toast_proposed", { points: j.points }));
+            showGachaReveal(j.drop);
             loadPointsBadge();
             loadFixNext();
           } catch (e) {
@@ -809,6 +811,7 @@
               `+${j.points}pt` +
                 (j.confirmed ? t("curate.toast_confirmed_suffix") : ""),
             );
+            showGachaReveal(j.drop);
             loadPointsBadge();
             loadFixNext();
           } catch (e) {
@@ -889,6 +892,7 @@
               `+${j.points}pt` +
                 (j.confirmed ? t("curate.toast_confirmed_suffix") : ""),
             );
+            showGachaReveal(j.drop);
             loadPointsBadge();
             loadVoteNext();
           } catch (e) {

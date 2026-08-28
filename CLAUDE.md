@@ -351,6 +351,25 @@ posts.status:
   `unnatural_count:1`が乗ること、`posts.status`が`pending_judgment`のまま変化しないことを確認済み
   （テストデータは確認後削除・本番未投入）。フロントの表示分岐自体は本セッションではブラウザ操作ツールが
   使えず実クリック確認はできていない（他のUI変更と同様、次回ブラウザで触れる際に確認すること）。
+- **キャラゲット抽選演出を追加**：`src/posts.ts`/`src/review.ts`の投稿・判定・修正提案・投票の各エンドポイントは
+  以前からドロップ自体は毎回サーバ側で抽選し`character_drops`に記録していたが（`src/game.ts`の
+  `rollNormalDrop`/`rollRareDrop`）、何が当たったかをレスポンスJSONに一切含めていなかった（フロントは
+  ポイント加算しか知りようがなかった）。`rollNormalDrop`/`rollRareDrop`が種族名(`name_key`)も一緒に返すよう
+  拡張し、`dropPayload()`ヘルパーで`{species_id, name_key, rarity}`の形にして`/api/posts`・`/api/judge/submit`・
+  `/api/correct/submit`・`/api/correct/vote/submit`のレスポンスに`drop`フィールドとして追加した。
+  （`correctVoteSubmit`は確定ボーナス用の`confirmDrop`も内部で抽選するが、それは元の提案者への付与であり
+  リクエスト送信者＝投票者のものではないため、レスポンスには投票者自身の`voteDrop`だけを返している。）
+  フロント側は新規共有モジュール`public/gacha-reveal.js`の`showGachaReveal(drop)`を`report.html`（投稿成功時）・
+  `judge.html`（判定送信時）・`curate.html`（修正提案・投票・修正案への賛否の3箇所）から呼ぶ。
+  collection.htmlのレア度別背景色（r1〜r4のグラデーション）と`images/species/{id}.png`
+  （無ければ`mon-placeholder.svg`にフォールバック）をそのまま流用し、種族名は`game.species.{name_key}.name`の
+  既存i18nキーで解決する。判定・修正・投票は連続操作のキューなので、演出は`await`で止めず自動フェードアウト
+  （レア度に応じ0.9〜2.4秒、タップで早送り可）にして、KPI上重視しているスループット・継続率を妨げないようにした
+  （report.htmlの投稿だけは単発アクションなので、既存の完了モーダルに重ねて出す形）。
+  `wrangler dev`＋curlで`/api/judge/submit`のレスポンスに`drop:{species_id:"fennec_fox",...}`が乗ること、
+  対応するi18nキー（`game.species.fennec_fox.name`）が実在すること、report.html/judge.html/curate.htmlの
+  配信HTMLに`gacha-reveal.js`のimportが実際に入っていることを確認済み（テストデータは削除・本番未投入）。
+  実ブラウザでの演出そのもの（アニメーション・タップ早送り）はブラウザ操作ツールが使えず未確認。
 
 **（2026-08-25改定）ゲーム層（`game.html`）の再設計**：2026-08-22時点では「クビアカ由来のキャラ育成ゲームは
 翻訳ドメインと無関係のため削除」としていたが、その後の作業でLP（`index.html`）が`lp_mock.html`のデザインを

@@ -329,6 +329,7 @@
       <script type="module">
         import { getUserId, bootstrapAuth } from "./auth.js";
         import { t, applyI18n, initLangSwitcher } from "./i18n.js";
+        import { showGachaReveal } from "./gacha-reveal.js";
 
         applyI18n();
         initLangSwitcher();
@@ -492,6 +493,7 @@
               `+${j.points}pt` +
                 (j.transitioned_to ? t("judge.toast_dispatched") : ""),
             );
+            showGachaReveal(j.drop);
             loadPointsBadge();
             seen.push(current.post_id);
             loadNext();

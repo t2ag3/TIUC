@@ -14,6 +14,7 @@ export default {
   "common.back_btn": "Précédent",
   "common.processing": "Traitement en cours...",
   "common.loading": "Chargement...",
+  "common.gacha_get_label": "OBTENU !",
   "common.fetch_error": "Échec du chargement",
   "common.memo_prefix": "Note : {text}",
   "common.arrow_lang_en": "Anglais",

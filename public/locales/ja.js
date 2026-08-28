@@ -14,6 +14,7 @@ export default {
   "common.back_btn": "もどる",
   "common.processing": "処理中...",
   "common.loading": "読み込み中...",
+  "common.gacha_get_label": "GET!",
   "common.fetch_error": "取得に失敗しました",
   "common.memo_prefix": "メモ: {text}",
   "common.arrow_lang_en": "英語",

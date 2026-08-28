@@ -40,7 +40,7 @@ const TIER_WEIGHTS: Array<{ tier: number; weight: number }> = [
   { tier: 4, weight: 0.5 },
 ];
 
-export type Drop = { speciesId: string; rarity: number };
+export type Drop = { speciesId: string; nameKey: string; rarity: number };
 
 function weightedPickTier(table: Array<{ tier: number; weight: number }>): number {
   const total = table.reduce((s, t) => s + t.weight, 0);
@@ -52,23 +52,36 @@ function weightedPickTier(table: Array<{ tier: number; weight: number }>): numbe
   return table[table.length - 1].tier;
 }
 
-async function pickSpeciesForTier(env: AppEnv, tier: number): Promise<string> {
-  const rows = await env.DB.prepare("SELECT id FROM species WHERE rarity = ?1")
+async function pickSpeciesForTier(
+  env: AppEnv,
+  tier: number,
+): Promise<{ id: string; nameKey: string }> {
+  const rows = await env.DB.prepare(
+    "SELECT id, name_key FROM species WHERE rarity = ?1",
+  )
     .bind(tier === 4 ? 4 : 1)
-    .all<{ id: string }>();
-  const pool = rows.results.map((r) => r.id);
-  return pool[Math.floor(Math.random() * pool.length)];
+    .all<{ id: string; name_key: string }>();
+  const pool = rows.results;
+  const picked = pool[Math.floor(Math.random() * pool.length)];
+  return { id: picked.id, nameKey: picked.name_key };
 }
 
 export async function rollNormalDrop(env: AppEnv): Promise<Drop> {
   const tier = weightedPickTier(TIER_WEIGHTS);
-  return { speciesId: await pickSpeciesForTier(env, tier), rarity: tier };
+  const picked = await pickSpeciesForTier(env, tier);
+  return { speciesId: picked.id, nameKey: picked.nameKey, rarity: tier };
 }
 
 // レベルアップ・修正確定などの「確定で少し良い」ボーナス枠。★1を除外して再抽選する。
 export async function rollRareDrop(env: AppEnv): Promise<Drop> {
   const tier = weightedPickTier(TIER_WEIGHTS.filter((t) => t.tier > 1));
-  return { speciesId: await pickSpeciesForTier(env, tier), rarity: tier };
+  const picked = await pickSpeciesForTier(env, tier);
+  return { speciesId: picked.id, nameKey: picked.nameKey, rarity: tier };
+}
+
+// レスポンスJSON用の形。フロントのガチャ演出(gacha-reveal.js)が消費する。
+export function dropPayload(drop: Drop) {
+  return { species_id: drop.speciesId, name_key: drop.nameKey, rarity: drop.rarity };
 }
 
 // character_drops への1行を返す。source_key はイベント単位で一意にし、リトライでの

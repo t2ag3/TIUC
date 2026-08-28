@@ -792,6 +792,7 @@
         import { parseExif } from "./exif.js";
         import { getUserId, bootstrapAuth } from "./auth.js";
         import { t, applyI18n, initLangSwitcher } from "./i18n.js";
+        import { showGachaReveal } from "./gacha-reveal.js";
 
         applyI18n();
         initLangSwitcher();
@@ -1246,6 +1247,7 @@
             $("submit").innerHTML = t("report.submit_done_btn");
             $("submit").classList.add("sent");
             $("done-modal").hidden = false;
+            showGachaReveal(j.drop);
             loadPointsBadge();
           } catch (e) {
             $("submit-status").innerHTML =

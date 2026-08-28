@@ -12,7 +12,7 @@ import {
 } from "./config";
 
 import { bad, nextStreakCount, sha256Short } from "./utils";
-import { dropStatement, rollNormalDrop } from "./game";
+import { dropPayload, dropStatement, rollNormalDrop } from "./game";
 import { analyzeSignPhoto } from "./moderation";
 import type { AppEnv } from "./types";
 
@@ -228,7 +228,13 @@ export async function createPost(
     dropStatement(env, userId, drop.speciesId, drop.rarity, `drop:post:${id}`, now),
   ]);
 
-  return Response.json({ ok: true, id, mesh3: mesh.mesh3, points });
+  return Response.json({
+    ok: true,
+    id,
+    mesh3: mesh.mesh3,
+    points,
+    drop: dropPayload(drop),
+  });
 }
 
 // 撮影直後のAI事前チェック。不適切な写真の足切りと、言語・表記種別のデフォルト値

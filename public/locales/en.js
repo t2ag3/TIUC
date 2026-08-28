@@ -14,6 +14,7 @@ export default {
   "common.back_btn": "Back",
   "common.processing": "Processing...",
   "common.loading": "Loading...",
+  "common.gacha_get_label": "GET!",
   "common.fetch_error": "Failed to load data",
   "common.memo_prefix": "Note: {text}",
   "common.arrow_lang_en": "English",

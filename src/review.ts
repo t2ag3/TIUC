@@ -13,7 +13,7 @@ import {
 } from "./config";
 
 import { bad, nextStreakCount } from "./utils";
-import { dropStatement, rollNormalDrop, rollRareDrop } from "./game";
+import { dropPayload, dropStatement, rollNormalDrop, rollRareDrop } from "./game";
 import type { AppEnv } from "./types";
 
 // =====================================================================
@@ -173,6 +173,7 @@ export async function judgeSubmit(
     ok: true,
     transitioned_to: transitionedTo,
     points: POINTS_JUDGMENT,
+    drop: dropPayload(drop),
   });
 }
 
@@ -371,6 +372,7 @@ export async function correctSubmit(
     ok: true,
     correction_id: correctionId,
     points: POINTS_CORRECTION_PROPOSE,
+    drop: dropPayload(correctionDrop),
   });
 }
 
@@ -572,5 +574,10 @@ export async function correctVoteSubmit(
       .run();
   }
 
-  return Response.json({ ok: true, confirmed, points: POINTS_VOTE });
+  return Response.json({
+    ok: true,
+    confirmed,
+    points: POINTS_VOTE,
+    drop: dropPayload(voteDrop),
+  });
 }

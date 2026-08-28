@@ -14,6 +14,7 @@ export default {
   "common.back_btn": "이전",
   "common.processing": "처리 중...",
   "common.loading": "로딩 중...",
+  "common.gacha_get_label": "획득!",
   "common.fetch_error": "불러오기에 실패했습니다",
   "common.memo_prefix": "메모: {text}",
   "common.arrow_lang_en": "영어",

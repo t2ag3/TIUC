@@ -14,6 +14,7 @@ export default {
   "common.back_btn": "上一步",
   "common.processing": "处理中...",
   "common.loading": "加载中...",
+  "common.gacha_get_label": "获得!",
   "common.fetch_error": "获取失败",
   "common.memo_prefix": "备注：{text}",
   "common.arrow_lang_en": "英语",
