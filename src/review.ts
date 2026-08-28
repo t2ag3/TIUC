@@ -191,19 +191,67 @@ export async function correctNext(
   if (!isValidLangPair(langPair))
     return bad("言語ペアの指定が不正です");
 
+  const exclude = String(sp.get("exclude") || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => /^[0-9a-f-]{36}$/.test(s))
+    .slice(0, 20);
+  const excludeSql = exclude.length
+    ? `AND posts.id NOT IN (${exclude.map((_, i) => `?${i + 3}`).join(",")})`
+    : "";
+
+  // 誰かの提案が既にあり自分がまだ投票していないものは、その提案idも一緒に返す
+  // (無ければ新規提案フォームを、あれば投票UIをフロント側で出し分けるため)
   const row = await env.DB.prepare(
     `SELECT id, src_image_key, tgt_image_key, situation, place_kind,
-            original_text, translated_text
+            original_text, translated_text,
+            (SELECT c.id FROM corrections c
+              WHERE c.post_id = posts.id AND c.status = 'proposed' AND c.curator_id <> ?1
+                AND NOT EXISTS (SELECT 1 FROM votes v WHERE v.correction_id = c.id AND v.voter_id = ?1)
+              ORDER BY c.created_at ASC LIMIT 1) AS existing_correction_id
        FROM posts
       WHERE status = 'needs_fix' AND lang_pair = ?2 AND submitter_id <> ?1
         AND NOT EXISTS (SELECT 1 FROM corrections c WHERE c.post_id = posts.id AND c.curator_id = ?1)
+        ${excludeSql}
       ORDER BY review_priority ASC, created_at ASC
       LIMIT 1`,
   )
-    .bind(userId, langPair)
-    .first();
+    .bind(userId, langPair, ...exclude)
+    .first<{
+      id: string;
+      src_image_key: string;
+      tgt_image_key: string | null;
+      situation: string | null;
+      place_kind: string;
+      original_text: string | null;
+      translated_text: string | null;
+      existing_correction_id: string | null;
+    }>();
 
   if (!row) return Response.json({ ok: true, post: null });
+
+  let existingCorrection = null;
+  if (row.existing_correction_id) {
+    const c = await env.DB.prepare(
+      "SELECT id, fixed_text, explanation, verdict FROM corrections WHERE id = ?1",
+    )
+      .bind(row.existing_correction_id)
+      .first<{
+        id: string;
+        fixed_text: string | null;
+        explanation: string | null;
+        verdict: string;
+      }>();
+    if (c) {
+      existingCorrection = {
+        correction_id: c.id,
+        fixed_text: c.fixed_text,
+        explanation: c.explanation,
+        verdict: c.verdict,
+      };
+    }
+  }
+
   return Response.json({
     ok: true,
     post: {
@@ -217,6 +265,7 @@ export async function correctNext(
         ? `/img/${row.tgt_image_key}?curator_id=${encodeURIComponent(userId)}`
         : null,
     },
+    existing_correction: existingCorrection,
   });
 }
 
@@ -336,6 +385,15 @@ export async function correctVoteNext(
   if (!isValidLangPair(langPair))
     return bad("言語ペアの指定が不正です");
 
+  const exclude = String(sp.get("exclude") || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => /^[0-9a-f-]{36}$/.test(s))
+    .slice(0, 20);
+  const excludeSql = exclude.length
+    ? `AND c.id NOT IN (${exclude.map((_, i) => `?${i + 3}`).join(",")})`
+    : "";
+
   const row = await env.DB.prepare(
     `SELECT c.id, c.fixed_text, c.explanation, c.verdict, c.curator_id,
             p.id AS post_id, p.original_text, p.translated_text, p.situation,
@@ -343,10 +401,11 @@ export async function correctVoteNext(
        FROM corrections c JOIN posts p ON p.id = c.post_id
       WHERE c.status = 'proposed' AND p.lang_pair = ?2 AND c.curator_id <> ?1
         AND NOT EXISTS (SELECT 1 FROM votes v WHERE v.correction_id = c.id AND v.voter_id = ?1)
+        ${excludeSql}
       ORDER BY c.created_at ASC
       LIMIT 1`,
   )
-    .bind(userId, langPair)
+    .bind(userId, langPair, ...exclude)
     .first();
 
   if (!row) return Response.json({ ok: true, correction: null });

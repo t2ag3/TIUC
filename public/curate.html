@@ -226,6 +226,33 @@
       background: #c3c9c2;
       cursor: default;
     }
+    .skip-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      margin-top: 12px;
+      padding: 13px 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--app-muted);
+      background: rgba(107, 112, 104, 0.06);
+      border: 2px dashed var(--app-line);
+      border-radius: 16px;
+      cursor: pointer;
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease;
+    }
+    .skip-btn:hover {
+      background: rgba(107, 112, 104, 0.1);
+      border-color: #b9c3ba;
+    }
+    .skip-btn:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
 
     .fixed-box {
       background: var(--color-accent-soft, #eef5f0);
@@ -327,21 +354,21 @@
           class="active"
           data-i18n="common.arrow_lang_en"
         >
-          →英語
+          英語
         </button>
         <button
           type="button"
           data-lang="ja-zh"
           data-i18n="common.arrow_lang_zh"
         >
-          →中国語
+          中国語
         </button>
         <button
           type="button"
           data-lang="ja-ko"
           data-i18n="common.arrow_lang_ko"
         >
-          →韓国語
+          韓国語
         </button>
         <button type="button" data-lang="other" data-i18n="report.place_other">
           その他
@@ -390,53 +417,86 @@
         <div id="card" hidden>
           <div class="imgs" id="fix-imgs"></div>
           <p class="meta" id="fix-meta"></p>
-          <div class="verdict-row">
-            <label
-              ><input type="radio" name="verdict" value="fix" checked /><span
-                data-i18n="curate.verdict_fix"
-                >修正が必要</span
-              ></label
-            >
-            <label
-              ><input type="radio" name="verdict" value="no_issue" /><span
-                data-i18n="curate.verdict_no_issue"
-                >実は問題なし</span
-              ></label
-            >
+
+          <!-- 既に他の人の提案がある場合はこちら(投票UI)を表示する -->
+          <div id="fix-vote-view" hidden>
+            <p class="fixed-box" id="fix-vote-fixed"></p>
+            <div class="btns">
+              <button
+                type="button"
+                class="disagree"
+                id="fix-vote-disagree"
+                data-i18n="curate.btn_disagree"
+              >
+                👎 賛成しない
+              </button>
+              <button
+                type="button"
+                class="agree"
+                id="fix-vote-agree"
+                data-i18n="curate.btn_agree"
+              >
+                👍 賛成
+              </button>
+            </div>
           </div>
-          <div id="fix-fields">
-            <label
-              class="field"
-              for="original-text"
-              data-i18n="curate.label_original"
-              >原文(読み取れた日本語)</label
+
+          <!-- 提案がまだ無い場合はこちら(修正案の提出フォーム)を表示する -->
+          <div id="fix-propose-view">
+            <p class="fixed-box" id="fix-first-prompt" data-i18n="curate.be_first_prompt" hidden>
+              修正案がまだありません。最初の投稿者になりましょう！
+            </p>
+            <div class="verdict-row">
+              <label
+                ><input type="radio" name="verdict" value="fix" checked /><span
+                  data-i18n="curate.verdict_fix"
+                  >修正が必要</span
+                ></label
+              >
+              <label
+                ><input type="radio" name="verdict" value="no_issue" /><span
+                  data-i18n="curate.verdict_no_issue"
+                  >実は問題なし</span
+                ></label
+              >
+            </div>
+            <div id="fix-fields">
+              <label
+                class="field"
+                for="original-text"
+                data-i18n="curate.label_original"
+                >原文(読み取れた日本語)</label
+              >
+              <input type="text" id="original-text" maxlength="500" />
+              <label
+                class="field"
+                for="translated-text"
+                data-i18n="curate.label_translated"
+                >現在の訳文</label
+              >
+              <input type="text" id="translated-text" maxlength="500" />
+              <label class="field" for="fixed-text" data-i18n="curate.label_fixed"
+                >修正後の訳文</label
+              >
+              <input type="text" id="fixed-text" maxlength="500" />
+              <label
+                class="field"
+                for="explanation"
+                data-i18n="curate.label_explanation"
+                >なぜ変か(任意)</label
+              >
+              <textarea id="explanation" rows="2" maxlength="500"></textarea>
+            </div>
+            <button
+              type="button"
+              id="submit-fix"
+              data-i18n="curate.submit_fix_btn"
             >
-            <input type="text" id="original-text" maxlength="500" />
-            <label
-              class="field"
-              for="translated-text"
-              data-i18n="curate.label_translated"
-              >現在の訳文</label
-            >
-            <input type="text" id="translated-text" maxlength="500" />
-            <label class="field" for="fixed-text" data-i18n="curate.label_fixed"
-              >修正後の訳文</label
-            >
-            <input type="text" id="fixed-text" maxlength="500" />
-            <label
-              class="field"
-              for="explanation"
-              data-i18n="curate.label_explanation"
-              >なぜ変か(任意)</label
-            >
-            <textarea id="explanation" rows="2" maxlength="500"></textarea>
+              この内容で提案する
+            </button>
           </div>
-          <button
-            type="button"
-            id="submit-fix"
-            data-i18n="curate.submit_fix_btn"
-          >
-            この内容で提案する
+          <button type="button" id="skip-fix" class="skip-btn" data-i18n="judge.skip_btn">
+            ⏭ スキップして次へ
           </button>
         </div>
         <div id="empty-fix" class="panel" hidden>
@@ -472,6 +532,9 @@
               👍 賛成
             </button>
           </div>
+          <button type="button" id="skip-vote" class="skip-btn" data-i18n="judge.skip_btn">
+            ⏭ スキップして次へ
+          </button>
         </div>
         <div id="empty-vote" hidden>
           <div id="empty">
@@ -503,6 +566,9 @@
         let mode = "fix";
         let currentPost = null;
         let currentCorrection = null;
+        let currentFixVote = null;
+        let seenFix = [];
+        let seenVote = [];
 
         // 地図などから lang_pair 指定で来た場合は、主要3言語か「その他」を自動選択する
         const urlLangPair = new URLSearchParams(location.search).get("lang_pair");
@@ -568,6 +634,7 @@
               if (!$("other-lang").value) {
                 currentPost = null;
                 currentCorrection = null;
+                currentFixVote = null;
                 $("card").hidden = true;
                 $("vote-card").hidden = true;
                 $("empty-fix").hidden = true;
@@ -582,6 +649,8 @@
               langPair = btn.dataset.lang;
             }
 
+            seenFix = [];
+            seenVote = [];
             refreshCurrent();
           });
         });
@@ -590,6 +659,7 @@
           if (!$("other-lang").value) {
             currentPost = null;
             currentCorrection = null;
+            currentFixVote = null;
             $("card").hidden = true;
             $("vote-card").hidden = true;
             $("empty-fix").hidden = true;
@@ -599,6 +669,8 @@
           }
 
           langPair = $("other-lang").value;
+          seenFix = [];
+          seenVote = [];
           refreshCurrent();
         });
 
@@ -636,7 +708,7 @@
           await authReady;
           try {
             const res = await fetch(
-              `/api/correct/next?${new URLSearchParams({ user_id: userId, lang_pair: langPair })}`,
+              `/api/correct/next?${new URLSearchParams({ user_id: userId, lang_pair: langPair, exclude: seenFix.slice(-20).join(",") })}`,
             );
             const j = await res.json();
             if (!j.ok) throw new Error(j.error);
@@ -644,6 +716,7 @@
             if (!j.post) {
               $("empty-fix").hidden = false;
               currentPost = null;
+              currentFixVote = null;
               return;
             }
             currentPost = j.post;
@@ -655,18 +728,44 @@
             $("fix-meta").textContent = currentPost.situation
               ? t("common.memo_prefix", { text: currentPost.situation })
               : "";
-            $("original-text").value = currentPost.original_text || "";
-            $("translated-text").value = currentPost.translated_text || "";
-            $("fixed-text").value = "";
-            $("explanation").value = "";
-            document.querySelector("input[name=verdict][value=fix]").checked =
-              true;
-            $("fix-fields").style.display = "block";
+
+            if (j.existing_correction) {
+              currentFixVote = j.existing_correction;
+              $("fix-vote-fixed").textContent =
+                currentFixVote.verdict === "no_issue"
+                  ? t("curate.verdict_no_issue_result")
+                  : t("curate.proposed_translation", {
+                      fixed: currentFixVote.fixed_text,
+                    }) +
+                    (currentFixVote.explanation
+                      ? ` (${currentFixVote.explanation})`
+                      : "");
+              $("fix-vote-view").hidden = false;
+              $("fix-propose-view").hidden = true;
+            } else {
+              currentFixVote = null;
+              $("fix-vote-view").hidden = true;
+              $("fix-propose-view").hidden = false;
+              $("fix-first-prompt").hidden = false;
+              $("original-text").value = currentPost.original_text || "";
+              $("translated-text").value = currentPost.translated_text || "";
+              $("fixed-text").value = "";
+              $("explanation").value = "";
+              document.querySelector(
+                "input[name=verdict][value=fix]",
+              ).checked = true;
+              $("fix-fields").style.display = "block";
+            }
             $("card").hidden = false;
           } catch (e) {
             $("status").textContent = e.message;
           }
         }
+
+        $("skip-fix").addEventListener("click", () => {
+          if (currentPost) seenFix.push(currentPost.post_id);
+          loadFixNext();
+        });
 
         $("submit-fix").addEventListener("click", async () => {
           if (!currentPost) return;
@@ -704,6 +803,44 @@
           }
         });
 
+        async function voteOnFixCorrection(agree) {
+          if (!currentFixVote) return;
+          document
+            .querySelectorAll("#fix-vote-view .btns button")
+            .forEach((b) => (b.disabled = true));
+          try {
+            const res = await fetch("/api/correct/vote/submit", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                user_id: userId,
+                correction_id: currentFixVote.correction_id,
+                agree,
+              }),
+            });
+            const j = await res.json();
+            if (!j.ok) throw new Error(j.error);
+            showToast(
+              `+${j.points}pt` +
+                (j.confirmed ? t("curate.toast_confirmed_suffix") : ""),
+            );
+            loadPointsBadge();
+            loadFixNext();
+          } catch (e) {
+            $("status").textContent = e.message;
+          } finally {
+            document
+              .querySelectorAll("#fix-vote-view .btns button")
+              .forEach((b) => (b.disabled = false));
+          }
+        }
+        $("fix-vote-agree").addEventListener("click", () =>
+          voteOnFixCorrection(true),
+        );
+        $("fix-vote-disagree").addEventListener("click", () =>
+          voteOnFixCorrection(false),
+        );
+
         async function loadVoteNext() {
           $("vote-card").hidden = true;
           $("empty-vote").hidden = true;
@@ -711,7 +848,7 @@
           await authReady;
           try {
             const res = await fetch(
-              `/api/correct/vote/next?${new URLSearchParams({ user_id: userId, lang_pair: langPair })}`,
+              `/api/correct/vote/next?${new URLSearchParams({ user_id: userId, lang_pair: langPair, exclude: seenVote.slice(-20).join(",") })}`,
             );
             const j = await res.json();
             if (!j.ok) throw new Error(j.error);
@@ -779,6 +916,11 @@
         }
         $("btn-agree").addEventListener("click", () => vote(true));
         $("btn-disagree").addEventListener("click", () => vote(false));
+
+        $("skip-vote").addEventListener("click", () => {
+          if (currentCorrection) seenVote.push(currentCorrection.correction_id);
+          loadVoteNext();
+        });
 
         authReady.then(() => {
           loadPointsBadge();
