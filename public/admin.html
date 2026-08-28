@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="ja" class="app-html">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#f7f8f5" />
+  <title data-i18n="admin.title">管理画面 - TIUC</title>
+  <link rel="stylesheet" href="tokens.css" />
+  <style>
+    :root {
+      --app-line: #e3e6df;
+      --app-muted: #6b7068;
+      --app-text: #1d211d;
+      --warn: #a33;
+      --ok: #161;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+      line-height: 1.6;
+      color: var(--app-text);
+    }
+    h1 {
+      font-size: 21px;
+      margin: 0 0 5px;
+      font-weight: 800;
+    }
+    .lead {
+      color: var(--app-muted);
+      font-size: 13px;
+      margin: 0 0 16px;
+    }
+    #gate {
+      text-align: center;
+      padding: 60px 16px;
+      color: var(--app-muted);
+    }
+    #gate .app-btn-primary {
+      display: inline-block;
+      padding: 12px 20px;
+      text-decoration: none;
+      margin-top: 14px;
+    }
+    #tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    #tabs button {
+      padding: 9px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid var(--app-line);
+      border-radius: 999px;
+      background: #fff;
+      cursor: pointer;
+    }
+    #tabs button.active {
+      background: #1d211d;
+      color: #fff;
+      border-color: #1d211d;
+    }
+    .panel[hidden],
+    #tabs[hidden],
+    #gate[hidden] {
+      display: none;
+    }
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .filter-row select,
+    .filter-row input[type="text"] {
+      font-size: 13px;
+      padding: 7px 9px;
+      border: 1px solid var(--app-line);
+      border-radius: 8px;
+    }
+    .filter-row button {
+      font-size: 13px;
+      font-weight: 700;
+      padding: 7px 14px;
+      border: 1px solid var(--app-line);
+      border-radius: 8px;
+      background: #f5f6f3;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th,
+    td {
+      text-align: left;
+      padding: 7px 8px;
+      border-bottom: 1px solid var(--app-line);
+      vertical-align: top;
+    }
+    th {
+      color: var(--app-muted);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    tr.row-clickable {
+      cursor: pointer;
+    }
+    tr.row-clickable:hover {
+      background: rgba(0, 0, 0, 0.03);
+    }
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--app-line);
+      border-radius: 14px;
+      margin-bottom: 14px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+    }
+    .thumb {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 8px;
+      background: #eceee9;
+    }
+    .adjust-form {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .adjust-form input[type="number"] {
+      width: 60px;
+      font-size: 12px;
+      padding: 4px 6px;
+      border: 1px solid var(--app-line);
+      border-radius: 6px;
+    }
+    .adjust-form input[type="text"] {
+      width: 90px;
+      font-size: 12px;
+      padding: 4px 6px;
+      border: 1px solid var(--app-line);
+      border-radius: 6px;
+    }
+    .adjust-form button {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border: 1px solid var(--app-line);
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    /* 詳細/編集モーダル */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: rgba(18, 28, 20, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-backdrop[hidden] {
+      display: none;
+    }
+    .modal-card {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      max-height: 88vh;
+      overflow-y: auto;
+      background: #fff;
+      border-radius: 20px;
+      padding: 20px 18px;
+      box-shadow: 0 16px 50px rgba(18, 28, 20, 0.2);
+    }
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1px solid var(--app-line);
+      background: #fff;
+      cursor: pointer;
+    }
+    .modal-card img.detail-photo {
+      width: 100%;
+      max-height: 200px;
+      object-fit: contain;
+      background: #f2f2f0;
+      border-radius: 12px;
+      margin-bottom: 10px;
+    }
+    label.field {
+      display: block;
+      font-size: 12px;
+      color: var(--app-muted);
+      margin: 10px 0 3px;
+    }
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      font-size: 13px;
+      padding: 8px 10px;
+      border: 1px solid var(--app-line);
+      border-radius: 8px;
+      font-family: inherit;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .modal-actions button {
+      flex: 1;
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    #edit-save {
+      border: 0;
+      background: var(--color-accent, #1a5c3a);
+      color: #fff;
+    }
+    #edit-delete {
+      border: 1px solid var(--warn);
+      background: #fff;
+      color: var(--warn);
+    }
+    .status-msg {
+      font-size: 12px;
+      color: var(--app-muted);
+      margin-top: 8px;
+    }
+
+    /* アクティビティ・ページビュー */
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      height: 100px;
+      margin: 10px 0 18px;
+      border-bottom: 1px solid var(--app-line);
+      padding-bottom: 4px;
+    }
+    .bar-chart .bar {
+      flex: 1;
+      background: var(--color-accent, #1a5c3a);
+      border-radius: 3px 3px 0 0;
+      min-height: 2px;
+      position: relative;
+    }
+    .bar-chart .bar span {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 9px;
+      color: var(--app-muted);
+      white-space: nowrap;
+    }
+
+    /* キャラクタ登録 */
+    .species-form {
+      max-width: 360px;
+    }
+    .species-form button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 0;
+      border-radius: 10px;
+      background: var(--color-accent, #1a5c3a);
+      color: #fff;
+      cursor: pointer;
+    }
+    .hint {
+      font-size: 11px;
+      color: var(--app-muted);
+      margin-top: 4px;
+    }
+  </style>
+  <body class="app-body">
+    <div class="app-shell">
+      <header class="app-topbar">
+        <a href="/" class="brand" data-i18n-aria-label="index.brand_aria"
+          ><span class="brand-mark">T</span
+          ><span class="brand-copy"
+            ><strong>TIUC</strong
+            ><span data-i18n="common.back_top">← トップ</span></span
+          ></a
+        >
+        <div id="topbar-actions">
+          <select id="lang-switcher" class="lang-switcher"></select>
+          <a id="login-link" href="#" class="app-pill-link" data-i18n="common.login"
+            >ログイン</a
+          >
+          <a
+            id="logout-link"
+            href="#"
+            class="app-pill-link"
+            data-i18n="common.logout"
+            hidden
+            >ログアウト</a
+          >
+        </div>
+      </header>
+
+      <h1 data-i18n="admin.h1">管理画面</h1>
+      <p class="lead" data-i18n="admin.lead">
+        投稿の削除・修正、リーダーボード、アクティビティ、キャラクタ登録を行えます。
+      </p>
+
+      <div id="gate">
+        <p id="gate-msg" data-i18n="admin.gate_login">
+          管理者として許可されたGoogleアカウントでログインしてください。
+        </p>
+      </div>
+
+      <div id="tabs" hidden>
+        <button type="button" data-tab="posts" class="active" data-i18n="admin.tab_posts">
+          投稿管理
+        </button>
+        <button type="button" data-tab="leaderboard" data-i18n="admin.tab_leaderboard">
+          リーダーボード
+        </button>
+        <button type="button" data-tab="activity" data-i18n="admin.tab_activity">
+          アクティビティ
+        </button>
+        <button type="button" data-tab="species" data-i18n="admin.tab_species">
+          キャラクタ登録
+        </button>
+      </div>
+
+      <!-- 投稿管理 -->
+      <div class="panel" id="panel-posts" hidden>
+        <div class="filter-row">
+          <select id="filter-status">
+            <option value="" data-i18n="admin.filter_status_all">すべての状態</option>
+            <option value="pending_judgment" data-i18n="map.status_reviewing">審査中</option>
+            <option value="needs_fix" data-i18n="map.status_fix_proposed">修正案あり</option>
+            <option value="looks_ok" data-i18n="map.status_looks_ok">違和感なし</option>
+            <option value="confirmed" data-i18n="map.status_confirmed">修正確定(採用待ち)</option>
+            <option value="adopted" data-i18n="map.status_adopted">採用済み</option>
+          </select>
+          <select id="filter-lang">
+            <option value="" data-i18n="admin.filter_lang_all">すべての言語</option>
+            <option value="ja-en" data-i18n="common.pair_label_en">英語</option>
+            <option value="ja-zh" data-i18n="common.pair_label_zh">中国語</option>
+            <option value="ja-ko" data-i18n="common.pair_label_ko">韓国語</option>
+            <option value="ja-fr" data-i18n="common.pair_label_fr">フランス語</option>
+            <option value="ja-es" data-i18n="common.pair_label_es">スペイン語</option>
+            <option value="ja-hi" data-i18n="common.pair_label_hi">ヒンディー語</option>
+          </select>
+          <input type="text" id="filter-q" data-i18n-placeholder="admin.filter_q_placeholder" placeholder="原文/訳文で検索" />
+          <button type="button" id="filter-go" data-i18n="map.search_btn">検索</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th></th>
+                <th data-i18n="admin.col_status">状態</th>
+                <th data-i18n="admin.col_lang">言語</th>
+                <th data-i18n="map.row_original">原文</th>
+                <th data-i18n="map.label_unconfirmed_translation">訳文</th>
+                <th data-i18n="map.row_date">日付</th>
+              </tr>
+            </thead>
+            <tbody id="posts-tbody"></tbody>
+          </table>
+        </div>
+        <p class="status-msg" id="posts-status"></p>
+      </div>
+
+      <!-- リーダーボード -->
+      <div class="panel" id="panel-leaderboard" hidden>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="admin.col_user">ユーザー</th>
+                <th data-i18n="admin.col_points">ポイント</th>
+                <th data-i18n="admin.col_posts">投稿</th>
+                <th data-i18n="admin.col_judged">判定</th>
+                <th data-i18n="admin.col_corrected">修正</th>
+                <th data-i18n="admin.col_adopted">採用</th>
+                <th data-i18n="admin.col_adjust">調整</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-tbody"></tbody>
+          </table>
+        </div>
+        <p class="status-msg" id="leaderboard-status"></p>
+      </div>
+
+      <!-- アクティビティ -->
+      <div class="panel" id="panel-activity" hidden>
+        <h2 style="font-size: 14px" data-i18n="admin.pageviews_title">アクセス数(直近7日)</h2>
+        <div class="bar-chart" id="pageview-chart"></div>
+        <h2 style="font-size: 14px" data-i18n="admin.activity_title">最近のユーザーアクション</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="map.row_date">日付</th>
+                <th data-i18n="admin.col_user">ユーザー</th>
+                <th data-i18n="admin.col_kind">種別</th>
+                <th data-i18n="admin.col_points">ポイント</th>
+                <th data-i18n="admin.col_note">メモ</th>
+              </tr>
+            </thead>
+            <tbody id="activity-tbody"></tbody>
+          </table>
+        </div>
+        <p class="status-msg" id="activity-status"></p>
+      </div>
+
+      <!-- キャラクタ登録 -->
+      <div class="panel" id="panel-species" hidden>
+        <form class="species-form" id="species-form">
+          <label class="field" for="species-id" data-i18n="admin.species_id_label">id(英数字/アンダースコア)</label>
+          <input type="text" id="species-id" required />
+          <label class="field" for="species-name-key" data-i18n="admin.species_name_key_label"
+            >name_key</label
+          >
+          <input type="text" id="species-name-key" required />
+          <p class="hint" data-i18n="admin.species_name_key_hint">
+            表示名・説明文はこのキーに対応する翻訳をロケールファイルに追加するまで反映されません。
+          </p>
+          <label class="field" for="species-rarity" data-i18n="admin.species_rarity_label">レア度</label>
+          <select id="species-rarity">
+            <option value="1">★1</option>
+            <option value="2">★2</option>
+            <option value="3">★3</option>
+            <option value="4">★4</option>
+          </select>
+          <label class="field" for="species-sort" data-i18n="admin.species_sort_label">表示順</label>
+          <input type="text" id="species-sort" value="0" />
+          <button type="submit" data-i18n="admin.species_create_btn">種族を作成</button>
+        </form>
+        <form class="species-form" id="species-image-form" style="margin-top: 20px">
+          <label class="field" for="species-image-id" data-i18n="admin.species_image_id_label"
+            >画像を追加するid</label
+          >
+          <input type="text" id="species-image-id" required />
+          <label class="field" for="species-image-file" data-i18n="admin.species_image_file_label"
+            >画像(PNG)</label
+          >
+          <input type="file" id="species-image-file" accept="image/png" required />
+          <button type="submit" data-i18n="admin.species_image_btn">画像をアップロード</button>
+        </form>
+        <p class="status-msg" id="species-status"></p>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="edit-overlay" hidden>
+      <div class="modal-card">
+        <button type="button" class="modal-close" id="edit-close" aria-label="close">✕</button>
+        <div id="edit-body"></div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { t, applyI18n, initLangSwitcher } from "./i18n.js";
+      import { getUserId, bootstrapAuth, googleLoginUrl, logout } from "./auth.js";
+      import "./track.js";
+
+      applyI18n();
+      initLangSwitcher();
+      const $ = (id) => document.getElementById(id);
+
+      const LANG_LABEL = {
+        "ja-en": t("common.pair_label_en"),
+        "ja-zh": t("common.pair_label_zh"),
+        "ja-ko": t("common.pair_label_ko"),
+        "ja-fr": t("common.pair_label_fr"),
+        "ja-es": t("common.pair_label_es"),
+        "ja-hi": t("common.pair_label_hi"),
+      };
+      const STATUS_STYLE = {
+        pending_judgment: { color: "#c9a227", label: t("map.status_reviewing") },
+        needs_fix: { color: "#c9a227", label: t("map.status_fix_proposed") },
+        looks_ok: { color: "#8a8478", label: t("map.status_looks_ok") },
+        confirmed: { color: "#2e6da4", label: t("map.status_confirmed") },
+        adopted: { color: "#1a4d73", label: t("map.status_adopted") },
+      };
+
+      function escapeHtml(s) {
+        return String(s ?? "").replace(
+          /[&<>"]/g,
+          (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
+        );
+      }
+      function jst(ts) {
+        return ts
+          ? new Date(ts * 1000).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })
+          : "—";
+      }
+
+      async function main() {
+        const userId = getUserId();
+        const { session } = await bootstrapAuth();
+        if (session) {
+          $("login-link").textContent =
+            session.display_name || t("common.login_active_fallback");
+          $("login-link").removeAttribute("href");
+          $("logout-link").hidden = false;
+        } else {
+          $("login-link").href = googleLoginUrl(userId);
+          $("logout-link").hidden = true;
+        }
+        $("logout-link").addEventListener("click", async (e) => {
+          e.preventDefault();
+          await logout();
+          location.reload();
+        });
+
+        let isAdmin = false;
+        try {
+          const res = await fetch("/api/admin/whoami");
+          const j = await res.json();
+          isAdmin = !!j.admin;
+        } catch {
+          /* ネットワーク不調時はゲート表示のまま */
+        }
+
+        if (!isAdmin) {
+          $("gate-msg").textContent = session
+            ? t("admin.gate_forbidden")
+            : t("admin.gate_login");
+          return;
+        }
+
+        $("gate").hidden = true;
+        $("tabs").hidden = false;
+        initTabs();
+        loadPosts();
+      }
+
+      function initTabs() {
+        document.querySelectorAll("#tabs button").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            document
+              .querySelectorAll("#tabs button")
+              .forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+            document
+              .querySelectorAll(".panel")
+              .forEach((p) => (p.hidden = true));
+            const panel = $(`panel-${btn.dataset.tab}`);
+            panel.hidden = false;
+            if (btn.dataset.tab === "leaderboard") loadLeaderboard();
+            if (btn.dataset.tab === "activity") loadActivity();
+          });
+        });
+      }
+
+      // --- 投稿管理 ---------------------------------------------------
+
+      async function loadPosts() {
+        $("posts-status").textContent = t("common.loading");
+        const params = new URLSearchParams();
+        if ($("filter-status").value) params.set("status", $("filter-status").value);
+        if ($("filter-lang").value) params.set("lang_pair", $("filter-lang").value);
+        if ($("filter-q").value.trim()) params.set("q", $("filter-q").value.trim());
+        try {
+          const res = await fetch(`/api/admin/posts?${params}`);
+          const j = await res.json();
+          if (!j.ok) throw new Error(j.error);
+          $("posts-status").textContent = "";
+          $("posts-tbody").innerHTML = j.posts
+            .map(
+              (p) => `
+              <tr class="row-clickable" data-id="${p.id}">
+                <td>${p.src_thumb_key ? `<img class="thumb" src="/img/${p.src_thumb_key}" alt="">` : ""}</td>
+                <td><span class="badge" style="background:${(STATUS_STYLE[p.status] || {}).color || "#8a8478"}">${escapeHtml((STATUS_STYLE[p.status] || {}).label || p.status)}</span></td>
+                <td>${escapeHtml(LANG_LABEL[p.lang_pair] || p.lang_pair)}</td>
+                <td>${escapeHtml((p.original_text || "").slice(0, 30))}</td>
+                <td>${escapeHtml((p.translated_text || "").slice(0, 30))}</td>
+                <td>${jst(p.created_at)}</td>
+              </tr>`,
+            )
+            .join("");
+          if (!j.posts.length)
+            $("posts-status").textContent = t("admin.no_results");
+        } catch (e) {
+          $("posts-status").textContent = e.message;
+        }
+      }
+      $("filter-go").addEventListener("click", loadPosts);
+      $("posts-tbody").addEventListener("click", (e) => {
+        const row = e.target.closest("tr[data-id]");
+        if (row) openPostEdit(row.dataset.id);
+      });
+
+      async function openPostEdit(postId) {
+        $("edit-body").innerHTML = t("common.loading");
+        $("edit-overlay").hidden = false;
+        try {
+          const res = await fetch(
+            `/api/admin/posts/detail?post_id=${encodeURIComponent(postId)}`,
+          );
+          const j = await res.json();
+          if (!j.ok) throw new Error(j.error);
+          const p = j.post;
+          $("edit-body").innerHTML = `
+            ${p.src_thumb_key ? `<img class="detail-photo" src="/img/${p.src_thumb_key}" alt="">` : ""}
+            <label class="field">${t("map.row_original")}</label>
+            <input type="text" id="edit-original">
+            <label class="field">${t("map.label_unconfirmed_translation")}</label>
+            <input type="text" id="edit-translated">
+            <label class="field">${t("admin.col_status")}</label>
+            <select id="edit-status">
+              ${Object.keys(STATUS_STYLE)
+                .map(
+                  (k) =>
+                    `<option value="${k}" ${k === p.status ? "selected" : ""}>${escapeHtml(STATUS_STYLE[k].label)}</option>`,
+                )
+                .join("")}
+            </select>
+            <label class="field">${t("admin.col_lang")}</label>
+            <select id="edit-lang">
+              ${Object.keys(LANG_LABEL)
+                .map(
+                  (k) =>
+                    `<option value="${k}" ${k === p.lang_pair ? "selected" : ""}>${escapeHtml(LANG_LABEL[k])}</option>`,
+                )
+                .join("")}
+            </select>
+            <p class="hint">${t("admin.judgments_label")}: ${j.judgments.length} / ${t("admin.corrections_label")}: ${j.corrections.length}</p>
+            <div class="modal-actions">
+              <button type="button" id="edit-save">${t("common.save")}</button>
+              <button type="button" id="edit-delete">${t("common.delete")}</button>
+            </div>
+            <p class="status-msg" id="edit-status-msg"></p>
+          `;
+          $("edit-original").value = p.original_text || "";
+          $("edit-translated").value = p.translated_text || "";
+          $("edit-save").addEventListener("click", () => savePostEdit(postId));
+          $("edit-delete").addEventListener("click", () => deletePost(postId));
+        } catch (e) {
+          $("edit-body").innerHTML = `<p class="status-msg">${escapeHtml(e.message)}</p>`;
+        }
+      }
+      $("edit-close").addEventListener("click", () => {
+        $("edit-overlay").hidden = true;
+      });
+      $("edit-overlay").addEventListener("click", (e) => {
+        if (e.target === $("edit-overlay")) $("edit-overlay").hidden = true;
+      });
+
+      async function savePostEdit(postId) {
+        $("edit-status-msg").textContent = t("common.loading");
+        try {
+          const res = await fetch("/api/admin/posts/edit", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              post_id: postId,
+              original_text: $("edit-original").value,
+              translated_text: $("edit-translated").value,
+              status: $("edit-status").value,
+              lang_pair: $("edit-lang").value,
+            }),
+          });
+          const j = await res.json();
+          if (!j.ok) throw new Error(j.error);
+          $("edit-overlay").hidden = true;
+          loadPosts();
+        } catch (e) {
+          $("edit-status-msg").textContent = e.message;
+        }
+      }
+
+      async function deletePost(postId) {
+        if (!confirm(t("admin.confirm_delete"))) return;
+        $("edit-status-msg").textContent = t("common.loading");
+        try {
+          const res = await fetch("/api/admin/posts/delete", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ post_id: postId }),
+          });
+          const j = await res.json();
+          if (!j.ok) throw new Error(j.error);
+          $("edit-overlay").hidden = true;
+          loadPosts();
+        } catch (e) {
+          $("edit-status-msg").textContent = e.message;
+        }
+      }
+
+      // --- リーダーボード ------------------------------------------------
+
+      async function loadLeaderboard() {
+        $("leaderboard-status").textContent = t("common.loading");
+        try {
+          const res = await fetch("/api/admin/leaderboard");
+          const j = await res.json();
+          if (!j.ok) throw new Error(j.error);
+          $("leaderboard-status").textContent = "";
+          $("leaderboard-tbody").innerHTML = j.users
+            .map(
+              (u) => `
+              <tr>
+                <td>${escapeHtml(u.display_name || u.email || u.id.slice(0, 8))}</td>
+                <td>${u.points_total}</td>
+                <td>${u.post_count}</td>
+                <td>${u.judged_count}</td>
+                <td>${u.corrected_count}</td>
+                <td>${u.adopted_count}</td>
+                <td>
+                  <form class="adjust-form" data-user="${u.id}">
+                    <input type="number" placeholder="±pt" required>
+                    <input type="text" placeholder="${t("admin.adjust_note_placeholder")}">
+                    <button type="submit">${t("admin.adjust_apply_btn")}</button>
+                  </form>
+                </td>
+              </tr>`,
+            )
+            .join("");
+          document.querySelectorAll(".adjust-form").forEach((form) => {
+            form.addEventListener("submit", async (e) => {
+              e.preventDefault();
+              const inputs = form.querySelectorAll("input");
+              const delta = Number(inputs[0].value);
+              const note = inputs[1].value.trim() || null;
+              if (!delta) return;
+              try {
+                const res = await fetch("/api/admin/users/adjust_points", {
+                  method: "POST",
+                  headers: { "content-type": "application/json" },
+                  body: JSON.stringify({ user_id: form.dataset.user, delta, note }),
+                });
+                const j = await res.json();
+                if (!j.ok) throw new Error(j.error);
+                loadLeaderboard();
+              } catch (err) {
+                alert(err.message);
+              }
+            });
+          });
+        } catch (e) {
+          $("leaderboard-status").textContent = e.message;
+        }
+      }
+
+      // --- アクティビティ ------------------------------------------------
+
+      async function loadActivity() {
+        $("activity-status").textContent = t("common.loading");
+        try {
+          const [actRes, pvRes] = await Promise.all([
+            fetch("/api/admin/activity"),
+            fetch("/api/admin/pageviews?days=7"),
+          ]);
+          const act = await actRes.json();
+          const pv = await pvRes.json();
+          if (!act.ok) throw new Error(act.error);
+          if (!pv.ok) throw new Error(pv.error);
+          $("activity-status").textContent = "";
+
+          $("activity-tbody").innerHTML = act.events
+            .map(
+              (ev) => `
+              <tr>
+                <td>${jst(ev.created_at)}</td>
+                <td>${escapeHtml(ev.display_name || ev.email || (ev.user_id || "").slice(0, 8))}</td>
+                <td>${escapeHtml(ev.kind)}</td>
+                <td>${ev.points}</td>
+                <td>${escapeHtml(ev.note || "")}</td>
+              </tr>`,
+            )
+            .join("");
+
+          const maxN = Math.max(1, ...pv.by_day.map((d) => d.n));
+          $("pageview-chart").innerHTML = pv.by_day.length
+            ? pv.by_day
+                .map(
+                  (d) =>
+                    `<div class="bar" style="height:${Math.round((d.n / maxN) * 100)}%"><span>${d.n}</span></div>`,
+                )
+                .join("")
+            : `<p class="hint">${t("admin.no_results")}</p>`;
+        } catch (e) {
+          $("activity-status").textContent = e.message;
+        }
+      }
+
+      // --- キャラクタ登録 ------------------------------------------------
+
+      $("species-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        $("species-status").textContent = t("common.loading");
+        try {
+          const res = await fetch("/api/admin/species/create", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              id: $("species-id").value.trim(),
+              name_key: $("species-name-key").value.trim(),
+              rarity: Number($("species-rarity").value),
+              sort_order: Number($("species-sort").value) || 0,
+            }),
+          });
+          const j = await res.json();
+          if (!j.ok) throw new Error(j.error);
+          $("species-status").textContent = t("admin.species_created", { id: j.id });
+          $("species-image-id").value = j.id;
+          $("species-form").reset();
+        } catch (e2) {
+          $("species-status").textContent = e2.message;
+        }
+      });
+
+      $("species-image-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const file = $("species-image-file").files[0];
+        if (!file) return;
+        $("species-status").textContent = t("common.loading");
+        try {
+          const fd = new FormData();
+          fd.append("species_id", $("species-image-id").value.trim());
+          fd.append("image", file);
+          const res = await fetch("/api/admin/species/image", {
+            method: "POST",
+            body: fd,
+          });
+          const j = await res.json();
+          if (!j.ok) throw new Error(j.error);
+          $("species-status").textContent = t("admin.species_image_uploaded");
+          $("species-image-form").reset();
+        } catch (e2) {
+          $("species-status").textContent = e2.message;
+        }
+      });
+
+      main();
+    </script>
+  </body>
+</html>

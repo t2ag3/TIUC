@@ -1,4 +1,5 @@
 import { UUID_RE } from "./config";
+import { getVerifiedAdminEmail } from "./auth";
 import { bad } from "./utils";
 import type { AppEnv } from "./types";
 
@@ -10,6 +11,12 @@ export async function serveImage(
   const path = url.pathname;
   const key = decodeURIComponent(path.slice(5));
   let authorized = false;
+
+  // 管理画面(投稿の手動修正・削除)は、キュー参加や採用状況に関わらずどの投稿の
+  // 写真も閲覧できる必要がある
+  if (!authorized && (await getVerifiedAdminEmail(request, env))) {
+    authorized = true;
+  }
 
   const userId = String(url.searchParams.get("user_id") || "");
   if (!authorized && UUID_RE.test(userId)) {

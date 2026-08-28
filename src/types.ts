@@ -3,6 +3,7 @@ export type AppEnv = Env & {
   HASH_SALT?: string;
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
+  ADMIN_EMAILS?: string;
 };
 
 export type CookieAttrs = "" | "; Secure";

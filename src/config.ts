@@ -37,12 +37,14 @@ export const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 export const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
+export const MAX_SPECIES_IMAGE_BYTES = 1 * 1024 * 1024;
 
 export const POST_HOURLY_LIMIT = 30;
 export const JUDGE_HOURLY_LIMIT = 60;
 export const CORRECT_HOURLY_LIMIT = 30;
 export const VOTE_HOURLY_LIMIT = 60;
 export const LIKE_HOURLY_LIMIT = 120;
+export const PAGEVIEW_HOURLY_LIMIT = 60;
 
 export const AUTH_SESSION_HOURS = 24 * 30;
 export const OAUTH_STATE_TTL_SEC = 300;

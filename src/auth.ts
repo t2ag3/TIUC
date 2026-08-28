@@ -199,6 +199,35 @@ export async function googleAuthCallback(
   return new Response(null, { status: 302, headers });
 }
 
+// =====================================================================
+// 管理画面向け：Googleログイン済み(uid Cookie)かつemail検証済みかつ
+// ADMIN_EMAILSシークレット(カンマ区切り)に含まれる場合のみそのemailを返す。
+// 新しいログイン系統は作らず、既存のGoogleログイン基盤にメール許可リストを乗せるだけ。
+// =====================================================================
+export async function getVerifiedAdminEmail(
+  request: Request,
+  env: AppEnv,
+): Promise<string | null> {
+  const userId = await readUserSession(request, env);
+  if (!userId) return null;
+
+  const allowed = new Set(
+    String(env.ADMIN_EMAILS || "")
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean),
+  );
+  if (!allowed.size) return null;
+
+  const row = await env.DB.prepare(
+    "SELECT email FROM users WHERE id = ?1 AND email_verified_at IS NOT NULL",
+  )
+    .bind(userId)
+    .first<{ email: string | null }>();
+  if (!row?.email || !allowed.has(row.email.toLowerCase())) return null;
+  return row.email;
+}
+
 export async function authMe(request: Request, env: AppEnv): Promise<Response> {
   const userId = await readUserSession(request, env);
   if (!userId) return Response.json({ ok: false });

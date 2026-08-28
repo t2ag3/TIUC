@@ -1388,6 +1388,7 @@
     <script type="module">
       import { getUserId, bootstrapAuth, googleLoginUrl } from "./auth.js";
       import { t, applyI18n, initLangSwitcher } from "./i18n.js";
+      import "./track.js";
       applyI18n();
       initLangSwitcher();
       const $ = (id) => document.getElementById(id);

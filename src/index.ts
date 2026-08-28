@@ -5,6 +5,21 @@
 
 import { authMe, googleAuthCallback, googleAuthStart } from "./auth";
 import {
+  adminActivity,
+  adminAdjustPoints,
+  adminLeaderboard,
+  adminPageviews,
+  adminPostDelete,
+  adminPostDetail,
+  adminPostEdit,
+  adminPostsList,
+  adminSpeciesCreate,
+  adminSpeciesImage,
+  adminWhoami,
+  serveSpeciesImage,
+  trackPageview,
+} from "./admin";
+import {
   gameCharacter,
   gameClaimQuest,
   gameCollection,
@@ -113,6 +128,34 @@ export default {
           },
         });
       }
+
+      // --- 管理画面 ---
+      if (path === "/api/admin/whoami" && request.method === "GET")
+        return await adminWhoami(request, env);
+      if (path === "/api/admin/posts" && request.method === "GET")
+        return await adminPostsList(request, env);
+      if (path === "/api/admin/posts/detail" && request.method === "GET")
+        return await adminPostDetail(request, env);
+      if (path === "/api/admin/posts/edit" && request.method === "POST")
+        return await adminPostEdit(request, env);
+      if (path === "/api/admin/posts/delete" && request.method === "POST")
+        return await adminPostDelete(request, env);
+      if (path === "/api/admin/leaderboard" && request.method === "GET")
+        return await adminLeaderboard(request, env);
+      if (path === "/api/admin/users/adjust_points" && request.method === "POST")
+        return await adminAdjustPoints(request, env);
+      if (path === "/api/admin/activity" && request.method === "GET")
+        return await adminActivity(request, env);
+      if (path === "/api/admin/pageviews" && request.method === "GET")
+        return await adminPageviews(request, env);
+      if (path === "/api/admin/species/create" && request.method === "POST")
+        return await adminSpeciesCreate(request, env);
+      if (path === "/api/admin/species/image" && request.method === "POST")
+        return await adminSpeciesImage(request, env);
+      if (path === "/api/track/pageview" && request.method === "POST")
+        return await trackPageview(request, env);
+      if (path.startsWith("/species-img/"))
+        return await serveSpeciesImage(request, env);
 
       if (path.startsWith("/img/")) return await serveImage(request, env);
 
