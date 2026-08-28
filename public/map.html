@@ -66,6 +66,12 @@
       font-size: 12px;
       flex: none;
     }
+    #topbar-row1 .brand-back {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--app-muted);
+      white-space: nowrap;
+    }
     #topbar-row1 h1 {
       font-size: 14px;
       font-weight: 800;
@@ -296,6 +302,14 @@
       font-size: 11px;
       color: var(--app-muted);
       margin-top: 5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .post-card-likes {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
     }
     .post-card-loc {
       font-size: 11px;
@@ -458,10 +472,49 @@
       color: var(--app-muted);
       white-space: nowrap;
     }
-    .detail-goto {
-      display: inline-block;
+    .detail-map-btn {
+      display: block;
+      width: 100%;
       margin-top: 10px;
-      font-size: 12px;
+      padding: 10px;
+      text-align: center;
+      border-radius: 10px;
+      border: 1px solid var(--app-line);
+      background: #f5f6f3;
+      color: var(--app-text);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .detail-map-btn:hover {
+      background: #eceee9;
+    }
+
+    /* ---- ピン地図ビュー(カードから「地図で見る」で遷移) ---- */
+    #pin-map-view-bar {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+    }
+    #pin-map-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      font-weight: 700;
+      background: #f5f6f3;
+      border: 1px solid var(--app-line);
+      border-radius: 10px;
+      padding: 8px 14px;
+      cursor: pointer;
+      color: var(--app-text);
+    }
+    #pin-map-back:hover {
+      background: #eceee9;
+    }
+    #pin-map {
+      height: calc(100vh - 150px);
+      min-height: 360px;
     }
 
     [hidden] {
@@ -471,7 +524,12 @@
   <body>
     <div id="topbar">
       <div id="topbar-row1">
-        <a class="brand" href="/"><span class="brand-mark">T</span></a>
+        <a class="brand" href="/"
+          ><span class="brand-mark">T</span
+          ><span class="brand-back" data-i18n="common.back_top"
+            >← トップ</span
+          ></a
+        >
         <h1 data-i18n="map.h1">TIUC マップ</h1>
         <span id="status-msg"></span>
         <select
@@ -563,6 +621,16 @@
       </button>
     </div>
 
+    <div id="pin-map-view" hidden>
+      <div id="pin-map-view-bar">
+        <button type="button" id="pin-map-back">
+          <span>←</span>
+          <span data-i18n="map.back_to_list">一覧に戻る</span>
+        </button>
+      </div>
+      <div id="pin-map"></div>
+    </div>
+
     <div id="detail-overlay" class="detail-overlay" hidden>
       <div id="detail-modal" class="detail-modal">
         <button
@@ -621,8 +689,69 @@
             )
           : "—";
 
-      const googleMapsUrl = (lat, lng) =>
-        `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+      // 「地図で見る」タップ時だけLeaflet(CSS/JS)を読み込む。一覧が主役の画面なので
+      // 常時ロードはしない(以前のlist+map hybrid版の名残の地図をピン単体表示専用に流用)。
+      let leafletPromise = null;
+      function loadLeaflet() {
+        if (leafletPromise) return leafletPromise;
+        leafletPromise = new Promise((resolve, reject) => {
+          const link = document.createElement("link");
+          link.rel = "stylesheet";
+          link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+          document.head.appendChild(link);
+          const s = document.createElement("script");
+          s.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+          s.onload = resolve;
+          s.onerror = () => reject(new Error(t("common.map_load_error")));
+          document.head.appendChild(s);
+        });
+        return leafletPromise;
+      }
+
+      // 中心(lat,lng)から東西南北にhalfKm[km]離れた点までのbbox(概算・十分な精度)。
+      function bboxAround(lat, lng, halfKm) {
+        const dLat = halfKm / 111.32;
+        const dLng = halfKm / (111.32 * Math.cos((lat * Math.PI) / 180));
+        return [
+          [lat - dLat, lng - dLng],
+          [lat + dLat, lng + dLng],
+        ];
+      }
+
+      let pinMap = null;
+      let pinMapMarker = null;
+      async function showPinMap(lat, lng, color) {
+        closeDetail();
+        $("list").hidden = true;
+        $("topbar-row2").hidden = true;
+        $("pin-map-view").hidden = false;
+        await loadLeaflet();
+        if (!pinMap) {
+          pinMap = L.map("pin-map", { zoomControl: false });
+          L.control.zoom({ position: "topright" }).addTo(pinMap);
+          L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution:
+              '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
+          }).addTo(pinMap);
+        }
+        pinMap.fitBounds(bboxAround(lat, lng, 1.5));
+        if (pinMapMarker) pinMap.removeLayer(pinMapMarker);
+        pinMapMarker = L.circleMarker([lat, lng], {
+          radius: 8,
+          fillColor: color || PIN_DEFAULT_COLOR,
+          fillOpacity: 1,
+          color: "#fff",
+          weight: 2,
+        }).addTo(pinMap);
+        setTimeout(() => pinMap.invalidateSize(), 60);
+      }
+      function hidePinMap() {
+        $("pin-map-view").hidden = true;
+        $("topbar-row2").hidden = false;
+        $("list").hidden = false;
+      }
+      $("pin-map-back").addEventListener("click", hidePinMap);
 
       // ステータス別の色・ラベル。カードバッジ・凡例・フィルタ・詳細で単一の情報源にする。
       const STATUS_STYLE = {
@@ -729,8 +858,7 @@
         <button type="button" class="popup-like-btn" id="like-btn-${p.id}">👍 ${t("map.like_btn")}</button>
         <span id="like-count-${p.id}">${p.like_count}</span>
       </div>
-      <p class="detail-goto"><a href="${googleMapsUrl(coords[1], coords[0])}"
-        target="_blank" rel="noopener">${t("map.goto_link")}</a></p>`;
+      <button type="button" class="detail-map-btn" id="detail-goto-map">${t("map.goto_map_btn")}</button>`;
       }
 
       function pendingDetailHtml(p, coords) {
@@ -751,8 +879,7 @@
         <tr><td>${t("map.row_date")}</td><td>${jst(p.event_at)}</td></tr>
       </table>
       ${cta}
-      <p class="detail-goto"><a href="${googleMapsUrl(coords[1], coords[0])}"
-        target="_blank" rel="noopener">${t("map.goto_link")}</a></p>`;
+      <button type="button" class="detail-map-btn" id="detail-goto-map">${t("map.goto_map_btn")}</button>`;
       }
 
       function wireLikeButton(p) {
@@ -788,6 +915,9 @@
           ? confirmedDetailHtml(p, coords)
           : pendingDetailHtml(p, coords);
         if (isConfirmed) wireLikeButton(p);
+        $("detail-goto-map").addEventListener("click", () =>
+          showPinMap(coords[1], coords[0], displayStatus(p).color),
+        );
         $("detail-overlay").hidden = false;
       }
       function closeDetail() {
@@ -855,7 +985,10 @@
               </div>
               <div class="post-card-text">${escapeHtml(p.original_text || t("map.not_entered"))}</div>
               <div class="post-card-loc" id="loc-${p.id}"></div>
-              <div class="post-card-date">${jst(p.event_at)}</div>
+              <div class="post-card-date">
+                <span>${jst(p.event_at)}</span>
+                <span class="post-card-likes">👍 ${p.like_count}</span>
+              </div>
             </div>
           </div>
         `;
