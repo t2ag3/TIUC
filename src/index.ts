@@ -24,6 +24,7 @@ import {
   gameClaimQuest,
   gameCollection,
   gameEncyclopedia,
+  gameGachaPull,
   gameImpact,
   gameMapSpots,
   gameQuests,
@@ -104,6 +105,8 @@ export default {
         return await gameSelectDisplayCharacter(request, env);
       if (path === "/api/game/synthesize" && request.method === "POST")
         return await gameSynthesize(request, env);
+      if (path === "/api/game/gacha/pull" && request.method === "POST")
+        return await gameGachaPull(request, env);
       if (path === "/api/game/map-spots" && request.method === "GET")
         return await gameMapSpots(request, env);
 

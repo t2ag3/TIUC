@@ -107,6 +107,37 @@
       color: #c9601f;
     }
 
+    .gacha-box {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--line);
+    }
+    .gacha-points {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text, #1d211d);
+      margin-bottom: 8px;
+    }
+    .gacha-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .gacha-btns button {
+      padding: 11px 6px;
+      border-radius: 14px;
+      border: 0;
+      background: var(--accent);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .gacha-btns button:disabled {
+      background: #c3c9c2;
+      cursor: default;
+    }
+
     .actions {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -366,6 +397,18 @@
 
           <div class="streak" id="streak"></div>
         </a>
+
+        <div class="gacha-box">
+          <p class="gacha-points" id="gacha-points">🎴 0pt</p>
+          <div class="gacha-btns">
+            <button type="button" id="gacha-pull1" data-i18n="game.gacha_pull1_btn" disabled>
+              キャラゲット
+            </button>
+            <button type="button" id="gacha-pull5" data-i18n="game.gacha_pull5_btn" disabled>
+              キャラゲット×5
+            </button>
+          </div>
+        </div>
       </section>
 
       <div class="actions">
@@ -427,6 +470,7 @@
     <script type="module">
       import { getUserId, bootstrapAuth, logout } from "./auth.js";
       import { t, applyI18n, initLangSwitcher } from "./i18n.js";
+      import { showGachaResults } from "./gacha-reveal.js";
       import "./track.js";
 
       applyI18n();
@@ -543,6 +587,34 @@
         }
       });
 
+      function renderGachaPoints(points) {
+        $("gacha-points").textContent = t("game.gacha_points_label", { n: points });
+        $("gacha-pull1").disabled = points < 1;
+        $("gacha-pull5").disabled = points < 5;
+      }
+
+      async function pullGacha(times) {
+        $("gacha-pull1").disabled = true;
+        $("gacha-pull5").disabled = true;
+        try {
+          const res = await fetch("/api/game/gacha/pull", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ user_id: userId, times }),
+          });
+          const j = await res.json();
+          if (!j.ok) throw new Error(j.error);
+          $("gacha-points").dataset.points = j.remaining_points;
+          renderGachaPoints(j.remaining_points);
+          showGachaResults(j.drops);
+        } catch (e) {
+          alert(e.message);
+          renderGachaPoints(Number($("gacha-points").dataset.points || 0));
+        }
+      }
+      $("gacha-pull1").addEventListener("click", () => pullGacha(1));
+      $("gacha-pull5").addEventListener("click", () => pullGacha(5));
+
       async function loadCharacter() {
         const j = await fetch(`/api/game/character?user_id=${userId}`).then(
           (r) => r.json(),
@@ -555,6 +627,8 @@
         $("streak").innerHTML = j.streak_count
           ? `🔥 ${t("game.streak_label", { n: j.streak_count })}`
           : "";
+        $("gacha-points").dataset.points = j.character_points;
+        renderGachaPoints(j.character_points);
 
         const wrap = $("hero-mon-wrap");
         wrap.className = "hero-mon-wrap";

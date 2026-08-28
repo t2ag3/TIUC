@@ -12,7 +12,6 @@ import {
 } from "./config";
 
 import { bad, nextStreakCount, sha256Short } from "./utils";
-import { dropPayload, dropStatement, rollNormalDrop } from "./game";
 import { analyzeSignPhoto } from "./moderation";
 import type { AppEnv } from "./types";
 
@@ -173,7 +172,6 @@ export async function createPost(
     now,
   );
   const newBest = Math.max(streakRow?.streak_best ?? 0, newStreak);
-  const drop = await rollNormalDrop(env);
 
   await env.DB.batch([
     env.DB.prepare(
@@ -225,7 +223,6 @@ export async function createPost(
               streak_count = ?3, streak_at = ?4, streak_best = ?5
         WHERE id = ?1`,
     ).bind(userId, points, newStreak, now, newBest),
-    dropStatement(env, userId, drop.speciesId, drop.rarity, `drop:post:${id}`, now),
   ]);
 
   return Response.json({
@@ -233,7 +230,6 @@ export async function createPost(
     id,
     mesh3: mesh.mesh3,
     points,
-    drop: dropPayload(drop),
   });
 }
 

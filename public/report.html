@@ -792,7 +792,6 @@
         import { parseExif } from "./exif.js";
         import { getUserId, bootstrapAuth } from "./auth.js";
         import { t, applyI18n, initLangSwitcher } from "./i18n.js";
-        import { showGachaReveal } from "./gacha-reveal.js";
         import "./track.js";
 
         applyI18n();
@@ -1247,11 +1246,10 @@
               throw new Error(j.error || t("report.submit_error_default"));
             $("submit-status").innerHTML =
               `<span class="ok">${t("report.submit_success")}</span><br>` +
-              `${t("report.receipt_id_label")} <span class="mono">${j.id.slice(0, 8)}</span>${t("report.receipt_points", { points: j.points })}`;
+              `${t("report.receipt_id_label")} <span class="mono">${j.id.slice(0, 8)}</span>${t("report.receipt_points", { points: j.points })} +1🎴`;
             $("submit").innerHTML = t("report.submit_done_btn");
             $("submit").classList.add("sent");
             $("done-modal").hidden = false;
-            showGachaReveal(j.drop);
             loadPointsBadge();
           } catch (e) {
             $("submit-status").innerHTML =

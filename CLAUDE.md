@@ -302,6 +302,42 @@ posts.status:
 
 1〜6のうち、道場・OCR前処理・適応難易度（rule9が明言する「後発機能」）を除いてひととおり動く状態。
 
+**（2026-08-29五改定）キャラゲットを「行動のたびに自動抽選」から「キャラポイントを貯めて
+自分でガチャを回す」方式に変更（ユーザー指示、2026-08-29）**。
+- ルーティン行動4種（投稿・判定・修正提案・投票）での自動ドロップ（`rollNormalDrop()`＋
+  `dropStatement()`＋レスポンスの`drop`フィールド）を`src/posts.ts`(createPost)・
+  `src/review.ts`(judgeSubmit/correctSubmit/correctVoteSubmit)から削除。レベルアップ・
+  クエスト達成・修正確定ボーナス（`src/game.ts`のensureCharacter/gameClaimQuest、
+  `src/review.ts`のcorrectVoteSubmit内confirmDrop）は元々フロントに配線されていなかった
+  「特別な達成の自動ドロップ」という別種のものなので変更していない。
+- 新規`migrations/0019_character_points.sql`：`characters.character_points`列を追加し、
+  `point_events`へのINSERTをフックする`trg_point_event_to_charpoints`トリガーで
+  ルーティン行動4種のみ+1する。XP/レベルを`point_events`から自動生成する既存の
+  `trg_point_event_to_xp`（migrations/0009）と全く同じパターンを踏襲し、
+  `posts.ts`/`review.ts`のアプリケーションコード側は一切変更していない
+  （ポイント付与はDBトリガー任せ）。トリガーは`AFTER INSERT`なので、マイグレーション適用前の
+  既存の`point_events`には遡及しない（過去の行動は旧仕様で既にドロップ済みのため、
+  遡及付与すると二重取りになる。意図的に不可）。
+- 新規`POST /api/game/gacha/pull`（`src/game.ts`の`gameGachaPull()`）：body`{user_id,times}`
+  （1か5のみ）。二重消費防止のため`UPDATE ... WHERE character_points >= times`を先に
+  単独実行し影響行数0なら中断、その後`rollNormalDrop()`を`times`回・`user_characters`の
+  既存所持species_idと比較して「初ゲット」を判定・`dropStatement()`をbatchで実行し、
+  `{drops:[{species_id,name_key,rarity,is_new}],remaining_points}`を返す。
+- `game.html`の`<section class="hero">`（`<a id="hero-link">`の外側。中に入れるとリンクの
+  入れ子で誤動作するため）にキャラポイント表示と「キャラゲット」「キャラゲット×5」ボタンを新設。
+  `public/gacha-reveal.js`は以前の`showGachaReveal(drop)`（自動フェードで消える単発カード、
+  ルーティン4箇所の呼び出し元がすべて無くなったため）を`showGachaResults(drops)`
+  （複数結果グリッド表示・明示的に閉じるまで残る・「キャラ図鑑を確認」ボタン・初ゲット種族への
+  赤字点滅「NEW!」バッジ付き）に置き換えた。
+- `report.html`/`judge.html`/`curate.html`のルーティン4箇所は`showGachaReveal(j.drop)`呼び出しを
+  削除し、既存のポイントtoast/受領メッセージに`+1🎴`を追記するだけにした（もう使わない
+  `import { showGachaReveal } ...`も削除）。
+- `wrangler dev`で実データを使い、判定送信→`characters.character_points`が1増える→
+  `POST /api/game/gacha/pull`でポイント消費・ドロップ発生・`is_new`判定・残高不足時のエラーまで
+  一連の流れをAPIレベルで確認済み（テストデータは削除・本番未投入）。合成機能・図鑑表示・
+  レア度抽選ロジック自体・XP/通常ポイント経済は変更していない。実ブラウザでのボタン操作・
+  ポップアップ表示の確認はブラウザ操作ツールが使えず今回もできていない。
+
 **（2026-08-29四改定）report.htmlのStep1「次へ」ボタンが撮影後に約5秒固まる不具合を修正**
 （ユーザー指摘、2026-08-29）。原因は`refresh()`内でStep1の「次へ」を`state.aiChecking`（AI一次判定の
 実行中フラグ）でも無効化していたこと。AI一次判定（Workers AI Visionモデルへの呼び出し）は

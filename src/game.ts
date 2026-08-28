@@ -190,7 +190,7 @@ export async function gameCharacter(
       .bind(userId)
       .first<{ n: number }>(),
     env.DB.prepare(
-      `SELECT c.display_species_id,
+      `SELECT c.display_species_id, c.character_points,
               (SELECT MAX(uc.rarity) FROM user_characters uc
                 WHERE uc.user_id = c.user_id AND uc.species_id = c.display_species_id AND uc.count > 0
               ) AS display_rarity
@@ -198,7 +198,11 @@ export async function gameCharacter(
         WHERE c.user_id = ?1`,
     )
       .bind(userId)
-      .first<{ display_species_id: string | null; display_rarity: number | null }>(),
+      .first<{
+        display_species_id: string | null;
+        display_rarity: number | null;
+        character_points: number;
+      }>(),
   ]);
   return Response.json({
     ok: true,
@@ -210,7 +214,83 @@ export async function gameCharacter(
     streak_count: streak?.n ?? 0,
     display_species_id: display?.display_species_id ?? null,
     display_rarity: display?.display_rarity ?? null,
+    character_points: display?.character_points ?? 0,
     recent: recent.results,
+  });
+}
+
+// =====================================================================
+// キャラガチャ(ユーザー指示・2026-08-29改定)：行動のたびに自動で1体抽選していたのを、
+// 行動ではキャラポイントだけを貯め(migrations/0019のトリガーで自動加算)、貯めたポイントを
+// 使ってユーザー自身がガチャを回す方式に変更。ドロップ機構自体(character_drops→
+// user_charactersの反映)は既存のdropStatement()をそのまま使う。
+// =====================================================================
+const GACHA_ALLOWED_TIMES = new Set([1, 5]);
+
+export async function gameGachaPull(
+  request: Request,
+  env: AppEnv,
+): Promise<Response> {
+  const body = await request.json<Record<string, unknown>>();
+  const userId = String(body.user_id || "");
+  const times = Math.trunc(Number(body.times));
+  if (!UUID_RE.test(userId)) return bad("ユーザーIDが不正です");
+  if (!GACHA_ALLOWED_TIMES.has(times)) return bad("timesは1か5で指定してください");
+
+  const now = Math.floor(Date.now() / 1000);
+  await env.DB.prepare(
+    "INSERT INTO users (id, created_at) VALUES (?1, ?2) ON CONFLICT(id) DO NOTHING",
+  )
+    .bind(userId, now)
+    .run();
+  await env.DB.prepare(
+    "INSERT INTO characters (user_id, created_at, updated_at) VALUES (?1,?2,?2) ON CONFLICT(user_id) DO NOTHING",
+  )
+    .bind(userId, now)
+    .run();
+
+  // 二重消費防止(同時押し等)：先に単独で減算し、影響行数0なら残高不足として中断する
+  const debit = await env.DB.prepare(
+    `UPDATE characters SET character_points = character_points - ?2, updated_at = ?3
+      WHERE user_id = ?1 AND character_points >= ?2`,
+  )
+    .bind(userId, times, now)
+    .run();
+  if (debit.meta.changes === 0) return bad("キャラポイントが足りません");
+
+  const ownedRows = await env.DB.prepare(
+    "SELECT DISTINCT species_id FROM user_characters WHERE user_id = ?1 AND count > 0",
+  )
+    .bind(userId)
+    .all<{ species_id: string }>();
+  const owned = new Set(ownedRows.results.map((r) => r.species_id));
+
+  const pullId = crypto.randomUUID();
+  const drops: Drop[] = [];
+  for (let i = 0; i < times; i++) drops.push(await rollNormalDrop(env));
+
+  await env.DB.batch(
+    drops.map((d, i) =>
+      dropStatement(env, userId, d.speciesId, d.rarity, `drop:gacha:${pullId}:${i}`, now),
+    ),
+  );
+
+  const results = drops.map((d) => {
+    const isNew = !owned.has(d.speciesId);
+    owned.add(d.speciesId);
+    return { ...dropPayload(d), is_new: isNew };
+  });
+
+  const remaining = await env.DB.prepare(
+    "SELECT character_points FROM characters WHERE user_id = ?1",
+  )
+    .bind(userId)
+    .first<{ character_points: number }>();
+
+  return Response.json({
+    ok: true,
+    drops: results,
+    remaining_points: remaining?.character_points ?? 0,
   });
 }
 
