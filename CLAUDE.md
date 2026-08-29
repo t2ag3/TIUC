@@ -302,6 +302,52 @@ posts.status:
 
 1〜6のうち、道場・OCR前処理・適応難易度（rule9が明言する「後発機能」）を除いてひととおり動く状態。
 
+**（2026-08-29六改定）キャラ名/説明文をD1化 + キャラCSV一括登録・投稿テキストCSV一括編集を追加
+（ユーザー指示、2026-08-29）**。
+- 新規`migrations/0020_species_i18n.sql`：`species_i18n(species_id, lang, name, desc)`テーブルを
+  新設し、既存61種×6言語ぶんを当時の`public/locales/*.js`の内容からスクリプト生成したINSERT文で
+  バックフィル（手打ちしない。生成スクリプトは使い捨てなのでリポジトリには残していない）。
+  以後はこのテーブルが表示名・説明文の正。静的ロケールファイル側の`game.species.*`キー732個は
+  削除せず残置した（`index.html`のCOLLECTセクションがaxolotl/red_panda/long_tailed_tit/T_rexの
+  4体を`data-i18n`で直接参照する固定マーケティングコンテンツのため。57種ぶんは使われなくなるが
+  実害はない。4体だけ残す整理は差分の割にリスクが見合わないため見送った）。
+- UI言語はクライアント側(localStorage)にしかなく、サーバには一切送っていない仕組みだったため、
+  `src/game.ts`の`gameCollection()`（`GET`の`lang`クエリ）・`gameGachaPull()`（bodyの`lang`）に
+  明示的な言語パラメータを追加し、共通ヘルパー`fetchSpeciesI18nMap(env, lang)`で
+  `species_i18n`を解決する（未対応言語または該当データ無しは`lang='ja'`にフォールバック、
+  それも無ければ`name_key`をそのまま返す防御的フォールバック）。呼び出し元の
+  `collection.html`・`game.html`（`pullGacha()`）は`i18n.js`の`getLang()`を渡すよう変更。
+- `collection.html`（一覧タイル名・詳細モーダルの名前/説明、計3箇所）と`gacha-reveal.js`
+  （ガチャ結果カードの名前）は、静的`t(\`game.species.${name_key}...\`)`呼び出しをやめ、
+  APIレスポンスの`name`/`desc`フィールドをそのまま使うように変更した。
+- `src/admin.ts`：`adminPostEdit`の検証+UPDATEロジックを`applyPostEditFields()`に切り出し、
+  単一編集・CSV一括編集の両方から共有（重複実装を避ける）。編集可能フィールドに
+  `what_it_says`/`whats_weird`を追加（従来は投稿時にしか設定できなかった）。
+  自前の簡易CSVパーサ（引用符・カンマ・改行込みのフィールドに対応するRFC4180相当、
+  外部npm依存を増やさない方針）を追加。
+- 新規`POST /api/admin/species/csv-import`：列
+  `id,rarity,sort_order,name_ja,desc_ja,name_en,desc_en,name_zh,desc_zh,name_ko,desc_ko,
+  name_fr,desc_fr,name_es,desc_es`のCSVを行ごとに処理し、`species`へ新規INSERT（既存idは
+  上書きせずスキップ）＋`species_i18n`へ6言語ぶんupsert。行ごとの結果（作成/スキップ/エラー理由）
+  を返す。ユーザーの運用イメージ（日本語で作成→AI翻訳サービスで多言語化→CSVで流し込む）に
+  そのまま対応する形。
+- 新規`POST /api/admin/posts/csv-import`：列
+  `post_id,original_text,translated_text,lang_pair,what_it_says,whats_weird,status,flagged`の
+  CSVで既存投稿（写真は既にある前提）のテキスト項目を一括編集する。`post_id`以外は空欄なら
+  そのフィールドを変更しない（現状維持）。`applyPostEditFields()`を行ごとに呼ぶだけなので、
+  検証・`admin_audit_log`記録は単一編集と完全に同じ経路を通る。
+- `adminSpeciesCreate`（admin.html単体作成フォーム）は`name_key`欄を廃止し、新規種族は
+  常に`name_key = id`に統一（CSVインポートと規約を合わせた）。代わりに`name_ja`/`desc_ja`
+  （任意）を受け取り、入力があれば`species_i18n`にja行を1件書き込む。他言語はCSV一括登録側の
+  役割として明確に分離した。
+- `admin.html`「キャラクタ登録」タブと「投稿管理」タブにそれぞれCSVファイル選択＋
+  インポートボタン＋行ごとの結果テーブルを追加。
+- `wrangler dev`で全経路を実データ検証済み：`gameCollection`のlang切り替え（en/ja出し分け）、
+  `gameGachaPull`のlang反映、種族CSV（新規作成・重複idスキップ・不正レア度エラーの3パターン）、
+  投稿CSV（一部フィールドのみ更新・空欄は現状維持・存在しないpost_idのエラー）を確認済み
+  （テストデータは削除・本番未投入）。i18nキー整合性チェックも6言語通過。実ブラウザでの
+  CSVアップロード操作・フォーム送信の確認はブラウザ操作ツールが使えず今回もできていない。
+
 **（2026-08-29五改定）キャラゲットを「行動のたびに自動抽選」から「キャラポイントを貯めて
 自分でガチャを回す」方式に変更（ユーザー指示、2026-08-29）**。
 - ルーティン行動4種（投稿・判定・修正提案・投票）での自動ドロップ（`rollNormalDrop()`＋

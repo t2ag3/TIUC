@@ -469,7 +469,7 @@
 
     <script type="module">
       import { getUserId, bootstrapAuth, logout } from "./auth.js";
-      import { t, applyI18n, initLangSwitcher } from "./i18n.js";
+      import { t, applyI18n, initLangSwitcher, getLang } from "./i18n.js";
       import { showGachaResults } from "./gacha-reveal.js";
       import "./track.js";
 
@@ -600,7 +600,7 @@
           const res = await fetch("/api/game/gacha/pull", {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify({ user_id: userId, times }),
+            body: JSON.stringify({ user_id: userId, times, lang: getLang() }),
           });
           const j = await res.json();
           if (!j.ok) throw new Error(j.error);

@@ -165,7 +165,7 @@ function ensureStyle() {
 
 function resultCardHtml(drop) {
   const rarity = drop.rarity || 1;
-  const name = t(`game.species.${drop.name_key}.name`);
+  const name = drop.name || drop.name_key;
   return `
     <div class="gacha-result-card">
       ${drop.is_new ? `<span class="gacha-result-new">${t("game.gacha_new_badge")}</span>` : ""}

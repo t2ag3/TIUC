@@ -12,8 +12,10 @@ import {
   adminPostDelete,
   adminPostDetail,
   adminPostEdit,
+  adminPostsCsvImport,
   adminPostsList,
   adminSpeciesCreate,
+  adminSpeciesCsvImport,
   adminSpeciesImage,
   adminWhoami,
   serveSpeciesImage,
@@ -143,6 +145,8 @@ export default {
         return await adminPostEdit(request, env);
       if (path === "/api/admin/posts/delete" && request.method === "POST")
         return await adminPostDelete(request, env);
+      if (path === "/api/admin/posts/csv-import" && request.method === "POST")
+        return await adminPostsCsvImport(request, env);
       if (path === "/api/admin/leaderboard" && request.method === "GET")
         return await adminLeaderboard(request, env);
       if (path === "/api/admin/users/adjust_points" && request.method === "POST")
@@ -153,6 +157,8 @@ export default {
         return await adminPageviews(request, env);
       if (path === "/api/admin/species/create" && request.method === "POST")
         return await adminSpeciesCreate(request, env);
+      if (path === "/api/admin/species/csv-import" && request.method === "POST")
+        return await adminSpeciesCsvImport(request, env);
       if (path === "/api/admin/species/image" && request.method === "POST")
         return await adminSpeciesImage(request, env);
       if (path === "/api/track/pageview" && request.method === "POST")

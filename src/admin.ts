@@ -44,6 +44,72 @@ function logAdminAction(
   );
 }
 
+// 簡易CSVパーサ(RFC4180相当。引用符で囲んだフィールド内のカンマ・改行・""エスケープに対応)。
+// ビルド工程が無く外部npm依存を増やしたくないため自前で持つ。ヘッダー行を列名として、
+// 2行目以降を Record<列名, 値> の配列で返す(欠けている列は空文字)。
+function parseCsv(text: string): Record<string, string>[] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let field = "";
+  let inQuotes = false;
+  const s = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  let i = 0;
+  while (i < s.length) {
+    const c = s[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (s[i + 1] === '"') {
+          field += '"';
+          i += 2;
+          continue;
+        }
+        inQuotes = false;
+        i++;
+        continue;
+      }
+      field += c;
+      i++;
+      continue;
+    }
+    if (c === '"') {
+      inQuotes = true;
+      i++;
+      continue;
+    }
+    if (c === ",") {
+      row.push(field);
+      field = "";
+      i++;
+      continue;
+    }
+    if (c === "\n") {
+      row.push(field);
+      rows.push(row);
+      row = [];
+      field = "";
+      i++;
+      continue;
+    }
+    field += c;
+    i++;
+  }
+  if (field.length || row.length) {
+    row.push(field);
+    rows.push(row);
+  }
+
+  const nonEmpty = rows.filter((r) => !(r.length === 1 && r[0].trim() === ""));
+  if (!nonEmpty.length) return [];
+  const header = nonEmpty[0].map((h) => h.trim());
+  return nonEmpty.slice(1).map((r) => {
+    const obj: Record<string, string> = {};
+    header.forEach((h, idx) => {
+      obj[h] = (r[idx] ?? "").trim();
+    });
+    return obj;
+  });
+}
+
 export async function adminWhoami(
   request: Request,
   env: AppEnv,
@@ -136,6 +202,77 @@ export async function adminPostDetail(
   });
 }
 
+// 単一編集・CSV一括編集の両方から呼ぶ共通の検証+UPDATEロジック。
+// Responseを直接返さず結果オブジェクトを返すのは、CSV側が行ごとの結果一覧を
+// 組み立てる必要があるため(1件エラーで全体を止めたくない)。
+type PostEditResult = { ok: true } | { ok: false; error: string; notFound?: boolean };
+
+async function applyPostEditFields(
+  env: AppEnv,
+  postId: string,
+  fields: Record<string, unknown>,
+  adminEmail: string,
+): Promise<PostEditResult> {
+  const before = await env.DB.prepare("SELECT * FROM posts WHERE id = ?1")
+    .bind(postId)
+    .first();
+  if (!before) return { ok: false, error: "該当する投稿がありません", notFound: true };
+
+  const sets: string[] = [];
+  const binds: unknown[] = [];
+  let n = 1;
+
+  if (typeof fields.original_text === "string") {
+    sets.push(`original_text = ?${n++}`);
+    binds.push(fields.original_text.trim().slice(0, 2000) || null);
+  }
+  if (typeof fields.translated_text === "string") {
+    sets.push(`translated_text = ?${n++}`);
+    binds.push(fields.translated_text.trim().slice(0, 2000) || null);
+  }
+  if (typeof fields.what_it_says === "string") {
+    sets.push(`what_it_says = ?${n++}`);
+    binds.push(fields.what_it_says.trim().slice(0, 500) || null);
+  }
+  if (typeof fields.whats_weird === "string") {
+    sets.push(`whats_weird = ?${n++}`);
+    binds.push(fields.whats_weird.trim().slice(0, 500) || null);
+  }
+  if (typeof fields.status === "string") {
+    if (!MAP_POST_STATUSES.has(fields.status))
+      return { ok: false, error: "statusの指定が不正です" };
+    sets.push(`status = ?${n++}`);
+    binds.push(fields.status);
+  }
+  if (typeof fields.lang_pair === "string") {
+    if (!isValidLangPair(fields.lang_pair))
+      return { ok: false, error: "lang_pairの指定が不正です" };
+    sets.push(`lang_pair = ?${n++}`);
+    binds.push(fields.lang_pair);
+  }
+  if (typeof fields.place_kind === "string") {
+    if (!POST_PLACE_KINDS.has(fields.place_kind))
+      return { ok: false, error: "place_kindの指定が不正です" };
+    sets.push(`place_kind = ?${n++}`);
+    binds.push(fields.place_kind);
+  }
+  if (fields.flagged === true || fields.flagged === false) {
+    sets.push(`flagged = ?${n++}`);
+    binds.push(fields.flagged ? 1 : 0);
+  }
+
+  if (!sets.length) return { ok: false, error: "更新する項目がありません" };
+
+  binds.push(postId);
+  await env.DB.batch([
+    env.DB.prepare(`UPDATE posts SET ${sets.join(", ")} WHERE id = ?${n}`).bind(
+      ...binds,
+    ),
+    logAdminAction(env, adminEmail, "post_edit", postId, { before, changes: fields }),
+  ]);
+  return { ok: true };
+}
+
 export async function adminPostEdit(
   request: Request,
   env: AppEnv,
@@ -147,55 +284,65 @@ export async function adminPostEdit(
   const postId = String(body.post_id || "");
   if (!postId) return bad("post_id が必要です");
 
-  const before = await env.DB.prepare("SELECT * FROM posts WHERE id = ?1")
-    .bind(postId)
-    .first();
-  if (!before) return bad("該当する投稿がありません", 404);
-
-  const sets: string[] = [];
-  const binds: unknown[] = [];
-  let n = 1;
-
-  if (typeof body.original_text === "string") {
-    sets.push(`original_text = ?${n++}`);
-    binds.push(body.original_text.trim().slice(0, 2000) || null);
-  }
-  if (typeof body.translated_text === "string") {
-    sets.push(`translated_text = ?${n++}`);
-    binds.push(body.translated_text.trim().slice(0, 2000) || null);
-  }
-  if (typeof body.status === "string") {
-    if (!MAP_POST_STATUSES.has(body.status)) return bad("statusの指定が不正です");
-    sets.push(`status = ?${n++}`);
-    binds.push(body.status);
-  }
-  if (typeof body.lang_pair === "string") {
-    if (!isValidLangPair(body.lang_pair)) return bad("lang_pairの指定が不正です");
-    sets.push(`lang_pair = ?${n++}`);
-    binds.push(body.lang_pair);
-  }
-  if (typeof body.place_kind === "string") {
-    if (!POST_PLACE_KINDS.has(body.place_kind))
-      return bad("place_kindの指定が不正です");
-    sets.push(`place_kind = ?${n++}`);
-    binds.push(body.place_kind);
-  }
-  if (body.flagged === true || body.flagged === false) {
-    sets.push(`flagged = ?${n++}`);
-    binds.push(body.flagged ? 1 : 0);
-  }
-
-  if (!sets.length) return bad("更新する項目がありません");
-
-  binds.push(postId);
-  await env.DB.batch([
-    env.DB.prepare(`UPDATE posts SET ${sets.join(", ")} WHERE id = ?${n}`).bind(
-      ...binds,
-    ),
-    logAdminAction(env, admin, "post_edit", postId, { before, changes: body }),
-  ]);
-
+  const result = await applyPostEditFields(env, postId, body, admin);
+  if (!result.ok) return bad(result.error, result.notFound ? 404 : 400);
   return Response.json({ ok: true });
+}
+
+// 既存投稿(写真は既にある前提)のテキスト項目をCSVで一括編集する(ユーザー指示、2026-08-29)。
+// 列: post_id,original_text,translated_text,lang_pair,what_it_says,whats_weird,status,flagged
+// post_id以外は空欄ならそのフィールドを変更しない(既存値を維持)。行ごとにapplyPostEditFieldsを
+// 呼ぶだけで、検証・監査ログの仕組みは単一編集と完全に共有する。
+export async function adminPostsCsvImport(
+  request: Request,
+  env: AppEnv,
+): Promise<Response> {
+  const admin = await requireAdmin(request, env);
+  if (admin instanceof Response) return admin;
+
+  const form = await request.formData();
+  const file = form.get("file");
+  if (!(file instanceof File)) return bad("CSVファイルがありません");
+  const rows = parseCsv(await file.text());
+  if (!rows.length) return bad("CSVにデータ行がありません");
+
+  const results: Array<{
+    row: number;
+    post_id: string;
+    status: "updated" | "error";
+    error?: string;
+  }> = [];
+
+  for (let idx = 0; idx < rows.length; idx++) {
+    const r = rows[idx];
+    const postId = (r.post_id || "").trim();
+    if (!postId) {
+      results.push({ row: idx + 2, post_id: "", status: "error", error: "post_idが空です" });
+      continue;
+    }
+    const fields: Record<string, unknown> = {};
+    for (const key of [
+      "original_text",
+      "translated_text",
+      "lang_pair",
+      "what_it_says",
+      "whats_weird",
+      "status",
+    ]) {
+      if (r[key]) fields[key] = r[key];
+    }
+    if (r.flagged === "0" || r.flagged === "1") fields.flagged = r.flagged === "1";
+
+    const result = await applyPostEditFields(env, postId, fields, admin);
+    results.push({
+      row: idx + 2,
+      post_id: postId,
+      status: result.ok ? "updated" : "error",
+      error: result.ok ? undefined : result.error,
+    });
+  }
+
+  return Response.json({ ok: true, results });
 }
 
 export async function adminPostDelete(
@@ -410,11 +557,12 @@ export async function adminSpeciesCreate(
 
   const body = await request.json<Record<string, unknown>>();
   const id = String(body.id || "").trim();
-  const nameKey = String(body.name_key || "").trim();
   const rarity = Math.trunc(Number(body.rarity));
   const sortOrder = Math.trunc(Number(body.sort_order)) || 0;
+  const nameJa = typeof body.name_ja === "string" ? body.name_ja.trim() : "";
+  const descJa =
+    typeof body.desc_ja === "string" ? body.desc_ja.trim() || null : null;
   if (!/^[a-zA-Z0-9_]{1,40}$/.test(id)) return bad("idの形式が不正です");
-  if (!/^[a-zA-Z0-9_]{1,40}$/.test(nameKey)) return bad("name_keyの形式が不正です");
   if (!(rarity >= 1 && rarity <= 4)) return bad("rarityは1〜4で指定してください");
 
   const existing = await env.DB.prepare("SELECT id FROM species WHERE id = ?1")
@@ -422,14 +570,103 @@ export async function adminSpeciesCreate(
     .first();
   if (existing) return bad("同じidの種族が既に存在します");
 
-  await env.DB.batch([
+  // name_key は常にidと同じにする(CSVインポートと同じ規約に統一)
+  const stmts = [
     env.DB.prepare(
-      "INSERT INTO species (id, name_key, rarity, sort_order) VALUES (?1,?2,?3,?4)",
-    ).bind(id, nameKey, rarity, sortOrder),
-    logAdminAction(env, admin, "species_create", id, { nameKey, rarity, sortOrder }),
-  ]);
+      "INSERT INTO species (id, name_key, rarity, sort_order) VALUES (?1,?1,?2,?3)",
+    ).bind(id, rarity, sortOrder),
+  ];
+  if (nameJa) {
+    stmts.push(
+      env.DB.prepare(
+        "INSERT INTO species_i18n (species_id, lang, name, desc) VALUES (?1,'ja',?2,?3)",
+      ).bind(id, nameJa, descJa),
+    );
+  }
+  stmts.push(
+    logAdminAction(env, admin, "species_create", id, { rarity, sortOrder, nameJa }),
+  );
+  await env.DB.batch(stmts);
 
   return Response.json({ ok: true, id });
+}
+
+// キャラをCSVで一括登録する(ユーザー指示、2026-08-29)。運用イメージ：日本語でid/rarity/
+// sort_order/name_ja/desc_jaを作り、AI翻訳サービスで他5言語ぶんを追加してもらったCSVを
+// そのまま流し込む。列: id,rarity,sort_order,name_ja,desc_ja,name_en,desc_en,name_zh,desc_zh,
+// name_ko,desc_ko,name_fr,desc_fr,name_es,desc_es。既に存在するidはスキップする(上書きしない)。
+const SPECIES_CSV_LANGS = ["ja", "en", "zh", "ko", "fr", "es"];
+
+export async function adminSpeciesCsvImport(
+  request: Request,
+  env: AppEnv,
+): Promise<Response> {
+  const admin = await requireAdmin(request, env);
+  if (admin instanceof Response) return admin;
+
+  const form = await request.formData();
+  const file = form.get("file");
+  if (!(file instanceof File)) return bad("CSVファイルがありません");
+  const rows = parseCsv(await file.text());
+  if (!rows.length) return bad("CSVにデータ行がありません");
+
+  const results: Array<{
+    row: number;
+    id: string;
+    status: "created" | "skipped" | "error";
+    error?: string;
+  }> = [];
+
+  for (let idx = 0; idx < rows.length; idx++) {
+    const r = rows[idx];
+    const id = (r.id || "").trim();
+    const rarity = Math.trunc(Number(r.rarity));
+    const sortOrder = Math.trunc(Number(r.sort_order)) || 0;
+
+    if (!/^[a-zA-Z0-9_]{1,40}$/.test(id)) {
+      results.push({ row: idx + 2, id, status: "error", error: "idの形式が不正です" });
+      continue;
+    }
+    if (!(rarity >= 1 && rarity <= 4)) {
+      results.push({
+        row: idx + 2,
+        id,
+        status: "error",
+        error: "rarityは1〜4で指定してください",
+      });
+      continue;
+    }
+    const existing = await env.DB.prepare("SELECT id FROM species WHERE id = ?1")
+      .bind(id)
+      .first();
+    if (existing) {
+      results.push({ row: idx + 2, id, status: "skipped", error: "既に存在するidです" });
+      continue;
+    }
+
+    const stmts = [
+      env.DB.prepare(
+        "INSERT INTO species (id, name_key, rarity, sort_order) VALUES (?1,?1,?2,?3)",
+      ).bind(id, rarity, sortOrder),
+    ];
+    for (const lang of SPECIES_CSV_LANGS) {
+      const name = (r[`name_${lang}`] || "").trim();
+      if (!name) continue;
+      const desc = (r[`desc_${lang}`] || "").trim() || null;
+      stmts.push(
+        env.DB.prepare(
+          "INSERT INTO species_i18n (species_id, lang, name, desc) VALUES (?1,?2,?3,?4)",
+        ).bind(id, lang, name, desc),
+      );
+    }
+    stmts.push(
+      logAdminAction(env, admin, "species_csv_import", id, { rarity, sortOrder }),
+    );
+    await env.DB.batch(stmts);
+    results.push({ row: idx + 2, id, status: "created" });
+  }
+
+  return Response.json({ ok: true, results });
 }
 
 export async function adminSpeciesImage(

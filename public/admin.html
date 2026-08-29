@@ -397,6 +397,31 @@
           </table>
         </div>
         <p class="status-msg" id="posts-status"></p>
+
+        <form class="species-form" id="posts-csv-form" style="margin-top: 24px">
+          <label class="field" for="posts-csv-file" data-i18n="admin.posts_csv_label"
+            >投稿テキストCSV一括編集</label
+          >
+          <p class="hint" data-i18n="admin.posts_csv_hint">
+            列: post_id,original_text,translated_text,lang_pair,what_it_says,whats_weird,status,flagged
+            (post_id以外は空欄ならそのまま変更しません)
+          </p>
+          <input type="file" id="posts-csv-file" accept=".csv,text/csv" required />
+          <button type="submit" data-i18n="admin.csv_import_btn">CSVをインポート</button>
+        </form>
+        <div class="table-wrap" id="posts-csv-result-wrap" hidden>
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="admin.col_row">行</th>
+                <th>post_id</th>
+                <th data-i18n="admin.col_csv_status">結果</th>
+                <th data-i18n="admin.col_csv_error">詳細</th>
+              </tr>
+            </thead>
+            <tbody id="posts-csv-result-tbody"></tbody>
+          </table>
+        </div>
       </div>
 
       <!-- リーダーボード -->
@@ -447,12 +472,16 @@
         <form class="species-form" id="species-form">
           <label class="field" for="species-id" data-i18n="admin.species_id_label">id(英数字/アンダースコア)</label>
           <input type="text" id="species-id" required />
-          <label class="field" for="species-name-key" data-i18n="admin.species_name_key_label"
-            >name_key</label
+          <label class="field" for="species-name-ja" data-i18n="admin.species_name_ja_label"
+            >表示名(日本語)</label
           >
-          <input type="text" id="species-name-key" required />
-          <p class="hint" data-i18n="admin.species_name_key_hint">
-            表示名・説明文はこのキーに対応する翻訳をロケールファイルに追加するまで反映されません。
+          <input type="text" id="species-name-ja" />
+          <label class="field" for="species-desc-ja" data-i18n="admin.species_desc_ja_label"
+            >説明文(日本語・任意)</label
+          >
+          <input type="text" id="species-desc-ja" />
+          <p class="hint" data-i18n="admin.species_ja_only_hint">
+            日本語以外の表示名・説明文は下のCSV一括登録で追加できます。
           </p>
           <label class="field" for="species-rarity" data-i18n="admin.species_rarity_label">レア度</label>
           <select id="species-rarity">
@@ -477,6 +506,30 @@
           <button type="submit" data-i18n="admin.species_image_btn">画像をアップロード</button>
         </form>
         <p class="status-msg" id="species-status"></p>
+
+        <form class="species-form" id="species-csv-form" style="margin-top: 24px">
+          <label class="field" for="species-csv-file" data-i18n="admin.species_csv_label"
+            >キャラCSV一括登録</label
+          >
+          <p class="hint" data-i18n="admin.species_csv_hint">
+            列: id,rarity,sort_order,name_ja,desc_ja,name_en,desc_en,name_zh,desc_zh,name_ko,desc_ko,name_fr,desc_fr,name_es,desc_es
+          </p>
+          <input type="file" id="species-csv-file" accept=".csv,text/csv" required />
+          <button type="submit" data-i18n="admin.csv_import_btn">CSVをインポート</button>
+        </form>
+        <div class="table-wrap" id="species-csv-result-wrap" hidden>
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="admin.col_row">行</th>
+                <th>id</th>
+                <th data-i18n="admin.col_csv_status">結果</th>
+                <th data-i18n="admin.col_csv_error">詳細</th>
+              </tr>
+            </thead>
+            <tbody id="species-csv-result-tbody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -825,7 +878,8 @@
             headers: { "content-type": "application/json" },
             body: JSON.stringify({
               id: $("species-id").value.trim(),
-              name_key: $("species-name-key").value.trim(),
+              name_ja: $("species-name-ja").value.trim(),
+              desc_ja: $("species-desc-ja").value.trim(),
               rarity: Number($("species-rarity").value),
               sort_order: Number($("species-sort").value) || 0,
             }),
@@ -859,6 +913,76 @@
           $("species-image-form").reset();
         } catch (e2) {
           $("species-status").textContent = e2.message;
+        }
+      });
+
+      function renderCsvResults(tbodyId, wrapId, results, idKey) {
+        $(tbodyId).innerHTML = results
+          .map(
+            (r) => `
+              <tr>
+                <td>${r.row}</td>
+                <td>${escapeHtml(r[idKey] || "")}</td>
+                <td>${escapeHtml(r.status)}</td>
+                <td>${escapeHtml(r.error || "")}</td>
+              </tr>`,
+          )
+          .join("");
+        $(wrapId).hidden = false;
+      }
+
+      $("species-csv-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const file = $("species-csv-file").files[0];
+        if (!file) return;
+        $("species-status").textContent = t("common.loading");
+        try {
+          const fd = new FormData();
+          fd.append("file", file);
+          const res = await fetch("/api/admin/species/csv-import", {
+            method: "POST",
+            body: fd,
+          });
+          const j = await res.json();
+          if (!j.ok) throw new Error(j.error);
+          $("species-status").textContent = "";
+          renderCsvResults(
+            "species-csv-result-tbody",
+            "species-csv-result-wrap",
+            j.results,
+            "id",
+          );
+          $("species-csv-form").reset();
+        } catch (e2) {
+          $("species-status").textContent = e2.message;
+        }
+      });
+
+      $("posts-csv-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const file = $("posts-csv-file").files[0];
+        if (!file) return;
+        $("posts-status").textContent = t("common.loading");
+        try {
+          const fd = new FormData();
+          fd.append("file", file);
+          const res = await fetch("/api/admin/posts/csv-import", {
+            method: "POST",
+            body: fd,
+          });
+          const j = await res.json();
+          if (!j.ok) throw new Error(j.error);
+          $("posts-status").textContent = "";
+          renderCsvResults(
+            "posts-csv-result-tbody",
+            "posts-csv-result-wrap",
+            j.results,
+            "post_id",
+          );
+          $("posts-csv-form").reset();
+          loadPosts();
+        } catch (e2) {
+          $("posts-status").textContent = e2.message;
         }
       });
 

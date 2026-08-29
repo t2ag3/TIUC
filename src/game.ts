@@ -234,6 +234,7 @@ export async function gameGachaPull(
   const body = await request.json<Record<string, unknown>>();
   const userId = String(body.user_id || "");
   const times = Math.trunc(Number(body.times));
+  const lang = String(body.lang || "ja");
   if (!UUID_RE.test(userId)) return bad("ユーザーIDが不正です");
   if (!GACHA_ALLOWED_TIMES.has(times)) return bad("timesは1か5で指定してください");
 
@@ -275,10 +276,17 @@ export async function gameGachaPull(
     ),
   );
 
+  const i18nMap = await fetchSpeciesI18nMap(env, lang);
   const results = drops.map((d) => {
     const isNew = !owned.has(d.speciesId);
     owned.add(d.speciesId);
-    return { ...dropPayload(d), is_new: isNew };
+    const i18n = i18nMap.get(d.speciesId);
+    return {
+      ...dropPayload(d),
+      name: i18n?.name ?? d.nameKey,
+      desc: i18n?.desc ?? null,
+      is_new: isNew,
+    };
   });
 
   const remaining = await env.DB.prepare(
@@ -539,14 +547,44 @@ export async function gameEncyclopedia(
 // 合成に必要な同ティア枚数。1→2は2枚、2→3は3枚(ユーザー指示、2026-08-27)。★4への合成経路は無い。
 const SYNTHESIS_REQUIREMENTS: Record<number, number> = { 1: 2, 2: 3 };
 
+// キャラ名・説明文の言語解決(migrations/0020でD1化。ユーザー指示、2026-08-29)。
+// UI言語はクライアント側(localStorage)にしか無いため、呼び出し側が明示的にlangを渡す必要がある。
+const VALID_SPECIES_LANGS = new Set(["ja", "en", "zh", "ko", "fr", "es"]);
+
+async function fetchSpeciesI18nMap(
+  env: AppEnv,
+  lang: string,
+): Promise<Map<string, { name: string; desc: string | null }>> {
+  const targetLang = VALID_SPECIES_LANGS.has(lang) ? lang : "ja";
+  const rows = await env.DB.prepare(
+    "SELECT species_id, lang, name, desc FROM species_i18n WHERE lang IN (?1, 'ja')",
+  )
+    .bind(targetLang)
+    .all<{ species_id: string; lang: string; name: string; desc: string | null }>();
+
+  const map = new Map<string, { name: string; desc: string | null }>();
+  // 先にjaで埋め、targetLangがja以外ならそれで上書きする(targetLang優先、無ければjaにフォールバック)
+  for (const r of rows.results) {
+    if (r.lang === "ja") map.set(r.species_id, { name: r.name, desc: r.desc });
+  }
+  if (targetLang !== "ja") {
+    for (const r of rows.results) {
+      if (r.lang === targetLang) map.set(r.species_id, { name: r.name, desc: r.desc });
+    }
+  }
+  return map;
+}
+
 export async function gameCollection(
   request: Request,
   env: AppEnv,
 ): Promise<Response> {
-  const userId = String(new URL(request.url).searchParams.get("user_id") || "");
+  const url = new URL(request.url);
+  const userId = String(url.searchParams.get("user_id") || "");
   if (!UUID_RE.test(userId)) return bad("ユーザーIDが不正です");
+  const lang = String(url.searchParams.get("lang") || "ja");
 
-  const [speciesRows, ownedRows] = await Promise.all([
+  const [speciesRows, ownedRows, i18nMap] = await Promise.all([
     env.DB.prepare(
       "SELECT id, name_key, rarity, sort_order FROM species ORDER BY sort_order",
     ).all<{ id: string; name_key: string; rarity: number; sort_order: number }>(),
@@ -555,6 +593,7 @@ export async function gameCollection(
     )
       .bind(userId)
       .all<{ species_id: string; rarity: number; count: number; first_at: number }>(),
+    fetchSpeciesI18nMap(env, lang),
   ]);
 
   type Agg = {
@@ -581,9 +620,11 @@ export async function gameCollection(
   // rarity は表示用(未所持なら種族の基本レア度、所持していれば合成込みの最高到達ティア)。
   const species = speciesRows.results.map((s) => {
     const owned = bySpecies.get(s.id);
+    const i18n = i18nMap.get(s.id);
     return {
       id: s.id,
-      name_key: s.name_key,
+      name: i18n?.name ?? s.name_key,
+      desc: i18n?.desc ?? null,
       rarity: owned ? owned.maxRarity : s.rarity,
       sort_order: s.sort_order,
       count: owned?.total ?? 0,

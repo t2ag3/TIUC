@@ -330,7 +330,7 @@
 
     <script type="module">
       import { getUserId, bootstrapAuth } from "./auth.js";
-      import { t, applyI18n, initLangSwitcher } from "./i18n.js";
+      import { t, applyI18n, initLangSwitcher, getLang } from "./i18n.js";
       import "./track.js";
 
       applyI18n();
@@ -359,9 +359,9 @@
 
       async function load() {
         const [collectionRes, charRes] = await Promise.all([
-          fetch(`/api/game/collection?user_id=${userId}`).then((r) =>
-            r.json(),
-          ),
+          fetch(
+            `/api/game/collection?user_id=${userId}&lang=${getLang()}`,
+          ).then((r) => r.json()),
           fetch(`/api/game/character?user_id=${userId}`).then((r) =>
             r.json(),
           ),
@@ -377,7 +377,7 @@
           .map((s) => {
             const locked = s.count <= 0;
             // 未取得はレア度も名前も伏せる（背景色でレアが分かってしまうのを防ぐ）
-            const name = locked ? "???" : t(`game.species.${s.name_key}.name`);
+            const name = locked ? "???" : s.name;
             const badge =
               !locked && s.rarity >= 4
                 ? `<div class="badge">SPECIAL</div>`
@@ -406,10 +406,8 @@
         const s = species.find((x) => x.id === id);
         if (!s) return;
         const locked = s.count <= 0;
-        const name = locked ? "???" : t(`game.species.${s.name_key}.name`);
-        const desc = locked
-          ? t("collection.locked_desc")
-          : t(`game.species.${s.name_key}.desc`);
+        const name = locked ? "???" : s.name;
+        const desc = locked ? t("collection.locked_desc") : s.desc || "";
         const selected = s.id === currentDisplaySpeciesId;
         const artClass = locked ? "locked" : `r${s.rarity}`;
 
