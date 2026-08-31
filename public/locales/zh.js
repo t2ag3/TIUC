@@ -41,7 +41,7 @@ export default {
   "index.stat_adopted_label": "街头实际修正数",
   "index.hero_scroll_cue": "向下滚动，了解玩法 ↓",
   "index.hero_note_ja": "本日は工事中です。",
-  "index.hero_note_cap": "← 二条城的真实招牌。你看出哪里怪了吗？",
+  "index.hero_note_cap": "← 这是二条城的公告栏，发现哪里奇怪了吗？",
   "index.section_participate_title": "参与",
   "index.section_participate_sub": "从力所能及的一件事开始。",
   "index.mode_report_title": "发现",
