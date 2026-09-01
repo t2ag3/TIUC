@@ -6,7 +6,7 @@ import {
   POST_PLACE_KINDS,
   UUID_RE,
 } from "./config";
-import { getVerifiedAdminEmail } from "./auth";
+import { getVerifiedAdmin } from "./auth";
 import { bad } from "./utils";
 import type { AppEnv } from "./types";
 
@@ -16,13 +16,15 @@ import type { AppEnv } from "./types";
 // 破壊的な操作(削除・手動修正・ポイント調整・種族登録)はすべてadmin_audit_logに記録する。
 // =====================================================================
 
+type Admin = { userId: string; email: string };
+
 async function requireAdmin(
   request: Request,
   env: AppEnv,
-): Promise<string | Response> {
-  const email = await getVerifiedAdminEmail(request, env);
-  if (!email) return bad("管理者権限がありません", 403);
-  return email;
+): Promise<Admin | Response> {
+  const admin = await getVerifiedAdmin(request, env);
+  if (!admin) return bad("管理者権限がありません", 403);
+  return admin;
 }
 
 function logAdminAction(
@@ -114,8 +116,8 @@ export async function adminWhoami(
   request: Request,
   env: AppEnv,
 ): Promise<Response> {
-  const email = await getVerifiedAdminEmail(request, env);
-  return Response.json({ ok: true, admin: !!email, email: email || null });
+  const admin = await getVerifiedAdmin(request, env);
+  return Response.json({ ok: true, admin: !!admin, email: admin?.email || null });
 }
 
 // --- 投稿管理 ---------------------------------------------------------
@@ -131,6 +133,7 @@ export async function adminPostsList(
   const status = String(sp.get("status") || "");
   const langPair = String(sp.get("lang_pair") || "");
   const q = String(sp.get("q") || "").trim();
+  const aiVerdict = String(sp.get("ai_verdict") || "");
   const limit = Math.min(100, Math.max(1, Number(sp.get("limit")) || 30));
   const offset = Math.max(0, Number(sp.get("offset")) || 0);
 
@@ -150,11 +153,17 @@ export async function adminPostsList(
     binds.push(`%${q}%`);
     n++;
   }
+  if (aiVerdict === "pending") {
+    conds.push("ai_verdict IS NULL");
+  } else if (["pass", "review", "reject"].includes(aiVerdict)) {
+    conds.push(`ai_verdict = ?${n++}`);
+    binds.push(aiVerdict);
+  }
   const whereSql = conds.length ? `WHERE ${conds.join(" AND ")}` : "";
 
   const rows = await env.DB.prepare(
     `SELECT id, submitter_id, created_at, lang_pair, place_kind, status,
-            original_text, translated_text, src_thumb_key, flagged
+            original_text, translated_text, src_thumb_key, flagged, ai_verdict
        FROM posts
        ${whereSql}
       ORDER BY created_at DESC
@@ -260,6 +269,15 @@ async function applyPostEditFields(
     sets.push(`flagged = ?${n++}`);
     binds.push(fields.flagged ? 1 : 0);
   }
+  if (typeof fields.ai_verdict === "string") {
+    // AIの誤検知を管理者が手動で戻す/確定させるための上書き(2026-09-02改定)。
+    // 'review'はCHECK制約上は許容されるが現状の判定ロジックからは出ないため、
+    // 手動オーバーライドの選択肢としてのみ意味を持つ。
+    if (!["pass", "review", "reject"].includes(fields.ai_verdict))
+      return { ok: false, error: "ai_verdictの指定が不正です" };
+    sets.push(`ai_verdict = ?${n++}`);
+    binds.push(fields.ai_verdict);
+  }
 
   if (!sets.length) return { ok: false, error: "更新する項目がありません" };
 
@@ -284,7 +302,7 @@ export async function adminPostEdit(
   const postId = String(body.post_id || "");
   if (!postId) return bad("post_id が必要です");
 
-  const result = await applyPostEditFields(env, postId, body, admin);
+  const result = await applyPostEditFields(env, postId, body, admin.email);
   if (!result.ok) return bad(result.error, result.notFound ? 404 : 400);
   return Response.json({ ok: true });
 }
@@ -333,7 +351,7 @@ export async function adminPostsCsvImport(
     }
     if (r.flagged === "0" || r.flagged === "1") fields.flagged = r.flagged === "1";
 
-    const result = await applyPostEditFields(env, postId, fields, admin);
+    const result = await applyPostEditFields(env, postId, fields, admin.email);
     results.push({
       row: idx + 2,
       post_id: postId,
@@ -383,7 +401,7 @@ export async function adminPostDelete(
 
   await env.DB.batch([
     env.DB.prepare("DELETE FROM posts WHERE id = ?1").bind(postId),
-    logAdminAction(env, admin, "post_delete", postId, {
+    logAdminAction(env, admin.email, "post_delete", postId, {
       submitter_id: post.submitter_id,
       status: post.status,
       point_events: points.results,
@@ -399,6 +417,123 @@ export async function adminPostDelete(
     ].filter(Boolean) as Promise<void>[],
   );
 
+  return Response.json({ ok: true });
+}
+
+// 管理画面から修正案(corrections)を直接触れるようにする(ユーザー指示、2026-09-02)。
+// posts側の手動修正(applyPostEditFields)とは独立した単純なCRUD。confirmedに設定しても
+// posts.translated_text/gold_itemsへの自動反映は行わない(correctVoteSubmitの確定カスケードは
+// 実際の投票イベント専用のロジックのため、ここでは複製しない。反映したい場合は同じ編集モーダル内で
+// 投稿側のtranslated_textも管理者が別途編集すればよい)。
+const CORRECTION_VERDICTS = new Set(["fix", "no_issue"]);
+const CORRECTION_STATUSES = new Set(["proposed", "confirmed", "rejected"]);
+
+export async function adminCorrectionUpsert(
+  request: Request,
+  env: AppEnv,
+): Promise<Response> {
+  const admin = await requireAdmin(request, env);
+  if (admin instanceof Response) return admin;
+
+  const body = await request.json<Record<string, unknown>>();
+  const postId = String(body.post_id || "");
+  const correctionId = body.correction_id ? String(body.correction_id) : null;
+  const verdict = String(body.verdict || "fix");
+  const status = String(body.status || "proposed");
+  const fixedText =
+    typeof body.fixed_text === "string"
+      ? body.fixed_text.trim().slice(0, 500) || null
+      : null;
+  const explanation =
+    typeof body.explanation === "string"
+      ? body.explanation.trim().slice(0, 500) || null
+      : null;
+
+  if (!postId) return bad("post_id が必要です");
+  if (!CORRECTION_VERDICTS.has(verdict)) return bad("verdictの指定が不正です");
+  if (!CORRECTION_STATUSES.has(status)) return bad("statusの指定が不正です");
+  if (verdict === "fix" && !fixedText)
+    return bad("verdict='fix'の場合はfixed_textが必要です");
+
+  const post = await env.DB.prepare("SELECT id FROM posts WHERE id = ?1")
+    .bind(postId)
+    .first();
+  if (!post) return bad("該当する投稿がありません", 404);
+
+  if (correctionId) {
+    const existing = await env.DB.prepare(
+      "SELECT id FROM corrections WHERE id = ?1 AND post_id = ?2",
+    )
+      .bind(correctionId, postId)
+      .first();
+    if (!existing) return bad("該当する修正案がありません", 404);
+
+    await env.DB.batch([
+      env.DB.prepare(
+        `UPDATE corrections SET verdict = ?2, fixed_text = ?3, explanation = ?4, status = ?5
+          WHERE id = ?1`,
+      ).bind(correctionId, verdict, fixedText, explanation, status),
+      logAdminAction(env, admin.email, "correction_edit", correctionId, {
+        post_id: postId,
+        verdict,
+        fixedText,
+        explanation,
+        status,
+      }),
+    ]);
+    return Response.json({ ok: true, correction_id: correctionId });
+  }
+
+  const newId = crypto.randomUUID();
+  await env.DB.batch([
+    env.DB.prepare(
+      `INSERT INTO corrections (id, post_id, verdict, fixed_text, explanation, curator_id, status, created_at)
+       VALUES (?1,?2,?3,?4,?5,?6,?7,?8)`,
+    ).bind(
+      newId,
+      postId,
+      verdict,
+      fixedText,
+      explanation,
+      admin.userId,
+      status,
+      Math.floor(Date.now() / 1000),
+    ),
+    logAdminAction(env, admin.email, "correction_create", newId, {
+      post_id: postId,
+      verdict,
+      fixedText,
+      explanation,
+      status,
+    }),
+  ]);
+  return Response.json({ ok: true, correction_id: newId });
+}
+
+export async function adminCorrectionDelete(
+  request: Request,
+  env: AppEnv,
+): Promise<Response> {
+  const admin = await requireAdmin(request, env);
+  if (admin instanceof Response) return admin;
+
+  const body = await request.json<Record<string, unknown>>();
+  const correctionId = String(body.correction_id || "");
+  if (!correctionId) return bad("correction_id が必要です");
+
+  const existing = await env.DB.prepare(
+    "SELECT post_id FROM corrections WHERE id = ?1",
+  )
+    .bind(correctionId)
+    .first<{ post_id: string }>();
+  if (!existing) return bad("該当する修正案がありません", 404);
+
+  await env.DB.batch([
+    env.DB.prepare("DELETE FROM corrections WHERE id = ?1").bind(correctionId),
+    logAdminAction(env, admin.email, "correction_delete", correctionId, {
+      post_id: existing.post_id,
+    }),
+  ]);
   return Response.json({ ok: true });
 }
 
@@ -454,7 +589,7 @@ export async function adminAdjustPoints(
     env.DB.prepare(
       "UPDATE users SET points_total = points_total + ?2 WHERE id = ?1",
     ).bind(userId, delta),
-    logAdminAction(env, admin, "points_adjust", userId, { delta, note }),
+    logAdminAction(env, admin.email, "points_adjust", userId, { delta, note }),
   ]);
 
   return Response.json({ ok: true });
@@ -584,7 +719,7 @@ export async function adminSpeciesCreate(
     );
   }
   stmts.push(
-    logAdminAction(env, admin, "species_create", id, { rarity, sortOrder, nameJa }),
+    logAdminAction(env, admin.email, "species_create", id, { rarity, sortOrder, nameJa }),
   );
   await env.DB.batch(stmts);
 
@@ -660,7 +795,7 @@ export async function adminSpeciesCsvImport(
       );
     }
     stmts.push(
-      logAdminAction(env, admin, "species_csv_import", id, { rarity, sortOrder }),
+      logAdminAction(env, admin.email, "species_csv_import", id, { rarity, sortOrder }),
     );
     await env.DB.batch(stmts);
     results.push({ row: idx + 2, id, status: "created" });
@@ -694,7 +829,7 @@ export async function adminSpeciesImage(
   await env.PHOTOS.put(`species/${id}.png`, file.stream(), {
     httpMetadata: { contentType: "image/png" },
   });
-  await logAdminAction(env, admin, "species_image", id, null).run();
+  await logAdminAction(env, admin.email, "species_image", id, null).run();
 
   return Response.json({ ok: true });
 }

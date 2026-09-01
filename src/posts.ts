@@ -12,16 +12,41 @@ import {
 } from "./config";
 
 import { bad, nextStreakCount, sha256Short } from "./utils";
-import { analyzeSignPhoto } from "./moderation";
+import { classifySensitivePhoto, extractSignInfo } from "./moderation";
 import type { AppEnv } from "./types";
 
 // =====================================================================
 // ①撮影投稿モード
 // =====================================================================
 
+// point_events経由でcharacters.character_pointsを自動加算するトリガー
+// (migrations/0019)と同じく、この関数の結果は投稿行のUPDATEだけで完結する。
+async function runSensitivityCheck(
+  env: AppEnv,
+  postId: string,
+  srcFull: File,
+): Promise<void> {
+  const imageBytes = new Uint8Array(await srcFull.arrayBuffer());
+  const result = await classifySensitivePhoto(env, imageBytes);
+  await env.DB.prepare(
+    `UPDATE posts SET ai_verdict = ?2, ai_score = ?3, ai_model = ?4, ai_raw = ?5, ai_at = ?6
+      WHERE id = ?1`,
+  )
+    .bind(
+      postId,
+      result.verdict,
+      result.score,
+      result.model,
+      result.raw,
+      Math.floor(Date.now() / 1000),
+    )
+    .run();
+}
+
 export async function createPost(
   request: Request,
   env: AppEnv,
+  ctx: ExecutionContext,
 ): Promise<Response> {
   const form = await request.formData();
 
@@ -103,16 +128,6 @@ export async function createPost(
     return bad(
       "短時間の投稿が多すぎます。しばらく待ってから再度お試しください",
       429,
-    );
-  }
-
-  // AIによる不適切写真の足切り(多重防御。事前チェックAPIをスキップして直接
-  // ここを叩かれても弾けるようにする。R2/D1への書き込みより前に判定する)
-  const srcBytes = new Uint8Array(await srcFull.arrayBuffer());
-  const analysis = await analyzeSignPhoto(env, srcBytes);
-  if (analysis.inappropriate) {
-    return bad(
-      "写真がうまく認識できませんでした。表記がはっきり写った別の写真を選び直してください",
     );
   }
 
@@ -225,6 +240,10 @@ export async function createPost(
     ).bind(userId, points, newStreak, now, newBest),
   ]);
 
+  // センシティブ画像判定はレスポンスを待たせない(2026-09-02改定：撮影〜送信の同期パスから
+  // 完全に切り離す)。ai_verdictがpassになるまで②③のキューには出ない(src/review.ts側でゲート)。
+  ctx.waitUntil(runSensitivityCheck(env, id, srcFull));
+
   return Response.json({
     ok: true,
     id,
@@ -233,9 +252,10 @@ export async function createPost(
   });
 }
 
-// 撮影直後のAI事前チェック。不適切な写真の足切りと、言語・表記種別のデフォルト値
-// 提案のため、本送信より前に呼ばれる(サムネイル程度の解像度で十分)。
-// ここでの判定はDBに保存しない(あくまで一時的な提案。最終確定はcreatePost)。
+// 撮影直後のOCR的な事前チェック。言語・表記種別のデフォルト値提案のため、本送信より前に
+// 呼ばれる(サムネイル程度の解像度で十分)。不適切判定はここでは行わない(2026-09-02改定：
+// センシティブ判定はcreatePost経由のバックグラウンド処理に一本化し、クライアントには
+// 公開しない)。ここでの判定はDBに保存しない(あくまで一時的な提案)。
 export async function analyzePostPhoto(
   request: Request,
   env: AppEnv,
@@ -247,10 +267,10 @@ export async function analyzePostPhoto(
   const bytes = new Uint8Array(await request.arrayBuffer());
   if (bytes.length === 0) return bad("写真がありません");
 
-  const result = await analyzeSignPhoto(env, bytes);
+  const result = await extractSignInfo(env, bytes);
   return Response.json({
     ok: true,
-    inappropriate: result.inappropriate,
+    has_text: result.hasText,
     lang_pair_guess: result.langPairGuess,
     place_kind_guess: result.placeKindGuess,
   });

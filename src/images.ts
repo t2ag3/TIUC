@@ -1,5 +1,5 @@
 import { UUID_RE } from "./config";
-import { getVerifiedAdminEmail } from "./auth";
+import { getVerifiedAdmin } from "./auth";
 import { bad } from "./utils";
 import type { AppEnv } from "./types";
 
@@ -14,7 +14,7 @@ export async function serveImage(
 
   // 管理画面(投稿の手動修正・削除)は、キュー参加や採用状況に関わらずどの投稿の
   // 写真も閲覧できる必要がある
-  if (!authorized && (await getVerifiedAdminEmail(request, env))) {
+  if (!authorized && (await getVerifiedAdmin(request, env))) {
     authorized = true;
   }
 

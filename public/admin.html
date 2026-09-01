@@ -288,6 +288,25 @@
     .species-form {
       max-width: 360px;
     }
+    .correction-item {
+      border: 1px solid var(--app-line);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: #fafbf9;
+    }
+    #edit-correction-add {
+      width: 100%;
+      margin-top: 4px;
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px dashed var(--app-line);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--app-text);
+      cursor: pointer;
+    }
     .species-form button {
       width: 100%;
       margin-top: 10px;
@@ -378,6 +397,13 @@
             <option value="ja-es" data-i18n="common.pair_label_es">スペイン語</option>
             <option value="ja-hi" data-i18n="common.pair_label_hi">ヒンディー語</option>
           </select>
+          <select id="filter-ai-verdict">
+            <option value="" data-i18n="admin.filter_ai_all">AI判定:すべて</option>
+            <option value="pending" data-i18n="admin.ai_verdict_pending">審査待ち</option>
+            <option value="pass" data-i18n="admin.ai_verdict_pass">問題なし</option>
+            <option value="review" data-i18n="admin.ai_verdict_review">要確認</option>
+            <option value="reject" data-i18n="admin.ai_verdict_reject">不適切</option>
+          </select>
           <input type="text" id="filter-q" data-i18n-placeholder="admin.filter_q_placeholder" placeholder="原文/訳文で検索" />
           <button type="button" id="filter-go" data-i18n="map.search_btn">検索</button>
         </div>
@@ -387,6 +413,7 @@
               <tr>
                 <th></th>
                 <th data-i18n="admin.col_status">状態</th>
+                <th data-i18n="admin.col_ai_verdict">AI判定</th>
                 <th data-i18n="admin.col_lang">言語</th>
                 <th data-i18n="map.row_original">原文</th>
                 <th data-i18n="map.label_unconfirmed_translation">訳文</th>
@@ -642,6 +669,7 @@
         const params = new URLSearchParams();
         if ($("filter-status").value) params.set("status", $("filter-status").value);
         if ($("filter-lang").value) params.set("lang_pair", $("filter-lang").value);
+        if ($("filter-ai-verdict").value) params.set("ai_verdict", $("filter-ai-verdict").value);
         if ($("filter-q").value.trim()) params.set("q", $("filter-q").value.trim());
         try {
           const res = await fetch(`/api/admin/posts?${params}`);
@@ -654,6 +682,7 @@
               <tr class="row-clickable" data-id="${p.id}">
                 <td>${p.src_thumb_key ? `<img class="thumb" src="/img/${p.src_thumb_key}" alt="">` : ""}</td>
                 <td><span class="badge" style="background:${(STATUS_STYLE[p.status] || {}).color || "#8a8478"}">${escapeHtml((STATUS_STYLE[p.status] || {}).label || p.status)}</span></td>
+                <td>${escapeHtml(AI_VERDICT_LABEL[p.ai_verdict] || t("admin.ai_verdict_pending"))}</td>
                 <td>${escapeHtml(LANG_LABEL[p.lang_pair] || p.lang_pair)}</td>
                 <td>${escapeHtml((p.original_text || "").slice(0, 30))}</td>
                 <td>${escapeHtml((p.translated_text || "").slice(0, 30))}</td>
@@ -673,6 +702,81 @@
         if (row) openPostEdit(row.dataset.id);
       });
 
+      const AI_VERDICT_LABEL = {
+        pass: t("admin.ai_verdict_pass"),
+        review: t("admin.ai_verdict_review"),
+        reject: t("admin.ai_verdict_reject"),
+      };
+
+      function correctionItemHtml(c) {
+        return `
+          <div class="correction-item" data-correction-id="${c.id || ""}">
+            <label class="field">${t("curate.verdict_fix")}/${t("curate.verdict_no_issue")}</label>
+            <select class="corr-verdict">
+              <option value="fix" ${c.verdict !== "no_issue" ? "selected" : ""}>${t("curate.verdict_fix")}</option>
+              <option value="no_issue" ${c.verdict === "no_issue" ? "selected" : ""}>${t("curate.verdict_no_issue")}</option>
+            </select>
+            <label class="field">${t("curate.label_fixed")}</label>
+            <input type="text" class="corr-fixed" value="${escapeHtml(c.fixed_text || "")}">
+            <label class="field">${t("curate.label_explanation")}</label>
+            <textarea class="corr-explanation" rows="2">${escapeHtml(c.explanation || "")}</textarea>
+            <label class="field">${t("admin.col_status")}</label>
+            <select class="corr-status">
+              <option value="proposed" ${c.status === "proposed" ? "selected" : ""}>proposed</option>
+              <option value="confirmed" ${c.status === "confirmed" ? "selected" : ""}>confirmed</option>
+              <option value="rejected" ${c.status === "rejected" ? "selected" : ""}>rejected</option>
+            </select>
+            <div class="modal-actions">
+              <button type="button" class="corr-save">${t("common.save")}</button>
+              ${c.id ? `<button type="button" class="corr-delete">${t("common.delete")}</button>` : ""}
+            </div>
+          </div>
+        `;
+      }
+
+      function wireCorrectionItem(el, postId) {
+        el.querySelector(".corr-save").addEventListener("click", async () => {
+          const correctionId = el.dataset.correctionId || null;
+          try {
+            const res = await fetch("/api/admin/corrections/upsert", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                post_id: postId,
+                correction_id: correctionId,
+                verdict: el.querySelector(".corr-verdict").value,
+                fixed_text: el.querySelector(".corr-fixed").value,
+                explanation: el.querySelector(".corr-explanation").value,
+                status: el.querySelector(".corr-status").value,
+              }),
+            });
+            const j = await res.json();
+            if (!j.ok) throw new Error(j.error);
+            openPostEdit(postId);
+          } catch (e) {
+            alert(e.message);
+          }
+        });
+        const delBtn = el.querySelector(".corr-delete");
+        if (delBtn) {
+          delBtn.addEventListener("click", async () => {
+            if (!confirm(t("admin.confirm_delete"))) return;
+            try {
+              const res = await fetch("/api/admin/corrections/delete", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ correction_id: el.dataset.correctionId }),
+              });
+              const j = await res.json();
+              if (!j.ok) throw new Error(j.error);
+              openPostEdit(postId);
+            } catch (e) {
+              alert(e.message);
+            }
+          });
+        }
+      }
+
       async function openPostEdit(postId) {
         $("edit-body").innerHTML = t("common.loading");
         $("edit-overlay").hidden = false;
@@ -689,6 +793,10 @@
             <input type="text" id="edit-original">
             <label class="field">${t("map.label_unconfirmed_translation")}</label>
             <input type="text" id="edit-translated">
+            <label class="field">${t("report.what_it_says_legend")}</label>
+            <input type="text" id="edit-what-it-says">
+            <label class="field">${t("report.whats_weird_legend")}</label>
+            <input type="text" id="edit-whats-weird">
             <label class="field">${t("admin.col_status")}</label>
             <select id="edit-status">
               ${Object.keys(STATUS_STYLE)
@@ -707,17 +815,46 @@
                 )
                 .join("")}
             </select>
-            <p class="hint">${t("admin.judgments_label")}: ${j.judgments.length} / ${t("admin.corrections_label")}: ${j.corrections.length}</p>
+            <label class="field">${t("admin.col_ai_verdict")}</label>
+            <select id="edit-ai-verdict">
+              <option value="" ${!p.ai_verdict ? "selected" : ""}>${t("admin.ai_verdict_pending")}</option>
+              ${Object.entries(AI_VERDICT_LABEL)
+                .map(
+                  ([k, label]) =>
+                    `<option value="${k}" ${k === p.ai_verdict ? "selected" : ""}>${escapeHtml(label)}</option>`,
+                )
+                .join("")}
+            </select>
+            <p class="hint">${t("admin.judgments_label")}: ${j.judgments.length}</p>
             <div class="modal-actions">
               <button type="button" id="edit-save">${t("common.save")}</button>
               <button type="button" id="edit-delete">${t("common.delete")}</button>
             </div>
             <p class="status-msg" id="edit-status-msg"></p>
+
+            <h3 style="font-size: 13px; margin: 18px 0 8px" data-i18n="admin.corrections_section_title">${t("admin.corrections_section_title")}</h3>
+            <div id="edit-corrections"></div>
+            <button type="button" id="edit-correction-add">${t("admin.correction_add_btn")}</button>
           `;
           $("edit-original").value = p.original_text || "";
           $("edit-translated").value = p.translated_text || "";
+          $("edit-what-it-says").value = p.what_it_says || "";
+          $("edit-whats-weird").value = p.whats_weird || "";
           $("edit-save").addEventListener("click", () => savePostEdit(postId));
           $("edit-delete").addEventListener("click", () => deletePost(postId));
+
+          const correctionsEl = $("edit-corrections");
+          for (const c of j.corrections) {
+            correctionsEl.insertAdjacentHTML("beforeend", correctionItemHtml(c));
+            wireCorrectionItem(correctionsEl.lastElementChild, postId);
+          }
+          $("edit-correction-add").addEventListener("click", () => {
+            correctionsEl.insertAdjacentHTML(
+              "beforeend",
+              correctionItemHtml({ verdict: "fix", status: "proposed" }),
+            );
+            wireCorrectionItem(correctionsEl.lastElementChild, postId);
+          });
         } catch (e) {
           $("edit-body").innerHTML = `<p class="status-msg">${escapeHtml(e.message)}</p>`;
         }
@@ -732,16 +869,21 @@
       async function savePostEdit(postId) {
         $("edit-status-msg").textContent = t("common.loading");
         try {
+          const payload = {
+            post_id: postId,
+            original_text: $("edit-original").value,
+            translated_text: $("edit-translated").value,
+            what_it_says: $("edit-what-it-says").value,
+            whats_weird: $("edit-whats-weird").value,
+            status: $("edit-status").value,
+            lang_pair: $("edit-lang").value,
+          };
+          const aiVerdict = $("edit-ai-verdict").value;
+          if (aiVerdict) payload.ai_verdict = aiVerdict;
           const res = await fetch("/api/admin/posts/edit", {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify({
-              post_id: postId,
-              original_text: $("edit-original").value,
-              translated_text: $("edit-translated").value,
-              status: $("edit-status").value,
-              lang_pair: $("edit-lang").value,
-            }),
+            body: JSON.stringify(payload),
           });
           const j = await res.json();
           if (!j.ok) throw new Error(j.error);

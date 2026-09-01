@@ -7,6 +7,8 @@ import { authMe, googleAuthCallback, googleAuthStart } from "./auth";
 import {
   adminActivity,
   adminAdjustPoints,
+  adminCorrectionDelete,
+  adminCorrectionUpsert,
   adminLeaderboard,
   adminPageviews,
   adminPostDelete,
@@ -50,12 +52,17 @@ import {
   judgeNext,
   judgeSubmit,
 } from "./review";
+import { correctSuggest } from "./suggest";
 import { mypage } from "./user";
 import { bad } from "./utils";
 import type { AppEnv, CookieAttrs } from "./types";
 
 export default {
-  async fetch(request: Request, env: AppEnv): Promise<Response> {
+  async fetch(
+    request: Request,
+    env: AppEnv,
+    ctx: ExecutionContext,
+  ): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
     const cookieAttrs: CookieAttrs =
@@ -64,7 +71,7 @@ export default {
     try {
       // --- ①撮影投稿 ---
       if (path === "/api/posts" && request.method === "POST")
-        return await createPost(request, env);
+        return await createPost(request, env, ctx);
       if (path === "/api/posts/analyze" && request.method === "POST")
         return await analyzePostPhoto(request, env);
       if (path === "/api/posts/delete" && request.method === "POST")
@@ -89,6 +96,8 @@ export default {
         return await correctVoteNext(request, env);
       if (path === "/api/correct/vote/submit" && request.method === "POST")
         return await correctVoteSubmit(request, env);
+      if (path === "/api/correct/suggest" && request.method === "GET")
+        return await correctSuggest(request, env);
 
       // --- ゲーム層(Kubiaka由来 / 翻訳ドメイン用に再設計) ---
       if (path === "/api/game/character" && request.method === "GET")
@@ -147,6 +156,10 @@ export default {
         return await adminPostDelete(request, env);
       if (path === "/api/admin/posts/csv-import" && request.method === "POST")
         return await adminPostsCsvImport(request, env);
+      if (path === "/api/admin/corrections/upsert" && request.method === "POST")
+        return await adminCorrectionUpsert(request, env);
+      if (path === "/api/admin/corrections/delete" && request.method === "POST")
+        return await adminCorrectionDelete(request, env);
       if (path === "/api/admin/leaderboard" && request.method === "GET")
         return await adminLeaderboard(request, env);
       if (path === "/api/admin/users/adjust_points" && request.method === "POST")

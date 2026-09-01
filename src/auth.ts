@@ -204,10 +204,10 @@ export async function googleAuthCallback(
 // ADMIN_EMAILSシークレット(カンマ区切り)に含まれる場合のみそのemailを返す。
 // 新しいログイン系統は作らず、既存のGoogleログイン基盤にメール許可リストを乗せるだけ。
 // =====================================================================
-export async function getVerifiedAdminEmail(
+export async function getVerifiedAdmin(
   request: Request,
   env: AppEnv,
-): Promise<string | null> {
+): Promise<{ userId: string; email: string } | null> {
   const userId = await readUserSession(request, env);
   if (!userId) return null;
 
@@ -225,7 +225,7 @@ export async function getVerifiedAdminEmail(
     .bind(userId)
     .first<{ email: string | null }>();
   if (!row?.email || !allowed.has(row.email.toLowerCase())) return null;
-  return row.email;
+  return { userId, email: row.email };
 }
 
 export async function authMe(request: Request, env: AppEnv): Promise<Response> {

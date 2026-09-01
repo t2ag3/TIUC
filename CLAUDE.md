@@ -282,7 +282,9 @@ posts.status:
 
 **（2026-08-29追加）運営向け管理画面（`admin.html`）の認証**：ユーザー④（店）とは別の、開発チーム内部向けの
 権限。新しいログイン系統は作らず、既存のGoogleログイン基盤に`ADMIN_EMAILS`シークレット（カンマ区切りの
-許可メールアドレスリスト）を乗せるだけ（`src/auth.ts`の`getVerifiedAdminEmail()`）。`/api/admin/*`の
+許可メールアドレスリスト）を乗せるだけ（`src/auth.ts`の`getVerifiedAdmin()`。2026-09-02改定で
+返り値を`{userId, email}`に変更——管理者自身のuserIdが必要な操作（correction作成のcurator_id等）が
+増えたため）。`/api/admin/*`の
 全エンドポイントと`src/images.ts`の画像配信（管理画面はどのステータスの投稿写真も見られる必要があるため）が
 これを使う。本番の`ADMIN_EMAILS`はCloudflareダッシュボードのSecretとして別途設定が必要
 （ユーザー自身の管理者用Googleアカウントのメールアドレスを登録してもらうこと。このファイルでは設定できない）。
@@ -301,6 +303,51 @@ posts.status:
 ## 現在地（2026-08-25 時点）
 
 1〜6のうち、道場・OCR前処理・適応難易度（rule9が明言する「後発機能」）を除いてひととおり動く状態。
+
+**（2026-09-02改定）AI判定の非同期化・OCR/センシティブ判定の分離 + 管理画面の修正案編集 +
+AI修正提案を追加（ユーザー指示、2026-09-02）**。
+- **AI判定を撮影〜送信の同期パスから完全に切り離した**：これまで`createPost`（最終送信）が
+  R2/D1書き込みより前に不適切写真判定のVision AI呼び出しを同期実行しており、これが投稿完了までの
+  レイテンシに直接乗っていた。`src/index.ts`の`fetch`ハンドラに`ExecutionContext`(`ctx`)を追加し、
+  `createPost`は投稿を即座にINSERT・成功レスポンスを返した**直後**に
+  `ctx.waitUntil(runSensitivityCheck(...))`でバックグラウンド実行するよう変更（投稿はAIを待たない。
+  `wrangler dev`で応答時間が実測0.06秒程度になることを確認）。判定結果は元々未使用のまま存在していた
+  `posts.ai_verdict`/`ai_score`/`ai_model`/`ai_raw`/`ai_at`列（migrations/0008）にそのまま書き込む
+  ため、新規マイグレーションは不要だった。
+- **OCR的な処理とセンシティブ判定を分離**：`src/moderation.ts`を`extractSignInfo`（文字の有無・
+  言語・表記種別の推測。クライアント起動の`POST /api/posts/analyze`用、不適切判定は含まない）と
+  `classifySensitivePhoto`（不適切画像か否かの判定のみ。`createPost`からのバックグラウンド実行専用、
+  クライアントに公開するエンドポイントは持たない）に分割した。どちらもfail-open（AI不調時は
+  投稿を止めない）。`report.html`の`analyzePhoto()`から、旧`j.inappropriate`による投稿差し戻し処理
+  （Step1へ強制的に引き戻す分岐）を丸ごと削除——センシティブ判定がサーバ専用の非同期処理になった
+  ため、フロントからは「不適切」概念自体が見えなくなった。
+- **②③のレビューキューをAI判定でゲート**：`src/review.ts`の`judgeNext`/`correctNext`のWHERE句に
+  `(ai_verdict = 'pass' OR (ai_at IS NULL AND created_at < ?N - 60))`を追加。AI一次フィルタリングが
+  完了していない投稿は他ユーザ（判定者・キュレーター）に出さない。ただし`waitUntil`が万一実行
+  されなかった場合に投稿が永久に詰まらないよう、60秒のフェイルオープン猶予を設けている
+  （`wrangler dev`でai_verdict=NULL・reject・pass・60秒超過の4パターンをDB直接操作で検証済み）。
+  **`map.html`のピン表示（rule1、2026-08-22改定）は意図的に対象外のまま変更していない**
+  （ユーザー確認済み：②③のキューのみ隠す）。
+- **管理画面から修正案(corrections)を直接編集できるようにした**：`src/admin.ts`の`requireAdmin`の
+  返り値を`email`文字列から`{userId, email}`に変更（管理者が新規correctionを作る際の`curator_id`
+  （NOT NULL）に必要）。新規`POST /api/admin/corrections/upsert`（作成/更新）・
+  `POST /api/admin/corrections/delete`を追加。posts側の`translated_text`自動反映や`gold_items`昇格は
+  行わない疎結合設計（それが必要なら同じ編集モーダル内で投稿側も別途編集すればよい）。
+  あわせて`applyPostEditFields`の編集可能フィールドに`what_it_says`/`whats_weird`（従来投稿時にしか
+  設定できなかった）と`ai_verdict`（AIの誤検知を管理者が手動で戻す/確定させる用）を追加。
+  `admin.html`の投稿編集モーダルに、修正案の一覧を編集可能な小フォーム群として表示（追加・保存・削除）、
+  投稿一覧にAI判定列・フィルタも追加した。
+- **curate.htmlにAI修正提案ボタンを追加**：新規`src/suggest.ts`の`suggestCorrection`
+  （`@cf/meta/llama-3.3-70b-instruct-fp8-fast`使用）が原文・現在の訳文・言語ペアから自然な訳文案と
+  一言説明をJSONで生成する。新規`GET /api/correct/suggest`は`correctNext`（キュー取得）には含めず、
+  キュレーターが「🤖 AIの提案を見る」を能動的に押した時だけオンデマンドで呼ぶ（キュー取得ごとに
+  AI遅延が乗るのを避けるため）。取得した提案は`fixed-text`/`explanation`欄に**下書きとして**
+  反映するのみで自動送信はせず、rule4通りキュレーター自身が確認・編集してから提出する。
+  `wrangler dev`で実際に「会計をお願いします」→「Can I have the bill, please?」のような
+  妥当な提案が返ることを確認済み。
+- 全経路について`wrangler dev`＋実データでAPIレベルの検証を実施済み（テストデータは削除・
+  本番未投入）。i18nキー整合性チェックも6言語通過。実ブラウザでのボタン操作・モーダル表示の確認は
+  今回もブラウザ操作ツールが使えずできていない。
 
 **（2026-08-29六改定）キャラ名/説明文をD1化 + キャラCSV一括登録・投稿テキストCSV一括編集を追加
 （ユーザー指示、2026-08-29）**。
@@ -796,7 +843,8 @@ posts.status:
 2. levelsの実装（重みの計算・display_rankのヒステリシス・降格時の道場誘導）。
 3. quality_checks（誰でもサブモード）の専用UI（現状はテーブル/API未使用）。
 4. 道場（gold_itemsを使った練習・実効レベルの引き上げ）。
-5. OCR前処理（Workers AIで原文/訳文の下書き抽出。断定はさせない）。
+5. OCR前処理の本体（原文/訳文の**文字起こし**の下書き抽出。2026-09-02改定で「文字の有無・言語・
+   表記種別の推測」までは`extractSignInfo`として実装済みだが、実際の文字内容の書き起こしは未着手）。
 6. 適応難易度（判定の分散から難易度帯を算出。データが溜まってから）。
 
 ## AI コーディングエージェントと進めるときのコツ（Claude Code / opencode 共通）`[流用/変更]`

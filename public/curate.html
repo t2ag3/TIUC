@@ -226,6 +226,31 @@
       background: #c3c9c2;
       cursor: default;
     }
+    .ai-suggest-btn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--color-secondary, #214f69);
+      background: var(--color-secondary-soft, #e8f1f8);
+      border: 1px solid #b9d0e0;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    .ai-suggest-btn:hover:not(:disabled) {
+      background: #dbeaf4;
+    }
+    .ai-suggest-btn:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+    #ai-suggest-status {
+      font-size: 11px;
+      color: var(--app-muted);
+      margin: 4px 0 0;
+      text-align: center;
+    }
     .skip-btn {
       display: flex;
       align-items: center;
@@ -471,6 +496,10 @@
                 >なぜ変か(任意)</label
               >
               <textarea id="explanation" rows="2" maxlength="500"></textarea>
+              <button type="button" id="ai-suggest-btn" class="ai-suggest-btn">
+                🤖 <span data-i18n="curate.ai_suggest_btn">AIの提案を見る</span>
+              </button>
+              <p class="hint" id="ai-suggest-status"></p>
             </div>
             <button
               type="button"
@@ -737,6 +766,7 @@
               $("translated-text").value = currentPost.translated_text || "";
               $("fixed-text").value = "";
               $("explanation").value = "";
+              $("ai-suggest-status").textContent = "";
               document.querySelector(
                 "input[name=verdict][value=fix]",
               ).checked = true;
@@ -751,6 +781,31 @@
         $("skip-fix").addEventListener("click", () => {
           if (currentPost) seenFix.push(currentPost.post_id);
           loadFixNext();
+        });
+
+        // AIによる修正文言のサジェスト(2026-09-02改定・ユーザー指示)。rule4通り、
+        // ここで埋まるのはあくまで下書き。押した時だけオンデマンドで取得し、
+        // 最終的な採用・編集はキュレーター自身が行う(自動送信はしない)。
+        $("ai-suggest-btn").addEventListener("click", async () => {
+          if (!currentPost) return;
+          $("ai-suggest-btn").disabled = true;
+          $("ai-suggest-status").textContent = t("curate.ai_suggest_loading");
+          try {
+            const res = await fetch(
+              `/api/correct/suggest?${new URLSearchParams({ user_id: userId, post_id: currentPost.post_id })}`,
+            );
+            const j = await res.json();
+            if (!j.ok) throw new Error(j.error);
+            if (j.fixed_text) $("fixed-text").value = j.fixed_text;
+            if (j.explanation) $("explanation").value = j.explanation;
+            $("ai-suggest-status").textContent = j.fixed_text
+              ? t("curate.ai_suggest_done")
+              : t("curate.ai_suggest_empty");
+          } catch (e) {
+            $("ai-suggest-status").textContent = e.message;
+          } finally {
+            $("ai-suggest-btn").disabled = false;
+          }
         });
 
         $("submit-fix").addEventListener("click", async () => {

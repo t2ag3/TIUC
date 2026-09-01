@@ -956,18 +956,6 @@
               { method: "POST", body: thumbBlob },
             );
             const j = await res.json();
-            if (j.ok && j.inappropriate) {
-              state.srcFull = null;
-              state.srcThumb = null;
-              $("file-src").value = "";
-              $("preview-src").innerHTML = "";
-              $("src-status").innerHTML =
-                `<span class="warn">${t("report.ai_rejected")}</span>`;
-              // 次へ導線を止めていない間に先へ進んでいた場合は、Step1へ引き戻して
-              // 却下理由を必ず目に入るようにする
-              showStep(1);
-              return;
-            }
             if (j.ok) {
               state.langGuess = j.lang_pair_guess;
               state.placeGuess = j.place_kind_guess;

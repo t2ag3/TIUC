@@ -38,8 +38,15 @@ export async function judgeNext(
     .filter((s) => /^[0-9a-f-]{36}$/.test(s))
     .slice(0, 20);
   const excludeSql = exclude.length
-    ? `AND p.id NOT IN (${exclude.map((_, i) => `?${i + 3}`).join(",")})`
+    ? `AND p.id NOT IN (${exclude.map((_, i) => `?${i + 4}`).join(",")})`
     : "";
+  const now = Math.floor(Date.now() / 1000);
+
+  // AI一次フィルタリング(センシティブ画像判定)が完了していない投稿はキューに出さない
+  // (2026-09-02改定・ユーザー指示)。ただしwaitUntilが万一走らなかった場合に投稿が
+  // 永久に詰まらないよう、60秒経ってもai_atが埋まっていなければフェイルオープンで出す。
+  const AI_GATE_SQL =
+    "AND (p.ai_verdict = 'pass' OR (p.ai_at IS NULL AND p.created_at < ?3 - 60))";
 
   const row = await env.DB.prepare(
     `SELECT p.id, p.src_thumb_key, p.tgt_thumb_key, p.situation, p.place_kind,
@@ -47,11 +54,12 @@ export async function judgeNext(
        FROM posts p
       WHERE p.status = 'pending_judgment' AND p.lang_pair = ?2 AND p.submitter_id <> ?1
         AND NOT EXISTS (SELECT 1 FROM judgments j2 WHERE j2.post_id = p.id AND j2.judge_id = ?1)
+        ${AI_GATE_SQL}
         ${excludeSql}
       ORDER BY judge_count ASC, p.review_priority ASC, p.created_at ASC
       LIMIT 1`,
   )
-    .bind(userId, langPair, ...exclude)
+    .bind(userId, langPair, now, ...exclude)
     .first();
 
   if (!row) return Response.json({ ok: true, post: null });
@@ -195,8 +203,15 @@ export async function correctNext(
     .filter((s) => /^[0-9a-f-]{36}$/.test(s))
     .slice(0, 20);
   const excludeSql = exclude.length
-    ? `AND posts.id NOT IN (${exclude.map((_, i) => `?${i + 3}`).join(",")})`
+    ? `AND posts.id NOT IN (${exclude.map((_, i) => `?${i + 4}`).join(",")})`
     : "";
+  const now = Math.floor(Date.now() / 1000);
+
+  // AI一次フィルタリング未完了の投稿はキューに出さない(judgeNextと同じゲート。needs_fixは
+  // 通常②を経由するため既に通過済みのはずだが、管理者がstatusを直接書き換える抜け道への
+  // 防御として同じ条件をここにも足す)。60秒のフェイルオープン猶予も同様。
+  const AI_GATE_SQL =
+    "AND (posts.ai_verdict = 'pass' OR (posts.ai_at IS NULL AND posts.created_at < ?3 - 60))";
 
   // 誰かの提案が既にあり自分がまだ投票していないものは、その提案idも一緒に返す
   // (無ければ新規提案フォームを、あれば投票UIをフロント側で出し分けるため)
@@ -210,11 +225,12 @@ export async function correctNext(
        FROM posts
       WHERE status = 'needs_fix' AND lang_pair = ?2 AND submitter_id <> ?1
         AND NOT EXISTS (SELECT 1 FROM corrections c WHERE c.post_id = posts.id AND c.curator_id = ?1)
+        ${AI_GATE_SQL}
         ${excludeSql}
       ORDER BY review_priority ASC, created_at ASC
       LIMIT 1`,
   )
-    .bind(userId, langPair, ...exclude)
+    .bind(userId, langPair, now, ...exclude)
     .first<{
       id: string;
       src_image_key: string;
