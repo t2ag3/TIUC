@@ -1,0 +1,69 @@
+name: Preview Deployment
+
+# main 以外のブランチへの push でプレビュー版を作る。
+# wrangler versions upload は「バージョンを上げるだけ」で本番トラフィックには影響しない。
+on:
+  push:
+    branches-ignore: [main]
+
+concurrency:
+  group: preview-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # ブランチ名をプレビューURLに使えるエイリアスに変換する。
+      # feat/adopt-flow → feat-adopt-flow （英数字とハイフンのみ・小文字・短く）
+      - name: Build alias from branch name
+        id: alias
+        run: |
+          RAW="${GITHUB_REF_NAME}"
+          ALIAS=$(echo "$RAW" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\+/-/g' | sed 's/^-//;s/-$//' | cut -c1-40)
+          echo "alias=$ALIAS" >> $GITHUB_OUTPUT
+          echo "url=https://${ALIAS}-tiuc.tokyo-odh-135.workers.dev" >> $GITHUB_OUTPUT
+
+      - name: Upload preview version
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: versions upload --preview-alias ${{ steps.alias.outputs.alias }}
+
+      # 対応するPRがあればコメントする（同じ内容で上書き更新）
+      - name: Comment preview URL on PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          URL: ${{ steps.alias.outputs.url }}
+        run: |
+          PR=$(gh pr list --head "${GITHUB_REF_NAME}" --json number --jq '.[0].number' || true)
+          if [ -z "$PR" ]; then
+            echo "対応するPRがないのでコメントはスキップします"
+            exit 0
+          fi
+          BODY=$(cat <<EOF
+          ### プレビュー
+          $URL
+
+          コミット \`${GITHUB_SHA:0:7}\` の内容です。このブランチにpushするたびに、同じURLが最新版に更新されます。
+
+          > 本番のD1・R2をそのまま参照します。ここでの投稿や修正は**本番データに入ります**。動作確認用のデータは確認後に消してください。
+          EOF
+          )
+          # 既存のプレビューコメントがあれば消してから貼り直す
+          gh pr comment "$PR" --body "$BODY"
