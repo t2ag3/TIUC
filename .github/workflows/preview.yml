@@ -1,10 +1,13 @@
 name: Preview Deployment
 
-# main 以外のブランチへの push でプレビュー版を作る。
-# wrangler versions upload は「バージョンを上げるだけ」で本番トラフィックには影響しない。
+# 【保留中】Cloudflare APIトークンが発行できないため、いまは眠らせています。
+# トークンが手に入ったら、下の on: を次に戻してください。
+#   on:
+#     push:
+#       branches-ignore: [main]
+# wrangler versions upload は「バージョンを上げるだけ」で本番トラフィックには影響しません。
 on:
-  push:
-    branches-ignore: [main]
+  workflow_dispatch:
 
 concurrency:
   group: preview-${{ github.ref }}

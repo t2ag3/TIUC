@@ -22,13 +22,14 @@ TIUC の開発に参加する人向けの決めごとです。短く保ちます
 # 小さい変更
 git switch main && git pull
 npx wrangler dev   # 実際にブラウザで動かして確認
-git push           # → 型チェックが通れば自動で本番へ
+git push
 
-# レビュー・プレビューが欲しいとき
+# レビューが欲しいとき
 git switch -c feat/なにをやるか
 git push -u origin feat/なにをやるか
-# PRを作ると、プレビューURLがコメントされます
 ```
+
+**push しても本番には反映されません。** デプロイは手動です（下記）。
 
 - ブランチ名は `feat/` `fix/` `docs/` `chore/` で始める
 - PR本文に `Closes #12` と書くとマージ時にIssueが自動で閉じます
@@ -51,50 +52,49 @@ git push -u origin feat/なにをやるか
 
 ## デプロイ
 
-**自動です。** main が更新されると、GitHub Actions（`.github/workflows/deploy.yml`）が
-型チェック → 本番D1へのマイグレーション適用 → `wrangler deploy` を実行します。
-直接 push でもPRマージでも同じ。状況は Actions タブで見られます。
+**手動です。`git push` だけでは本番に反映されません。**
 
-**型チェック（`tsc --noEmit`）が落ちたら、そこで止まって本番には反映されません。**
-main への直接 push を許可しているぶん、これが最後のゲートです。
+Cloudflareのアカウントは主催者から提供されているもので、私たちのロールでは API Token の発行も
+Workers Builds の利用もできません。そのため自動デプロイが組めず、`npx wrangler deploy` の
+手動実行が唯一の手段です。Cloudflareのチームに入っていれば誰でも実行できます。
+
+```bash
+# 1. Actions タブで main の CI が緑か確認
+git switch main && git pull      # 2. 必ずこれをやってから
+npx wrangler deploy              # 3. デプロイ
+git rev-parse --short HEAD       # 4. 出た値をチャットに流す
+```
+
+1. **デプロイは main からのみ。** `wrangler deploy` はローカルの作業ツリーをそのまま本番に上げます。作業ブランチから叩くとコミットしていない変更まで乗りますし、**古いローカルmainから叩くと他の人がデプロイした最新版を黙って巻き戻します**（誰も気づきません）
+2. **デプロイしたらチャットに1行流す。** 「デプロイしました `a1b2c3d`」だけでいい
+3. **本番D1へのマイグレーション適用は、そのコードが main に乗った後にだけ。** 順序は push → `npx wrangler d1 migrations apply tiuc-db --remote` → `npx wrangler deploy`
+
+### デプロイ前にCIを見る
+
+main への直接 push を許可しているので、壊れたコードが main に乗ることがあります。
+`ci.yml` が push のたびに型チェックを回しているので、**デプロイ前に Actions タブで
+main が緑かどうかだけ確認してください。**
 
 ### 壊してしまったとき
 
 ```bash
 git switch main && git pull
 git revert <壊したコミットのハッシュ>
-git push          # → 自動で元の状態が本番にデプロイされます
+git push
+npx wrangler deploy          # 忘れずに。手動なので自動では戻りません
 ```
 
-**「壊したら戻せる」ので、直接 push を怖がる必要はありません。**
-
-### ただしマイグレーションは戻りません
-
-**`migrations/` に置いたSQLは、mainに乗った瞬間に本番D1へ適用されます。**
-コードは revert で戻せますが、**適用済みのマイグレーションは revert では戻りません。**
+**適用済みのマイグレーションは revert では戻りません。**
 列を消すSQLを流したら、そのデータは消えたままです。
+`migrations/` を触るときだけはPRにして、誰かに見てもらってください。
 
-破壊的な変更（テーブル再作成、列削除など）を書くときは、PRにして誰かに見てもらってください。
-ここだけは直接 push しないほうが安全です。
+### 自動デプロイ（保留中）
 
-### 手で叩きたくなったとき
-
-緊急時やActionsが不調なときは手動でもできます（Cloudflareのチームに入っていれば誰でも）。
-ただし**必ず main から**。
-
-```bash
-git switch main && git pull      # 必ずこれをやってから
-npx wrangler deploy
-```
-
-`wrangler deploy` はローカルの作業ツリーをそのまま本番に上げるため、作業ブランチから叩くと
-コミットしていない変更まで本番に乗ります。また **古いローカルmainから叩くと、
-Actionsがデプロイした最新版を黙って巻き戻します。** 誰も気づかないので、これが一番怖い事故です。
-手動で叩いたときは、チャットに「手動デプロイしました `a1b2c3d`」と一言流してください。
+`deploy.yml` と `preview.yml` は用意済みですが、Cloudflare APIトークンが発行できないため
+手動実行のみの設定で眠らせています。トークンが手に入り次第、Secret に入れて `on:` を戻せば動きます。
 
 > ハッカソン特典の Cloudflare Paidプラン相当は原則2026年9月末までですが、
 > Final Stage進出チームは継続して使えます。
-> 進出できなかった場合は無料枠に戻るので、無料枠に収まる設計自体は維持してください。
 
 ## 完了の定義（DoD）
 

@@ -1,9 +1,17 @@
 name: Deploy to Cloudflare Workers
 
-# main が更新されたら走る。PR経由でも直接 push でも同じ。
+# 【保留中】Cloudflare APIトークンが発行できないため、いまは眠らせています。
+# 主催者提供のアカウントで私たちのロールではトークンを作れず、
+# CLOUDFLARE_API_TOKEN が無いので実行しても認証エラーで落ちます。
+# 事務局からアカウント所有のトークンをもらえたら、
+#   1. Secret に CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID を登録
+#   2. 下の on: を次に戻す
+#        on:
+#          push:
+#            branches: [main]
+#          workflow_dispatch:
+# それまでは手動で `npx wrangler deploy`（必ず main から）。
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -36,14 +44,14 @@ jobs:
       - name: Apply D1 migrations (production)
         uses: cloudflare/wrangler-action@v3
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API }}
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: d1 migrations apply tiuc-db --remote
 
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API }}
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
 

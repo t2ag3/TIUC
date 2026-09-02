@@ -1,5 +1,8 @@
 name: CI
 
+# これは Cloudflare の認証情報を使わないので、いまの権限のままで動きます。
+# main への直接 push を許可しているため、壊れたコードが main に乗ることがあります。
+# **デプロイ（手動）の前に、Actions タブで main が緑かどうか確認してください。**
 on:
   pull_request:
   push:
