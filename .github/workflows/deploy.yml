@@ -1,0 +1,49 @@
+name: Deploy to Cloudflare Workers
+
+# main が更新されたときだけ走る。手動実行もできる。
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# 同時に2つのデプロイが走らないようにする（後勝ちで古いものはキャンセル）
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # 本番D1にマイグレーションを適用してから deploy する。
+      # 「DBには列があるがコードは知らない」「その逆」を構造的に防ぐため、
+      # マージ → migration → deploy の順序をここで固定している。
+      - name: Apply D1 migrations (production)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 migrations apply tiuc-db --remote
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+
+      - name: Summary
+        run: |
+          echo "### デプロイ完了" >> $GITHUB_STEP_SUMMARY
+          echo "コミット: \`${GITHUB_SHA:0:7}\`" >> $GITHUB_STEP_SUMMARY
+          echo "https://tiuc.tokyo-odh-135.workers.dev" >> $GITHUB_STEP_SUMMARY

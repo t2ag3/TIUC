@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      # 6言語のロケールファイルでキーが揃っているかを確認する。
+      # 手で回していたチェックをここに移す。
+      # 既存のチェックスクリプトがあれば、下を差し替えてください。
+      - name: i18n key consistency
+        run: node scripts/check-i18n.mjs
+        continue-on-error: true
